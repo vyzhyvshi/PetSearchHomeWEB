@@ -1,7 +1,13 @@
+using PetSearchHome_WEB.Application.Services;
+using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Infrastructure.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<IListingRepository, InMemoryListingRepository>();
+builder.Services.AddScoped<ListingService>();
 
 var app = builder.Build();
 

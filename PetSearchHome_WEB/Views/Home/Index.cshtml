@@ -1,8 +1,32 @@
-ï»¿@{
-    ViewData["Title"] = "Home Page";
+@model PetSearchHome_WEB.Models.Home.HomeIndexViewModel
+@{
+    ViewData["Title"] = "Pet Search Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h1 class="display-5">Find a new friend</h1>
+        <p class="lead">Featured pets looking for a home.</p>
+    </div>
+
+    <div class="row g-3">
+        @foreach (var listing in Model.FeaturedListings)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title mb-1">@listing.Title</h5>
+                            @if (listing.IsUrgent)
+                            {
+                                <span class="badge bg-danger">Urgent</span>
+                            }
+                        </div>
+                        <p class="card-subtitle text-muted mb-2">@listing.AnimalType · @listing.Location</p>
+                        <p class="small text-secondary mb-0">Listed @listing.ListedAt.LocalDateTime.ToShortDateString()</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>

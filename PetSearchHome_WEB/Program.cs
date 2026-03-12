@@ -1,10 +1,19 @@
+<<<<<<< HEAD
 using Serilog;
+=======
+using PetSearchHome_WEB.Application.Services;
+using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Infrastructure.Repositories;
+
+>>>>>>> 2d3808504d8f0acee7cf517c02daa1786164e85a
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<IListingRepository, InMemoryListingRepository>();
+builder.Services.AddScoped<ListingService>();
 
 var app = builder.Build();
 

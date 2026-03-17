@@ -2,8 +2,11 @@ using PetSearchHome_WEB.Application.Services;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Infrastructure.Repositories;
 using PetSearchHome_WEB.Infrastructure.Logging;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, lc) => lc.ReadFrom.Configuration(ctx.Configuration));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

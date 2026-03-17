@@ -1,6 +1,7 @@
 using PetSearchHome_WEB.Application.Services;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Infrastructure.Repositories;
+using PetSearchHome_WEB.Infrastructure.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IListingRepository, InMemoryListingRepository>();
 builder.Services.AddScoped<ListingService>();
+
+builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 
 var app = builder.Build();
 

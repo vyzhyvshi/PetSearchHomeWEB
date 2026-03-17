@@ -1,5 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <ItemGroup>
+    <ProjectReference Include="..\PetSearchHome.Domain\PetSearchHome.Domain.csproj" />
+    <ProjectReference Include="..\PetSearchHome.Application\PetSearchHome.Application.csproj" />
+    <ProjectReference Include="..\PetSearchHome.Infrastructure\PetSearchHome.Infrastructure.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>

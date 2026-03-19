@@ -1,10 +1,11 @@
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Infrastructure.Repositories
 {
 
-    public class InMemoryListingRepository : IListingRepository
+    public class InMemoryListingRepository : IListingRepository, ISearchGateway
     {
         private readonly List<PetListing> _listings;
 
@@ -96,6 +97,34 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         {
             _listings.RemoveAll(x => x.Id == id);
             return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<PetListing>> SearchAsync(SearchFilters filters, CancellationToken cancellationToken = default)
+        {
+            IEnumerable<PetListing> query = _listings;
+
+            if (!string.IsNullOrWhiteSpace(filters.AnimalType))
+            {
+                query = query.Where(l => string.Equals(l.AnimalType, filters.AnimalType, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.Location))
+            {
+                query = query.Where(l => l.Location.Contains(filters.Location, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (filters.IsUrgent.HasValue)
+            {
+                query = query.Where(l => l.IsUrgent == filters.IsUrgent.Value);
+            }
+
+            var results = query
+                .OrderByDescending(l => l.IsUrgent)
+                .ThenByDescending(l => l.ListedAt)
+                .ToList()
+                .AsReadOnly();
+
+            return Task.FromResult<IReadOnlyList<PetListing>>(results);
         }
 
         private static List<PetListing> Seed()

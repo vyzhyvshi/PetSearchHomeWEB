@@ -3,6 +3,9 @@ using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Infrastructure.Repositories;
 using PetSearchHome_WEB.Infrastructure.Logging;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
+using PetSearchHome_WEB.Infrastructure.Persistence;
+using PetSearchHome_WEB.Application.Catalog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,10 +13,17 @@ builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<IListingRepository, InMemoryListingRepository>();
+builder.Services.AddSingleton<InMemoryListingRepository>();
+builder.Services.AddSingleton<IListingRepository>(sp => sp.GetRequiredService<InMemoryListingRepository>());
+builder.Services.AddSingleton<ISearchGateway>(sp => sp.GetRequiredService<InMemoryListingRepository>());
 builder.Services.AddScoped<ListingService>();
 
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
+builder.Services.AddScoped<SearchAnimalsUseCase>();
+builder.Services.AddScoped<ViewListingDetailUseCase>();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+       options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

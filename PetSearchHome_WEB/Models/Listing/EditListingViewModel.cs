@@ -2,13 +2,15 @@
 
 namespace PetSearchHome_WEB.Models.Listing
 {
-    public class CreateListingViewModel
+    public class EditListingViewModel
     {
+        public Guid Id { get; set; }
+
         [Required(ErrorMessage = "Введіть заголовок оголошення")]
         [MaxLength(100)]
         public string Title { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Вкажіть вид тварини")]
+        [Required(ErrorMessage = "Вкажіть вид тварини (наприклад, Кіт, Собака)")]
         [MaxLength(50)]
         public string AnimalType { get; set; } = string.Empty;
 

@@ -3,6 +3,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Infrastructure.Repositories
 {
+
     public class InMemoryListingRepository : IListingRepository
     {
         private readonly List<PetListing> _listings;
@@ -40,6 +41,16 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
             return Task.FromResult<IReadOnlyList<PetListing>>(results);
         }
+        public Task<IReadOnlyList<PetListing>> ListByStatusAsync(Domain.ValueObjects.ListingStatus status, CancellationToken cancellationToken = default)
+        {
+            var results = _listings
+                .Where(x => x.Status == status)
+                .OrderByDescending(x => x.ListedAt)
+                .ToList()
+                .AsReadOnly();
+
+            return Task.FromResult<IReadOnlyList<PetListing>>(results);
+        }
 
         public Task AddAsync(PetListing listing, CancellationToken cancellationToken = default)
         {
@@ -58,6 +69,16 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             });
 
             return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<PetListing>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+        {
+            var results = _listings
+                .Where(x => ids.Contains(x.Id))
+                .ToList()
+                .AsReadOnly();
+
+            return Task.FromResult<IReadOnlyList<PetListing>>(results);
         }
 
         public Task UpdateAsync(PetListing listing, CancellationToken cancellationToken = default)

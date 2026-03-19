@@ -6,8 +6,41 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 {
     public class InMemorySearchGateway : ISearchGateway
     {
+        private readonly List<PetListing> _listings;
+
+        public InMemorySearchGateway()
+        {
+            _listings = new List<PetListing>
+            {
+                new PetListing
+                {
+                    Id = Guid.Parse("dd284e4c-4f2f-4a0c-8986-1a78a2bf0000"),
+                    Title = "Rocky (Лабрадор)",
+                    AnimalType = "Dog",
+                    Location = "Kyiv"
+                },
+                new PetListing
+                {
+                    Id = Guid.Parse("a3e42b80-7aba-44a4-9d1f-ede2a2900000"),
+                    Title = "Mira (Британська короткошерста)",
+                    AnimalType = "Cat",
+                    Location = "Lviv"
+                },
+                new PetListing
+                {
+                    Id = Guid.Parse("0fdff0e9-5d8a-45fa-87bc-ded9c7d34300"),
+                    Title = "Nora",
+                    AnimalType = "Dog",
+                    Location = "Odesa"
+                }
+            };
+        }
+
         public Task<IReadOnlyList<PetListing>> SearchAsync(SearchFilters filters, CancellationToken cancellationToken = default)
-            => Task.FromResult<IReadOnlyList<PetListing>>(new List<PetListing>());
+        {
+            // Повертаємо наш список. Поки що без фільтрації, просто віддаємо всіх.
+            return Task.FromResult<IReadOnlyList<PetListing>>(_listings);
+        }
     }
 
     public class InMemoryUserRepository : IUserRepository

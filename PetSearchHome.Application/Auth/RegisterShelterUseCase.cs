@@ -1,4 +1,4 @@
-using PetSearchHome_WEB.Application.Shared;
+﻿using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
@@ -22,6 +22,11 @@ namespace PetSearchHome_WEB.Application.Auth
         {
             if (authContext.Role == Role.Guest || authContext.Role == Role.Admin)
             {
+                var existingUser = await _users.GetByEmailAsync(request.Email, cancellationToken);
+                if (existingUser != null)
+                {
+                    throw new Exception("Користувач з таким email вже існує.");
+                }
                 var user = new User
                 {
                     Email = request.Email,

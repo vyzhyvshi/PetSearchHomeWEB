@@ -1,75 +1,53 @@
 @model PetSearchHome_WEB.Models.Auth.RegisterShelterViewModel
 @{
-    ViewData["Title"] = "Реєстрація (Притулок)";
+    ViewData["Title"] = "Реєстрація притулку";
 }
 
-@await Html.PartialAsync("_AuthStyles")
+<div class="container py-5" style="max-width: 520px;">
+    <h1 class="h3 mb-4 text-center">Реєстрація притулку</h1>
 
-<div class="auth-theme">
-    <div class="container auth-viewport">
-        <div class="auth-grid">
-            <section class="auth-hero-card">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="auth-chip">Реєстрація</span>
-                    <span class="auth-chip auth-chip--accent">Притулок</span>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-action="RegisterShelter" method="post" class="vstack gap-3">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+                <div>
+                    <label asp-for="ShelterName" class="form-label">Назва притулку</label>
+                    <input asp-for="ShelterName" class="form-control" autocomplete="organization" />
+                    <span asp-validation-for="ShelterName" class="text-danger small"></span>
                 </div>
-                <h1 class="h3 mb-2">Підключення притулку</h1>
-                <p class="mb-3 auth-small">
-                    Створіть обліковий запис організації, щоб публікувати тварин, приймати запити та вести статистику.
-                </p>
-                <ul class="auth-list">
-                    <li><span class="badge bg-success-subtle text-success-emphasis">Оголошення</span> Публікація та модерація карток тварин.</li>
-                    <li><span class="badge bg-info-subtle text-info-emphasis">Команда</span> Керування профілем притулку та комунікація.</li>
-                    <li><span class="badge bg-warning-subtle text-warning-emphasis">Довіра</span> Безпечна cookie-автентифікація та контроль доступів.</li>
-                </ul>
-            </section>
 
-            <section class="auth-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div>
-                            <p class="text-uppercase small text-secondary mb-1">Use-case</p>
-                            <h2 class="h4 auth-section-title mb-0">Реєстрація (Притулок)</h2>
-                        </div>
-                        <span class="badge text-bg-primary">Guest → Shelter</span>
+                <div>
+                    <label asp-for="Email" class="form-label">Робочий Email</label>
+                    <input asp-for="Email" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label">Пароль</label>
+                        <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
-
-                    <form asp-action="RegisterShelter" method="post" class="auth-form">
-                        @Html.AntiForgeryToken()
-                        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="ShelterName" class="form-label text-light">Назва притулку</label>
-                            <input asp-for="ShelterName" class="form-control" placeholder="Наприклад, 'Happy Tails'" />
-                            <span asp-validation-for="ShelterName" class="text-danger small"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label text-light">Робочий Email</label>
-                            <input asp-for="Email" class="form-control" placeholder="contact@shelter.org" />
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label text-light">Пароль</label>
-                            <input asp-for="Password" class="form-control" placeholder="Мінімум 6 символів" />
-                            <span asp-validation-for="Password" class="text-danger small"></span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="ConfirmPassword" class="form-label text-light">Підтвердження паролю</label>
-                            <input asp-for="ConfirmPassword" class="form-control" placeholder="Повторіть пароль" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-                        </div>
-
-                        <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <button type="submit" class="btn btn-success px-4">Зареєструвати притулок</button>
-                            <a asp-action="Login" class="btn btn-outline-light">Уже є акаунт</a>
-                            <a asp-action="GuestEntry" class="auth-link ms-auto">Увійти як гість</a>
-                        </div>
-                    </form>
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label">Підтвердження</label>
+                        <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
                 </div>
-            </section>
+
+                <button type="submit" class="btn btn-primary w-100">Зареєструвати притулок</button>
+            </form>
         </div>
     </div>
+
+    <div class="text-center mt-3 d-grid gap-2">
+        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary">Повернутися до входу</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-link">Перейти як гість</a>
+    </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

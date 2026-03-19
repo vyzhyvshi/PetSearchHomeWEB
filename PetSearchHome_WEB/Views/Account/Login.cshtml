@@ -1,70 +1,40 @@
 @model PetSearchHome_WEB.Models.Auth.LoginViewModel
 @{
-    ViewData["Title"] = "Авторизація";
+    ViewData["Title"] = "Вхід";
 }
 
-@await Html.PartialAsync("_AuthStyles")
+<div class="container py-5" style="max-width: 520px;">
+    <h1 class="h3 mb-4 text-center">Вхід</h1>
 
-<div class="auth-theme">
-    <div class="container auth-viewport">
-        <div class="auth-grid">
-            <section class="auth-hero-card">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="auth-chip">Авторизація</span>
-                    <span class="auth-chip auth-chip--accent">Email + пароль</span>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-action="Login" method="post" class="vstack gap-3">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+                <div>
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
-                <h1 class="h3 mb-2">Швидкий вхід у PetSearch Home</h1>
-                <p class="mb-3 auth-small">
-                    Введіть email і пароль, щоб продовжити як гість, приватна особа, притулок або адміністратор.
-                </p>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="role-badge">Гість</span>
-                    <span class="role-badge">Приватна особа</span>
-                    <span class="role-badge">Притулок</span>
-                    <span class="role-badge">Адміністратор</span>
+
+                <div>
+                    <label asp-for="Password" class="form-label">Пароль</label>
+                    <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
                 </div>
-                <ul class="auth-list">
-                    <li><span class="badge bg-success-subtle text-success-emphasis">Live</span> Доступ до особистого кабінету та оголошень.</li>
-                    <li><span class="badge bg-info-subtle text-info-emphasis">UX</span> Інтерфейс адаптований під усі ролі.</li>
-                    <li><span class="badge bg-warning-subtle text-warning-emphasis">Secure</span> Cookie-автентифікація з безпечним токеном.</li>
-                </ul>
-            </section>
 
-            <section class="auth-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div>
-                            <p class="text-uppercase small text-secondary mb-1">Use-case</p>
-                            <h2 class="h4 auth-section-title mb-0">Авторизація (email / пароль)</h2>
-                        </div>
-                        <span class="badge text-bg-primary">Guest · Person · Shelter · Admin</span>
-                    </div>
-
-                    <form asp-action="Login" method="post" class="auth-form">
-                        @Html.AntiForgeryToken()
-                        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label text-light">Email</label>
-                            <input asp-for="Email" class="form-control" placeholder="you@example.com" />
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="Password" class="form-label text-light">Пароль</label>
-                            <input asp-for="Password" class="form-control" placeholder="••••••••" />
-                            <span asp-validation-for="Password" class="text-danger small"></span>
-                        </div>
-
-                        <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <button type="submit" class="btn btn-success px-4">Увійти</button>
-                            <a asp-action="RegisterIndividual" class="btn btn-outline-light">Реєстрація (Приватна особа)</a>
-                            <a asp-action="RegisterShelter" class="btn btn-outline-info">Реєстрація (Притулок)</a>
-                            <a asp-action="GuestEntry" class="auth-link ms-auto">Увійти як гість</a>
-                        </div>
-                    </form>
-                </div>
-            </section>
+                <button type="submit" class="btn btn-primary w-100">Увійти</button>
+            </form>
         </div>
     </div>
+
+    <div class="text-center mt-3 d-grid gap-2">
+        <a asp-controller="Account" asp-action="RegisterIndividual" class="btn btn-outline-primary">Створити акаунт</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-link">Перейти як гість</a>
+    </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

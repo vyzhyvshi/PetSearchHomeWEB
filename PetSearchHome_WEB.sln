@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetSearchHome.Application",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetSearchHome.Infrastructure", "PetSearchHome.Infrastructure\PetSearchHome.Infrastructure.csproj", "{35EEC652-2ABE-4710-9A51-50C13E08648B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetSearchHome.Tests", "PetSearchHome.Tests\PetSearchHome.Tests.csproj", "{3222F51A-5528-4AA1-AA2A-9FC337B349D4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{35EEC652-2ABE-4710-9A51-50C13E08648B}.Release|x64.Build.0 = Release|Any CPU
 		{35EEC652-2ABE-4710-9A51-50C13E08648B}.Release|x86.ActiveCfg = Release|Any CPU
 		{35EEC652-2ABE-4710-9A51-50C13E08648B}.Release|x86.Build.0 = Release|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Debug|x64.Build.0 = Debug|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Debug|x86.Build.0 = Debug|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Release|x64.ActiveCfg = Release|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Release|x64.Build.0 = Release|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Release|x86.ActiveCfg = Release|Any CPU
+		{3222F51A-5528-4AA1-AA2A-9FC337B349D4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

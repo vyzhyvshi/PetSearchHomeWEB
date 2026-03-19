@@ -23,6 +23,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<UserSecretsId>b97093b5-7365-470b-849a-1a92f99bd016</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>

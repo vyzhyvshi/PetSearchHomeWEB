@@ -8,12 +8,9 @@ public class UserEntity
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public Role Role { get; set; } = Role.Person;
-    public DateTime CreatedAt { get; set; }
-        = DateTime.UtcNow;
-    public bool IsActive { get; set; }
-        = true;
-    public bool IsVerified { get; set; }
-        = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsActive { get; set; } = true;
+    public bool IsVerified { get; set; } = false;
 
     public IndividualProfileEntity? IndividualProfile { get; set; }
         = null;

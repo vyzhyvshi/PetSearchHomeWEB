@@ -13,6 +13,7 @@ using Serilog;
 using Microsoft.EntityFrameworkCore;
 using PetSearchHome_WEB.Infrastructure.Persistence;
 using PetSearchHome_WEB.Application.Catalog;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,15 @@ builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/Login";
+    });
+builder.Services.AddAuthorization();
 builder.Services.AddSingleton<InMemoryListingRepository>();
 builder.Services.AddSingleton<IListingRepository>(sp => sp.GetRequiredService<InMemoryListingRepository>());
 builder.Services.AddSingleton<ISearchGateway>(sp => sp.GetRequiredService<InMemoryListingRepository>());
@@ -37,7 +47,7 @@ builder.Services.AddSingleton<IListingRepository, PetSearchHome_WEB.Infrastructu
 builder.Services.AddSingleton<IAuditLogGateway, PetSearchHome_WEB.Infrastructure.Logging.AuditLogGateway>();
 
 builder.Services.AddSingleton<ISearchGateway, PetSearchHome_WEB.Infrastructure.Repositories.InMemorySearchGateway>();
-builder.Services.AddSingleton<IUserRepository, PetSearchHome_WEB.Infrastructure.Repositories.InMemoryUserRepository>();
+builder.Services.AddScoped<IUserRepository, PetSearchHome_WEB.Infrastructure.Repositories.EfUserRepository>();
 builder.Services.AddSingleton<IShelterRepository, PetSearchHome_WEB.Infrastructure.Repositories.InMemoryShelterRepository>();
 builder.Services.AddSingleton<IComplaintRepository, PetSearchHome_WEB.Infrastructure.Repositories.InMemoryComplaintRepository>();
 builder.Services.AddSingleton<IFavoriteRepository, PetSearchHome_WEB.Infrastructure.Repositories.InMemoryFavoriteRepository>();
@@ -99,6 +109,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

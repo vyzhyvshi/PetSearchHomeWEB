@@ -1,0 +1,75 @@
+@model PetSearchHome_WEB.Models.Auth.RegisterIndividualViewModel
+@{
+    ViewData["Title"] = "Реєстрація (Приватна особа)";
+}
+
+@await Html.PartialAsync("_AuthStyles")
+
+<div class="auth-theme">
+    <div class="container auth-viewport">
+        <div class="auth-grid">
+            <section class="auth-hero-card">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="auth-chip">Реєстрація</span>
+                    <span class="auth-chip auth-chip--accent">Приватна особа</span>
+                </div>
+                <h1 class="h3 mb-2">Створіть обліковий запис</h1>
+                <p class="mb-3 auth-small">
+                    Долучайтесь як приватна особа, щоб додавати оголошення, залишати відгуки та взаємодіяти з притулками.
+                </p>
+                <ul class="auth-list">
+                    <li><span class="badge bg-success-subtle text-success-emphasis">Доступ</span> Публікація та редагування оголошень.</li>
+                    <li><span class="badge bg-info-subtle text-info-emphasis">Комунікація</span> Повідомлення, відгуки, обране.</li>
+                    <li><span class="badge bg-warning-subtle text-warning-emphasis">Безпека</span> Cookie-автентифікація і контроль сесії.</li>
+                </ul>
+            </section>
+
+            <section class="auth-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div>
+                            <p class="text-uppercase small text-secondary mb-1">Use-case</p>
+                            <h2 class="h4 auth-section-title mb-0">Реєстрація (Приватна особа)</h2>
+                        </div>
+                        <span class="badge text-bg-primary">Guest → Person</span>
+                    </div>
+
+                    <form asp-action="RegisterIndividual" method="post" class="auth-form">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="DisplayName" class="form-label text-light">Ім'я та прізвище</label>
+                            <input asp-for="DisplayName" class="form-control" placeholder="Ім'я Прізвище" />
+                            <span asp-validation-for="DisplayName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label text-light">Email</label>
+                            <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label text-light">Пароль</label>
+                            <input asp-for="Password" class="form-control" placeholder="Мінімум 6 символів" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label text-light">Підтвердження паролю</label>
+                            <input asp-for="ConfirmPassword" class="form-control" placeholder="Повторіть пароль" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <button type="submit" class="btn btn-success px-4">Зареєструватись</button>
+                            <a asp-action="Login" class="btn btn-outline-light">Уже є акаунт</a>
+                            <a asp-action="GuestEntry" class="auth-link ms-auto">Увійти як гість</a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>

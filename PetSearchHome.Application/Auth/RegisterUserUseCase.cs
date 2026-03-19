@@ -31,7 +31,8 @@ namespace PetSearchHome_WEB.Application.Auth
                 };
 
                 await _users.AddAsync(user, cancellationToken);
-                return user.Id;
+                var persisted = await _users.GetByEmailAsync(request.Email, cancellationToken);
+                return persisted?.Id ?? user.Id;
             }
 
             throw new UnauthorizedAccessException("Cannot register user for this role.");

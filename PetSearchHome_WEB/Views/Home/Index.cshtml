@@ -1,4 +1,4 @@
-@model PetSearchHome_WEB.Models.Home.HomeIndexViewModel
+﻿@model PetSearchHome_WEB.Models.Listing.CatalogViewModel
 @{
     ViewData["Title"] = "Pet Search Home";
 }
@@ -6,11 +6,11 @@
 <div class="container py-4">
     <div class="text-center mb-4">
         <h1 class="display-5">Find a new friend</h1>
-        <p class="lead">Featured pets looking for a home.</p>
+        <p class="lead">Pets looking for a home.</p>
     </div>
 
     <div class="row g-3">
-        @foreach (var listing in Model.FeaturedListings)
+        @foreach (var listing in Model.Results)
         {
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="card h-100 shadow-sm">
@@ -22,8 +22,9 @@
                                 <span class="badge bg-danger">Urgent</span>
                             }
                         </div>
-                        <p class="card-subtitle text-muted mb-2">@listing.AnimalType � @listing.Location</p>
-                        <p class="small text-secondary mb-0">Listed @listing.ListedAt.LocalDateTime.ToShortDateString()</p>
+                        <p class="card-subtitle text-muted mb-2">@listing.AnimalType · @listing.Location</p>
+
+                        <a href="/Home/Details/@listing.Id" class="btn btn-sm btn-outline-primary mt-2">Детальніше</a>
                     </div>
                 </div>
             </div>

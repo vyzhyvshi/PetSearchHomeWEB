@@ -66,11 +66,15 @@ namespace PetSearchHome_WEB.Controllers
                 {
                     new Claim(ClaimTypes.NameIdentifier, response.UserId.ToString()),
                     new Claim(ClaimTypes.Email, model.Email),
-                    new Claim(ClaimTypes.Role, Role.Person.ToString())
+                    new Claim(ClaimTypes.Role, response.Role.ToString())
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var authProperties = new AuthenticationProperties { IsPersistent = true };
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties);
 
 
 

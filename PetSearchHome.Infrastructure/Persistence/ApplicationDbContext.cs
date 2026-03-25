@@ -19,4 +19,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
+
+    internal async Task<object> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }

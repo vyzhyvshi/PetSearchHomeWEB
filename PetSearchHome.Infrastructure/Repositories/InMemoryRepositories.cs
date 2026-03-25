@@ -38,9 +38,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task SetBlockedAsync(Guid userId, bool isBlocked, CancellationToken cancellationToken = default)
+        public Task SetBlockedAsync(Guid id, bool isBlocked, CancellationToken cancellationToken = default)
         {
-            var index = _users.FindIndex(u => u.Id == userId);
+            var index = _users.FindIndex(u => u.Id == id);
             if (index >= 0)
             {
                 var oldUser = _users[index];
@@ -96,7 +96,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
     public class InMemoryComplaintRepository : IComplaintRepository
     {
         private readonly List<Complaint> _complaints = new();
-        public Task UpdateStatusAsync(Guid id, string resolution, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<IReadOnlyList<Complaint>> ListOpenAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<Complaint>>(_complaints);
 
@@ -156,13 +156,13 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
     public class InMemoryNotificationGateway : INotificationGateway
     {
-        public Task NotifyAsync(Guid userId, string message, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task NotifyAsync(Guid recipientId, string message, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     public class SimplePasswordHasher : IPasswordHasher
     {
         public string Hash(string password) => password; // Лише для In-Memory тестування!
-        public bool Verify(string password, string hash) => password == hash;
+        public bool Verify(string password, string hashed) => password == hashed;
     }
 
     public class DummyAuthTokenService : IAuthTokenService

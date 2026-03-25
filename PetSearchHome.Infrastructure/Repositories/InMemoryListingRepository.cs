@@ -17,6 +17,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         public Task<IReadOnlyList<PetListing>> GetFeaturedAsync(int take, CancellationToken cancellationToken = default)
         {
             var featured = _listings
+                .Where(x => x.Status == Domain.ValueObjects.ListingStatus.Published)
                 .OrderByDescending(x => x.IsUrgent)
                 .ThenByDescending(x => x.ListedAt)
                 .Take(take)
@@ -101,7 +102,15 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
         public Task<IReadOnlyList<PetListing>> SearchAsync(SearchFilters filters, CancellationToken cancellationToken = default)
         {
-            IEnumerable<PetListing> query = _listings;
+            IEnumerable<PetListing> query = _listings
+                .Where(l => l.Status == Domain.ValueObjects.ListingStatus.Published);
+
+            if (!string.IsNullOrWhiteSpace(filters.SearchQuery))
+            {
+                query = query.Where(l =>
+                    l.Title.Contains(filters.SearchQuery, StringComparison.OrdinalIgnoreCase)
+                    || (l.Description?.Contains(filters.SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
 
             if (!string.IsNullOrWhiteSpace(filters.AnimalType))
             {

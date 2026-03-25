@@ -96,13 +96,38 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
     public class InMemoryComplaintRepository : IComplaintRepository
     {
         private readonly List<Complaint> _complaints = new();
-        public Task UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken = default)
+        {
+            var index = _complaints.FindIndex(c => c.Id == id);
+            if (index >= 0)
+            {
+                var existing = _complaints[index];
+                _complaints[index] = new Complaint
+                {
+                    Id = existing.Id,
+                    ListingId = existing.ListingId,
+                    ReporterId = existing.ReporterId,
+                    Reason = existing.Reason,
+                    CreatedAt = existing.CreatedAt,
+                    Status = status
+                };
+            }
+
+            return Task.CompletedTask;
+        }
+
         public Task<IReadOnlyList<Complaint>> ListOpenAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult<IReadOnlyList<Complaint>>(_complaints);
+            => Task.FromResult<IReadOnlyList<Complaint>>(
+                _complaints
+                    .Where(c => string.Equals(c.Status, "pending", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToList());
 
         public Task AddAsync(Complaint complaint, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            _complaints.Add(complaint);
+            return Task.CompletedTask;
         }
     }
 

@@ -1,6 +1,6 @@
-﻿@model PetSearchHome_WEB.Models.Listing.CatalogViewModel
+@model PetSearchHome_WEB.Models.Listing.CatalogViewModel
 @{
-    ViewData["Title"] = "Pet Search Home";
+    ViewData["Title"] = "Каталог тварин";
 }
 
 <div class="container py-4">
@@ -8,36 +8,37 @@
         <div class="col-12 col-lg-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white">
-                    <h2 class="h5 mb-0">Find your new friend</h2>
+                    <h2 class="h5 mb-0">Пошук тварин</h2>
                 </div>
                 <div class="card-body">
                     <form asp-action="Index" asp-controller="Home" method="get" class="vstack gap-3">
                         <div>
-                            <label asp-for="Filter.SearchQuery" class="form-label">Keywords</label>
-                            <input asp-for="Filter.SearchQuery" class="form-control" placeholder="cat, small dog, ..." />
+                            <label asp-for="Filter.SearchQuery" class="form-label">Ключові слова</label>
+                            <input asp-for="Filter.SearchQuery" class="form-control" placeholder="порода, вік, характер..." />
                         </div>
                         <div>
-                            <label asp-for="Filter.AnimalType" class="form-label">Animal type</label>
-                            <input asp-for="Filter.AnimalType" class="form-control" placeholder="Dog, Cat, ..." />
+                            <label asp-for="Filter.AnimalType" class="form-label">Тип тварини</label>
+                            <input asp-for="Filter.AnimalType" class="form-control" placeholder="Собака, кіт..." />
                         </div>
                         <div>
-                            <label asp-for="Filter.Location" class="form-label">Location</label>
-                            <input asp-for="Filter.Location" class="form-control" placeholder="City or region" />
+                            <label asp-for="Filter.Location" class="form-label">Локація</label>
+                            <input asp-for="Filter.Location" class="form-control" placeholder="Місто або область" />
                         </div>
                         <div class="form-check">
                             <input asp-for="Filter.OnlyUrgent" class="form-check-input" />
-                            <label asp-for="Filter.OnlyUrgent" class="form-check-label">Urgent only</label>
+                            <label asp-for="Filter.OnlyUrgent" class="form-check-label">Тільки термінові</label>
                         </div>
-                        <button type="submit" class="btn btn-primary">Search</button>
+                        <button type="submit" class="btn btn-primary">Знайти</button>
                     </form>
                 </div>
             </div>
         </div>
+
         <div class="col-12 col-lg-8">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h2 class="h5 mb-1">Search results</h2>
-                    <p class="text-muted mb-0">@Model.Results.Count listing(s) found</p>
+                    <h2 class="h5 mb-1">Результати</h2>
+                    <p class="text-muted mb-0">Знайдено: @Model.Results.Count</p>
                 </div>
             </div>
 
@@ -52,12 +53,20 @@
                                     <div>
                                         <h3 class="h5 mb-1">@listing.Title</h3>
                                         <p class="text-muted mb-1">@listing.AnimalType • @listing.Location</p>
-                                        <small class="text-secondary">Listed @listing.ListedAt.LocalDateTime.ToShortDateString()</small>
+                                        <small class="text-secondary">Опубліковано: @listing.ListedAt.LocalDateTime.ToShortDateString()</small>
                                     </div>
-                                    @if (listing.IsUrgent)
-                                    {
-                                        <span class="badge bg-danger">Urgent</span>
-                                    }
+                                    <div class="text-end">
+                                        @if (listing.IsUrgent)
+                                        {
+                                            <span class="badge bg-danger mb-2 d-inline-block">Терміново</span>
+                                        }
+                                        <div>
+                                            <a class="btn btn-outline-primary btn-sm"
+                                               asp-controller="Home"
+                                               asp-action="Details"
+                                               asp-route-id="@listing.Id">Деталі</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -67,7 +76,7 @@
             else
             {
                 <div class="alert alert-info" role="alert">
-                    No listings match your search yet. Try adjusting the filters.
+                    Нічого не знайдено за поточними фільтрами.
                 </div>
             }
         </div>

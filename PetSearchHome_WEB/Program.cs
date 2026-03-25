@@ -12,7 +12,6 @@ using PetSearchHome_WEB.Infrastructure.Repositories;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
 using PetSearchHome_WEB.Infrastructure.Persistence;
-using PetSearchHome_WEB.Application.Catalog;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);

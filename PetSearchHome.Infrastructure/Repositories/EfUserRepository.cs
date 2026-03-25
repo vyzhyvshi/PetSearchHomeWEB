@@ -46,7 +46,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             };
 
             await _db.Users.AddAsync(entity, cancellationToken);
-            await _db.SaveChangesAsync(cancellationToken);
+            object value = await _db.SaveChangesAsync(cancellationToken);
         }
 
         public async Task UpdateRoleAsync(Guid id, Role role, CancellationToken cancellationToken = default)

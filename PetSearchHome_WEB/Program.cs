@@ -13,6 +13,7 @@ using Serilog;
 using Microsoft.EntityFrameworkCore;
 using PetSearchHome_WEB.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,8 +39,18 @@ builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<SearchAnimalsUseCase>();
 builder.Services.AddScoped<ViewListingDetailUseCase>();
 
+var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DefaultConnection is not configured.");
+var dbPassword = builder.Configuration["Database:Password"];
+var connectionString = string.IsNullOrWhiteSpace(dbPassword)
+    ? baseConnectionString
+    : new NpgsqlConnectionStringBuilder(baseConnectionString)
+    {
+        Password = dbPassword
+    }.ConnectionString;
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-       options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+       options.UseNpgsql(connectionString));
 
 // --- Реєстрація Infrastructure (Репозиторії та Сервіси) ---
 builder.Services.AddSingleton<IListingRepository, PetSearchHome_WEB.Infrastructure.Repositories.InMemoryListingRepository>();
@@ -118,5 +129,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
-app.Run();
+await app.RunAsync();

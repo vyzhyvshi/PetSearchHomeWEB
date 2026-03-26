@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Favorites;
@@ -6,7 +7,9 @@ using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
+using PetSearchHome_WEB.Models;
 using PetSearchHome_WEB.Models.Listing;
+using System.Diagnostics;
 using System.Security.Claims;
 
 namespace PetSearchHome_WEB.Controllers
@@ -42,44 +45,37 @@ namespace PetSearchHome_WEB.Controllers
             var authContext = GetAuthContext();
             _logger.LogInformation(
                 "Catalog accessed by user {UserId}. Query: {SearchQuery}, Location: {Location}",
-                authContext.UserId,
-                filter.SearchQuery,
-                filter.Location);
+                authContext.UserId, filter.SearchQuery, filter.Location);
 
-            try
+            SearchFilters domainFilters = new()
             {
-                var domainFilters = new SearchFilters
-                {
-                    SearchQuery = filter.SearchQuery,
-                    AnimalType = filter.AnimalType,
-                    Location = filter.Location,
-                    IsUrgent = filter.OnlyUrgent ? true : null
-                };
+                SearchQuery = filter.SearchQuery,
+                AnimalType = filter.AnimalType,
+                Location = filter.Location,
+                IsUrgent = filter.OnlyUrgent ? true : null
+            };
 
-                var request = new SearchAnimalsRequest(domainFilters);
-                var listings = await _searchAnimalsUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            SearchAnimalsRequest request = new(domainFilters);
+            var result = await _searchAnimalsUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-                var viewModel = new CatalogViewModel
-                {
-                    Filter = filter,
-                    Results = listings.Select(l => new ListingSummaryViewModel
-                    {
-                        Id = l.Id,
-                        Title = l.Title,
-                        AnimalType = l.AnimalType,
-                        Location = l.Location,
-                        ListedAt = l.ListedAt,
-                        IsUrgent = l.IsUrgent
-                    }).ToList()
-                };
+            // Якщо сталася помилка логіки, показуємо порожній список (або можна додати повідомлення)
+            var listings = result.IsSuccess && result.Value != null ? result.Value : new List<Domain.Entities.PetListing>();
 
-                return View(viewModel);
-            }
-            catch (Exception ex)
+            CatalogViewModel viewModel = new()
             {
-                _logger.LogError(ex, "Error occurred while searching animals.");
-                return View("Error");
-            }
+                Filter = filter,
+                Results = listings.Select(l => new ListingSummaryViewModel
+                {
+                    Id = l.Id,
+                    Title = l.Title,
+                    AnimalType = l.AnimalType,
+                    Location = l.Location,
+                    ListedAt = l.ListedAt,
+                    IsUrgent = l.IsUrgent
+                }).ToList()
+            };
+
+            return View(viewModel);
         }
 
         [HttpGet]
@@ -87,35 +83,29 @@ namespace PetSearchHome_WEB.Controllers
         {
             var authContext = GetAuthContext();
 
-            try
+            ViewListingDetailRequest request = new(id);
+            var result = await _viewListingDetailUseCase.ExecuteAsync(request, authContext, cancellationToken);
+
+            if (!result.IsSuccess || result.Value is null)
             {
-                var request = new ViewListingDetailRequest(id);
-                var listing = await _viewListingDetailUseCase.ExecuteAsync(request, authContext, cancellationToken);
-                if (listing is null)
-                {
-                    _logger.LogWarning("Listing {ListingId} not found or access denied for user {UserId}.", id, authContext.UserId);
-                    return NotFound();
-                }
-
-                var isFavorite = false;
-                if (authContext.UserId.HasValue)
-                {
-                    isFavorite = await _favorites.GetAsync(authContext.UserId.Value, listing.Id, cancellationToken) is not null;
-                }
-
-                var model = new ListingDetailsViewModel
-                {
-                    Listing = listing,
-                    IsFavorite = isFavorite
-                };
-
-                return View(model);
+                _logger.LogWarning("Listing {ListingId} not found or access denied for user {UserId}. Reason: {Reason}", id, authContext.UserId, result.ErrorMessage);
+                return NotFound();
             }
-            catch (Exception ex)
+
+            var listing = result.Value;
+            var isFavorite = false;
+            if (authContext.UserId.HasValue)
             {
-                _logger.LogError(ex, "Error occurred while fetching listing details for {ListingId}.", id);
-                return View("Error");
+                isFavorite = await _favorites.GetAsync(authContext.UserId.Value, listing.Id, cancellationToken) is not null;
             }
+
+            ListingDetailsViewModel model = new()
+            {
+                Listing = listing,
+                IsFavorite = isFavorite
+            };
+
+            return View(model);
         }
 
         [Authorize]
@@ -125,17 +115,19 @@ namespace PetSearchHome_WEB.Controllers
         {
             var authContext = GetAuthContext();
 
-            try
+            ToggleFavoriteRequest request = new(id);
+            var result = await _toggleFavoriteUseCase.ExecuteAsync(request, authContext, cancellationToken);
+
+            if (result.IsSuccess)
             {
-                var isAdded = await _toggleFavoriteUseCase.ExecuteAsync(new ToggleFavoriteRequest(id), authContext, cancellationToken);
-                TempData["SuccessMessage"] = isAdded
+                TempData["SuccessMessage"] = result.Value
                     ? "Оголошення додано в улюблені."
                     : "Оголошення видалено з улюблених.";
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogWarning(ex, "Failed to toggle favorite for listing {ListingId}.", id);
-                TempData["ErrorMessage"] = "Не вдалося оновити улюблені.";
+                _logger.LogWarning("Failed to toggle favorite for listing {ListingId}: {Error}", id, result.ErrorMessage);
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Не вдалося оновити улюблені.";
             }
 
             return RedirectToAction(nameof(Details), new { id });
@@ -148,21 +140,17 @@ namespace PetSearchHome_WEB.Controllers
         {
             var authContext = GetAuthContext();
 
-            try
+            SubmitComplaintRequest request = new(id, reason);
+            var result = await _submitComplaintUseCase.ExecuteAsync(request, authContext, cancellationToken);
+
+            if (result.IsSuccess)
             {
-                var request = new SubmitComplaintRequest(id, reason);
-                await _submitComplaintUseCase.ExecuteAsync(request, authContext, cancellationToken);
                 TempData["SuccessMessage"] = "Скаргу успішно надіслано.";
             }
-            catch (InvalidOperationException ex)
+            else
             {
-                _logger.LogWarning(ex, "Validation error while submitting complaint for listing {ListingId}.", id);
-                TempData["ErrorMessage"] = ex.Message;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to submit complaint for listing {ListingId}.", id);
-                TempData["ErrorMessage"] = "Не вдалося надіслати скаргу.";
+                _logger.LogWarning("Validation error while submitting complaint for listing {ListingId}: {Error}", id, result.ErrorMessage);
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Не вдалося надіслати скаргу.";
             }
 
             return RedirectToAction(nameof(Details), new { id });
@@ -171,14 +159,7 @@ namespace PetSearchHome_WEB.Controllers
         private AuthContext GetAuthContext()
         {
             var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-            if (!isAuthenticated)
-            {
-                return new AuthContext
-                {
-                    UserId = null,
-                    Role = Role.Guest
-                };
-            }
+            if (!isAuthenticated) return new AuthContext { UserId = null, Role = Role.Guest };
 
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(userIdString, out Guid userId);
@@ -190,11 +171,22 @@ namespace PetSearchHome_WEB.Controllers
                 userRole = parsedRole;
             }
 
-            return new AuthContext
+            return new AuthContext { UserId = userId, Role = userRole };
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            var exceptionHandlerPathFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+
+            if (exceptionHandlerPathFeature?.Error != null)
             {
-                UserId = userId,
-                Role = userRole
-            };
+                _logger.LogError(exceptionHandlerPathFeature.Error,
+                    "Глобальний обробник спіймав фатальну помилку на шляху: {Path}",
+                    exceptionHandlerPathFeature.Path);
+            }
+
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

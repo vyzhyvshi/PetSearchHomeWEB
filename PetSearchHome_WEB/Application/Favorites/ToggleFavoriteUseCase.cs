@@ -6,7 +6,7 @@ namespace PetSearchHome_WEB.Application.Favorites
 {
     public sealed record ToggleFavoriteRequest(Guid ListingId);
 
-    public class ToggleFavoriteUseCase : IUseCase<ToggleFavoriteRequest, bool>
+    public class ToggleFavoriteUseCase : IUseCase<ToggleFavoriteRequest, Result<bool>>
     {
         private readonly IFavoriteRepository _favorites;
 
@@ -15,25 +15,30 @@ namespace PetSearchHome_WEB.Application.Favorites
             _favorites = favorites;
         }
 
-        public async Task<bool> ExecuteAsync(ToggleFavoriteRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<bool>> ExecuteAsync(ToggleFavoriteRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-            if (authContext.UserId is null) throw new UnauthorizedAccessException();
+            if (authContext.UserId is null)
+            {
+                return Result.Failure<bool>("Необхідна авторизація.");
+            }
 
             var favorite = await _favorites.GetAsync(authContext.UserId.Value, request.ListingId, cancellationToken);
 
             if (favorite != null)
             {
                 await _favorites.RemoveAsync(authContext.UserId.Value, request.ListingId, cancellationToken);
-                return false; // Видалено
+                return Result.Success(false); 
             }
 
-            await _favorites.AddAsync(new Favorite
+            Favorite newFavorite = new()
             {
                 UserId = authContext.UserId.Value,
                 ListingId = request.ListingId
-            }, cancellationToken);
+            };
 
-            return true; // Додано
+            await _favorites.AddAsync(newFavorite, cancellationToken);
+
+            return Result.Success(true);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace PetSearchHome_WEB.Application.Catalog
 {
     public sealed record SearchAnimalsRequest(SearchFilters Filters);
 
-    public class SearchAnimalsUseCase : IUseCase<SearchAnimalsRequest, IReadOnlyList<PetListing>>
+    public class SearchAnimalsUseCase : IUseCase<SearchAnimalsRequest, Result<IReadOnlyList<PetListing>>>
     {
         private readonly ISearchGateway _searchGateway;
 
@@ -16,10 +16,10 @@ namespace PetSearchHome_WEB.Application.Catalog
             _searchGateway = searchGateway;
         }
 
-        public Task<IReadOnlyList<PetListing>> ExecuteAsync(SearchAnimalsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<IReadOnlyList<PetListing>>> ExecuteAsync(SearchAnimalsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-            // Guests are allowed; other roles too.
-            return _searchGateway.SearchAsync(request.Filters, cancellationToken);
+            var result = await _searchGateway.SearchAsync(request.Filters, cancellationToken);
+            return Result.Success(result);
         }
     }
 }

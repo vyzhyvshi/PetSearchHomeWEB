@@ -33,9 +33,12 @@ namespace PetSearchHome_WEB.Controllers
             var authContext = GetAuthContext();
             _logger.LogInformation("User {UserId} viewing favorites.", authContext.UserId);
 
-            var listings = await _listFavoritesUseCase.ExecuteAsync(new ListFavoritesRequest(), authContext, cancellationToken);
+            ListFavoritesRequest request = new();
+            var result = await _listFavoritesUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-            var viewModel = new FavoriteViewModel
+            var listings = result.IsSuccess && result.Value != null ? result.Value : new List<Domain.Entities.PetListing>();
+
+            FavoriteViewModel viewModel = new()
             {
                 Items = listings.Select(l => new ListingSummaryViewModel
                 {
@@ -57,19 +60,21 @@ namespace PetSearchHome_WEB.Controllers
         {
             var authContext = GetAuthContext();
 
-            try
-            {
-                var isAdded = await _toggleFavoriteUseCase.ExecuteAsync(new ToggleFavoriteRequest(id), authContext, cancellationToken);
-                _logger.LogInformation("Listing {ListingId} toggle favorite for user {UserId}. Status: {Status}",
-                    id, authContext.UserId, isAdded ? "Added" : "Removed");
+            ToggleFavoriteRequest request = new(id);
+            var result = await _toggleFavoriteUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-                return Ok(new { added = isAdded }); 
-            }
-            catch (Exception ex)
+            if (!result.IsSuccess)
             {
-                _logger.LogError(ex, "Error toggling favorite for listing {ListingId}", id);
-                return BadRequest();
+                _logger.LogWarning("Error toggling favorite for listing {ListingId}: {Error}", id, result.ErrorMessage);
+                return BadRequest(result.ErrorMessage);
             }
+
+            var isAdded = result.Value;
+
+            _logger.LogInformation("Listing {ListingId} toggle favorite for user {UserId}. Status: {Status}",
+                id, authContext.UserId, isAdded ? "Added" : "Removed");
+
+            return Ok(new { added = isAdded });
         }
 
         private AuthContext GetAuthContext()

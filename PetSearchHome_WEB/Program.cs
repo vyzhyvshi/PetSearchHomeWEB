@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PetSearchHome_WEB.Application.Auth;
@@ -88,6 +88,18 @@ builder.Services.AddScoped<ToggleFavoriteUseCase>();
 builder.Services.AddScoped<ListFavoritesUseCase>();
 
 var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    // Якщо проект запущено на реальному сервері, всі краші будуть летіти на сторінку /Home/Error
+    app.UseExceptionHandler("/Home/Error");
+    // app.UseHsts(); // (це для HTTPS, скоріш за все у тебе вже є)
+}
+else
+{
+    // Якщо ти розробляєш на своєму ПК, ти будеш бачити детальну сторінку розробника
+    app.UseExceptionHandler("/Home/Error"); // Можеш розкоментувати це і для Development, щоб протестувати!
+}
 
 app.UseSerilogRequestLogging();
 

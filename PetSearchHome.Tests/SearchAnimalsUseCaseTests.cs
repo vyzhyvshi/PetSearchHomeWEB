@@ -24,7 +24,7 @@ namespace PetSearchHome.Tests
         {
             SearchFilters filters = new();
 
-            // Короткий синтаксис для виправлення IDE0028
+            // Короткий синтаксис для виправлення IDE0028 та IDE0090
             List<PetListing> mockDatabaseResult = new()
             {
                 new() { Id = Guid.NewGuid(), Title = "Rocky", AnimalType = "Dog" },
@@ -40,8 +40,10 @@ namespace PetSearchHome.Tests
 
             var result = await _useCase.ExecuteAsync(request, authContext, CancellationToken.None);
 
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
+            // ВИПРАВЛЕННЯ: Тепер ми перевіряємо об'єкт Result, а список лежить у result.Value
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Value);
+            Assert.Equal(2, result.Value.Count);
         }
 
         [Fact]
@@ -51,15 +53,16 @@ namespace PetSearchHome.Tests
 
             _searchGatewayMock
                 .Setup(gateway => gateway.SearchAsync(filters, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<PetListing>());
+                .ReturnsAsync([]);
 
             SearchAnimalsRequest request = new(filters);
             AuthContext authContext = new() { UserId = null, Role = Role.Guest };
 
             var result = await _useCase.ExecuteAsync(request, authContext, CancellationToken.None);
 
-            Assert.NotNull(result);
-            Assert.Empty(result);
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Value);
+            Assert.Empty(result.Value);
         }
     }
 }

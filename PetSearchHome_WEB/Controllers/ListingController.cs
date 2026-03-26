@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    [Authorize] 
+    [Authorize]
     public class ListingController : Controller
     {
         private readonly ILogger<ListingController> _logger;
@@ -27,7 +27,7 @@ namespace PetSearchHome_WEB.Controllers
             DeleteListingUseCase deleteListingUseCase,
             EditListingUseCase editListingUseCase,
             SubmitListingForModerationUseCase submitListingForModerationUseCase,
-            ViewListingDetailUseCase viewListingDetailUseCase) 
+            ViewListingDetailUseCase viewListingDetailUseCase)
         {
             _logger = logger;
             _createListingUseCase = createListingUseCase;
@@ -35,28 +35,25 @@ namespace PetSearchHome_WEB.Controllers
             _deleteListingUseCase = deleteListingUseCase;
             _editListingUseCase = editListingUseCase;
             _submitListingForModerationUseCase = submitListingForModerationUseCase;
-            _viewListingDetailUseCase = viewListingDetailUseCase; 
+            _viewListingDetailUseCase = viewListingDetailUseCase;
         }
 
         [HttpGet]
         public async Task<IActionResult> MyListings(CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
-
             _logger.LogInformation("User {UserId} requested their listings.", authContext.UserId);
 
-            try
-            {
-                var request = new ListMyListingsRequest();
-                var listings = await _listMyListingsUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            ListMyListingsRequest request = new();
+            var result = await _listMyListingsUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-                return View(listings);
-            }
-            catch (UnauthorizedAccessException ex)
+            if (!result.IsSuccess)
             {
-                _logger.LogWarning(ex, "Unauthorized access attempt to MyListings by user {UserId}", authContext.UserId);
+                _logger.LogWarning("Failed access to MyListings by user {UserId}: {Error}", authContext.UserId, result.ErrorMessage);
                 return Forbid();
             }
+
+            return View(result.Value);
         }
 
         [HttpGet]
@@ -66,7 +63,7 @@ namespace PetSearchHome_WEB.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken] 
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateListingViewModel model, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -76,33 +73,25 @@ namespace PetSearchHome_WEB.Controllers
 
             var authContext = GetAuthContext();
 
-            try
-            {
-                var request = new CreateListingRequest(
-                    model.Title,
-                    model.AnimalType,
-                    model.Location,
-                    model.Description,
-                    model.IsUrgent
-                );
+            CreateListingRequest request = new(
+                model.Title,
+                model.AnimalType,
+                model.Location,
+                model.Description,
+                model.IsUrgent
+            );
 
-                var newListingId = await _createListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            var result = await _createListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-                _logger.LogInformation("Listing {ListingId} successfully created by user {UserId}", newListingId, authContext.UserId);
-
-                return RedirectToAction(nameof(MyListings));
-            }
-            catch (UnauthorizedAccessException ex)
+            if (!result.IsSuccess)
             {
-                _logger.LogWarning(ex, "User {UserId} lacked permissions to create a listing.", authContext.UserId);
-                return Forbid();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while creating listing for user {UserId}", authContext.UserId);
-                ModelState.AddModelError(string.Empty, "Сталася помилка при створенні оголошення. Спробуйте пізніше.");
+                _logger.LogWarning("User {UserId} failed to create a listing: {Error}", authContext.UserId, result.ErrorMessage);
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Сталася помилка при створенні оголошення.");
                 return View(model);
             }
+
+            _logger.LogInformation("Listing {ListingId} successfully created by user {UserId}", result.Value, authContext.UserId);
+            return RedirectToAction(nameof(MyListings));
         }
 
         [HttpPost]
@@ -111,56 +100,18 @@ namespace PetSearchHome_WEB.Controllers
         {
             var authContext = GetAuthContext();
 
-            try
-            {
-                var request = new DeleteListingRequest(id);
-                await _deleteListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            DeleteListingRequest request = new(id);
+            var result = await _deleteListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-                _logger.LogInformation("Listing {ListingId} deleted by user {UserId}", id, authContext.UserId);
-                return RedirectToAction(nameof(MyListings));
-            }
-            catch (InvalidOperationException ex) 
+            if (!result.IsSuccess)
             {
-                _logger.LogWarning(ex, "Listing {ListingId} not found for deletion.", id);
+                _logger.LogWarning("Failed to delete listing {ListingId} by user {UserId}: {Error}", id, authContext.UserId, result.ErrorMessage);
+                // Можемо використати TempData щоб показати помилку на UI, або повернути NotFound/Forbid залежно від логіки.
                 return NotFound();
             }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning(ex, "User {UserId} unauthorized to delete listing {ListingId}.", authContext.UserId, id);
-                return Forbid();
-            }
-        }
 
-
-        private AuthContext GetAuthContext()
-        {
-            var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-
-            if (!isAuthenticated)
-            {
-                return new AuthContext
-                {
-                    UserId = null,
-                    Role = Role.Guest
-                };
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(userIdString, out Guid userId);
-
-            var roleString = User.FindFirstValue(ClaimTypes.Role);
-
-            Role userRole = Role.Person;
-            if (!string.IsNullOrEmpty(roleString) && Enum.TryParse<Role>(roleString, true, out var parsedRole))
-            {
-                userRole = parsedRole;
-            }
-
-            return new AuthContext
-            {
-                UserId = userId,
-                Role = userRole
-            };
+            _logger.LogInformation("Listing {ListingId} deleted by user {UserId}", id, authContext.UserId);
+            return RedirectToAction(nameof(MyListings));
         }
 
         [HttpGet]
@@ -168,16 +119,17 @@ namespace PetSearchHome_WEB.Controllers
         {
             var authContext = GetAuthContext();
 
-            var request = new ViewListingDetailRequest(id);
-            var listing = await _viewListingDetailUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            ViewListingDetailRequest request = new(id);
+            var result = await _viewListingDetailUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-            if (listing == null)
+            if (!result.IsSuccess || result.Value == null)
             {
                 _logger.LogWarning("Listing {ListingId} not found for edit form.", id);
                 return NotFound();
             }
 
-            var model = new EditListingViewModel
+            var listing = result.Value;
+            EditListingViewModel model = new()
             {
                 Id = listing.Id,
                 Title = listing.Title,
@@ -190,7 +142,6 @@ namespace PetSearchHome_WEB.Controllers
             return View(model);
         }
 
-        // POST: /Listing/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, EditListingViewModel model, CancellationToken cancellationToken)
@@ -204,59 +155,65 @@ namespace PetSearchHome_WEB.Controllers
 
             var authContext = GetAuthContext();
 
-            try
-            {
-                var request = new EditListingRequest(
-                    model.Id,
-                    model.Title,
-                    model.AnimalType,
-                    model.Location,
-                    model.Description,
-                    model.IsUrgent
-                );
+            EditListingRequest request = new(
+                model.Id,
+                model.Title,
+                model.AnimalType,
+                model.Location,
+                model.Description,
+                model.IsUrgent
+            );
 
-                await _editListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
-                _logger.LogInformation("Listing {ListingId} edited by user {UserId}", model.Id, authContext.UserId);
+            var result = await _editListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-                return RedirectToAction(nameof(MyListings));
-            }
-            catch (InvalidOperationException ex)
+            if (!result.IsSuccess)
             {
-                _logger.LogWarning(ex, "Listing {ListingId} not found for edit.", model.Id);
-                return NotFound();
+                _logger.LogWarning("Failed to edit listing {ListingId} by user {UserId}: {Error}", model.Id, authContext.UserId, result.ErrorMessage);
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Не вдалося оновити оголошення.");
+                return View(model);
             }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning(ex, "User {UserId} unauthorized to edit listing {ListingId}.", authContext.UserId, model.Id);
-                return Forbid();
-            }
+
+            _logger.LogInformation("Listing {ListingId} edited by user {UserId}", model.Id, authContext.UserId);
+            return RedirectToAction(nameof(MyListings));
         }
 
-        // POST: /Listing/SubmitForModeration/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitForModeration(Guid id, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
 
-            try
-            {
-                var request = new SubmitListingForModerationRequest(id);
-                await _submitListingForModerationUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            SubmitListingForModerationRequest request = new(id);
+            var result = await _submitListingForModerationUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-                _logger.LogInformation("Listing {ListingId} submitted for moderation by user {UserId}", id, authContext.UserId);
-                return RedirectToAction(nameof(MyListings));
-            }
-            catch (InvalidOperationException ex)
+            if (!result.IsSuccess)
             {
-                _logger.LogWarning(ex, "Listing {ListingId} not found for moderation submit.", id);
+                _logger.LogWarning("Failed to submit listing {ListingId} for moderation by user {UserId}: {Error}", id, authContext.UserId, result.ErrorMessage);
                 return NotFound();
             }
-            catch (UnauthorizedAccessException ex)
+
+            _logger.LogInformation("Listing {ListingId} submitted for moderation by user {UserId}", id, authContext.UserId);
+            return RedirectToAction(nameof(MyListings));
+        }
+
+        private AuthContext GetAuthContext()
+        {
+            var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+
+            if (!isAuthenticated) return new AuthContext { UserId = null, Role = Role.Guest };
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(userIdString, out Guid userId);
+
+            var roleString = User.FindFirstValue(ClaimTypes.Role);
+
+            Role userRole = Role.Person;
+            if (!string.IsNullOrEmpty(roleString) && Enum.TryParse<Role>(roleString, true, out var parsedRole))
             {
-                _logger.LogWarning(ex, "User {UserId} unauthorized to submit listing {ListingId} for moderation.", authContext.UserId, id);
-                return Forbid();
+                userRole = parsedRole;
             }
+
+            return new AuthContext { UserId = userId, Role = userRole };
         }
     }
 }

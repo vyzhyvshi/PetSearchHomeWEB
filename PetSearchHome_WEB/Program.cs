@@ -52,9 +52,9 @@ builder.Services.AddScoped<ISearchGateway>(sp => sp.GetRequiredService<EfListing
 builder.Services.AddScoped<ListingService>();
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
 builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
 builder.Services.AddSingleton<IComplaintRepository, InMemoryComplaintRepository>();
-builder.Services.AddSingleton<IFavoriteRepository, InMemoryFavoriteRepository>();
 builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
 builder.Services.AddSingleton<IOrgStatsRepository, InMemoryOrgStatsRepository>();
 builder.Services.AddSingleton<INotificationGateway, InMemoryNotificationGateway>();

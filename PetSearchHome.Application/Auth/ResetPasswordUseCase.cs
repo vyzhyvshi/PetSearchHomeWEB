@@ -6,7 +6,7 @@ namespace PetSearchHome_WEB.Application.Auth
 {
     public sealed record ResetPasswordRequest(Guid UserId, string NewPassword);
 
-    public class ResetPasswordUseCase : IUseCase<ResetPasswordRequest, bool>
+    public class ResetPasswordUseCase : IUseCase<ResetPasswordRequest, Result<bool>>
     {
         private readonly IUserRepository _users;
         private readonly IPasswordHasher _hasher;
@@ -17,18 +17,22 @@ namespace PetSearchHome_WEB.Application.Auth
             _hasher = hasher;
         }
 
-        public async Task<bool> ExecuteAsync(ResetPasswordRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<bool>> ExecuteAsync(ResetPasswordRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (authContext.Role != Role.Admin && authContext.UserId != request.UserId)
             {
-                throw new UnauthorizedAccessException("Cannot reset password for another user.");
+                return Result.Failure<bool>("Cannot reset password for another user.");
             }
 
-            var user = await _users.GetByIdAsync(request.UserId, cancellationToken)
-                ?? throw new InvalidOperationException("User not found.");
+            var user = await _users.GetByIdAsync(request.UserId, cancellationToken);
+            if (user == null)
+            {
+                return Result.Failure<bool>("User not found.");
+            }
 
             await _users.UpdatePasswordAsync(user.Id, _hasher.Hash(request.NewPassword), cancellationToken);
-            return true;
+            
+            return Result.Success(true);
         }
     }
 }

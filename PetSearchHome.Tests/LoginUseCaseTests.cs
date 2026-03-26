@@ -17,9 +17,9 @@ namespace PetSearchHome.Tests
 
         public LoginUseCaseTests()
         {
-            _userRepoMock = new Mock<IUserRepository>();
-            _passwordHasherMock = new Mock<IPasswordHasher>();
-            _tokenServiceMock = new Mock<IAuthTokenService>();
+            _userRepoMock = new();
+            _passwordHasherMock = new();
+            _tokenServiceMock = new();
 
             _useCase = new LoginUseCase(
                 _userRepoMock.Object,
@@ -28,38 +28,36 @@ namespace PetSearchHome.Tests
         }
 
         [Fact]
-        public async Task ExecuteAsync_ValidCredentials_ReturnsResponse()
+        public async Task ExecuteAsync_ValidCredentials_ReturnsSuccess()
         {
             var email = "test@example.com";
             var password = "password123";
-            var user = new User { Id = Guid.NewGuid(), Email = email, PasswordHash = "hashed_pass", Role = Role.Person };
+            User user = new() { Id = Guid.NewGuid(), Email = email, PasswordHash = "hashed_pass", Role = Role.Person };
 
-            var request = new LoginRequest(email, password);
-            var authContext = new AuthContext { UserId = null, Role = Role.Guest };
+            LoginRequest request = new(email, password);
+            AuthContext authContext = new() { UserId = null, Role = Role.Guest };
 
             _userRepoMock.Setup(repo => repo.GetByEmailAsync(email, It.IsAny<CancellationToken>()))
                          .ReturnsAsync(user);
             _passwordHasherMock.Setup(hasher => hasher.Verify(password, user.PasswordHash))
                                .Returns(true);
 
-   
             var result = await _useCase.ExecuteAsync(request, authContext, CancellationToken.None);
 
-            Assert.NotNull(result);
-            Assert.Equal(user.Id, result.UserId);
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Value);
+            Assert.Equal(user.Id, result.Value.UserId);
         }
 
-
         [Fact]
-        public async Task ExecuteAsync_InvalidPassword_ThrowsUnauthorizedAccessException()
+        public async Task ExecuteAsync_InvalidPassword_ReturnsFailure()
         {
-
             var email = "test@example.com";
             var password = "wrong_password";
-            var user = new User { Id = Guid.NewGuid(), Email = email, PasswordHash = "hashed_pass", Role = Role.Person };
+            User user = new() { Id = Guid.NewGuid(), Email = email, PasswordHash = "hashed_pass", Role = Role.Person };
 
-            var request = new LoginRequest(email, password);
-            var authContext = new AuthContext { UserId = null, Role = Role.Guest };
+            LoginRequest request = new(email, password);
+            AuthContext authContext = new() { UserId = null, Role = Role.Guest };
 
             _userRepoMock.Setup(repo => repo.GetByEmailAsync(email, It.IsAny<CancellationToken>()))
                          .ReturnsAsync(user);
@@ -67,8 +65,10 @@ namespace PetSearchHome.Tests
             _passwordHasherMock.Setup(hasher => hasher.Verify(password, user.PasswordHash))
                                .Returns(false);
 
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _useCase.ExecuteAsync(request, authContext, CancellationToken.None));
+            var result = await _useCase.ExecuteAsync(request, authContext, CancellationToken.None);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal("Неправильний email або пароль.", result.ErrorMessage);
         }
     }
 }

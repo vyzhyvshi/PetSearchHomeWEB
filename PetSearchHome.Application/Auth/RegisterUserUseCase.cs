@@ -7,7 +7,7 @@ namespace PetSearchHome_WEB.Application.Auth
 {
     public sealed record RegisterUserRequest(string Email, string DisplayName, string Password);
 
-    public class RegisterUserUseCase : IUseCase<RegisterUserRequest, Guid>
+    public class RegisterUserUseCase : IUseCase<RegisterUserRequest, Result<Guid>>
     {
         private readonly IUserRepository _users;
         private readonly IPasswordHasher _hasher;
@@ -18,18 +18,17 @@ namespace PetSearchHome_WEB.Application.Auth
             _hasher = hasher;
         }
 
-        public async Task<Guid> ExecuteAsync(RegisterUserRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<Guid>> ExecuteAsync(RegisterUserRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-
             if (authContext.Role == Role.Guest || authContext.Role == Role.Admin || authContext.Role == Role.Person || authContext.Role == Role.Shelter)
             {
                 var existingUser = await _users.GetByEmailAsync(request.Email, cancellationToken);
                 if (existingUser != null)
                 {
-                    Exception exception = new InvalidOperationException("Користувач з таким email вже існує.");
-                    throw exception;
+                    return Result.Failure<Guid>("Користувач з таким email вже існує.");
                 }
-                var user = new User
+
+                User user = new()
                 {
                     Email = request.Email,
                     DisplayName = request.DisplayName,
@@ -39,10 +38,11 @@ namespace PetSearchHome_WEB.Application.Auth
 
                 await _users.AddAsync(user, cancellationToken);
                 var persisted = await _users.GetByEmailAsync(request.Email, cancellationToken);
-                return persisted?.Id ?? user.Id;
+
+                return Result.Success(persisted?.Id ?? user.Id);
             }
 
-            throw new UnauthorizedAccessException("Cannot register user for this role.");
+            return Result.Failure<Guid>("У вас немає прав для реєстрації.");
         }
     }
 }

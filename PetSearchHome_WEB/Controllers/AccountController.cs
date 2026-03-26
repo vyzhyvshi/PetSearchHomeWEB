@@ -55,42 +55,37 @@ namespace PetSearchHome_WEB.Controllers
                 return View(model);
             }
 
-            try
+            LoginRequest request = new(model.Email, model.Password);
+
+            var result = await _loginUseCase.ExecuteAsync(request, GetGuestContext(), cancellationToken);
+
+            if (!result.IsSuccess)
             {
-                var request = new LoginRequest(model.Email, model.Password);
-
-                var response = await _loginUseCase.ExecuteAsync(request, GetGuestContext(), cancellationToken);
-
-                
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, response.UserId.ToString()),
-                    new Claim(ClaimTypes.Email, model.Email),
-                    new Claim(ClaimTypes.Role, response.Role.ToString())
-                };
-
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var authProperties = new AuthenticationProperties { IsPersistent = true };
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
-
-				await HttpContext.SignInAsync(
-	                CookieAuthenticationDefaults.AuthenticationScheme,
-	                new ClaimsPrincipal(claimsIdentity),
-	                authProperties);
-
-				_logger.LogInformation("User {Email} logged in successfully.", model.Email);
-
-                return RedirectToAction("Index", "Home");
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning(ex, "Failed login attempt for {Email}.", model.Email);
-                ModelState.AddModelError(string.Empty, "Неправильний email або пароль.");
+                _logger.LogWarning("Failed login attempt for {Email}: {Error}", model.Email, result.ErrorMessage);
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Неправильний email або пароль.");
                 return View(model);
             }
+
+            var response = result.Value!;
+
+            List<Claim> claims = new()
+            {
+                new Claim(ClaimTypes.NameIdentifier, response.UserId.ToString()),
+                new Claim(ClaimTypes.Email, model.Email),
+                new Claim(ClaimTypes.Role, response.Role.ToString())
+            };
+
+            ClaimsIdentity claimsIdentity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            AuthenticationProperties authProperties = new() { IsPersistent = true };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+
+            _logger.LogInformation("User {Email} logged in successfully.", model.Email);
+
+            return RedirectToAction("Index", "Home");
         }
 
         // GET: /Account/RegisterIndividual
@@ -110,21 +105,19 @@ namespace PetSearchHome_WEB.Controllers
                 return View(model);
             }
 
-            try
-            {
-                var request = new RegisterUserRequest(model.Email, model.DisplayName, model.Password);
-                await _registerUserUseCase.ExecuteAsync(request, GetGuestContext(), cancellationToken);
+            RegisterUserRequest request = new(model.Email, model.DisplayName, model.Password);
+            var result = await _registerUserUseCase.ExecuteAsync(request, GetGuestContext(), cancellationToken);
 
-                _logger.LogInformation("New individual account created for {Email}.", model.Email);
-
-                return RedirectToAction(nameof(Login));
-            }
-            catch (Exception ex)
+            if (!result.IsSuccess)
             {
-                _logger.LogError(ex, "Registration failed for individual {Email}.", model.Email);
-                ModelState.AddModelError(string.Empty, "Сталася помилка під час реєстрації. Можливо, email вже використовується.");
+                _logger.LogWarning("Registration failed for individual {Email}: {Error}", model.Email, result.ErrorMessage);
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Сталася помилка під час реєстрації.");
                 return View(model);
             }
+
+            _logger.LogInformation("New individual account created for {Email}.", model.Email);
+
+            return RedirectToAction(nameof(Login));
         }
 
         // GET: /Account/RegisterShelter
@@ -144,20 +137,18 @@ namespace PetSearchHome_WEB.Controllers
                 return View(model);
             }
 
-            try
-            {
-                var request = new RegisterShelterRequest(model.Email, model.ShelterName, model.Password);
-                await _registerShelterUseCase.ExecuteAsync(request, GetGuestContext(), cancellationToken);
+            RegisterShelterRequest request = new(model.Email, model.ShelterName, model.Password);
+            var result = await _registerShelterUseCase.ExecuteAsync(request, GetGuestContext(), cancellationToken);
 
-                _logger.LogInformation("New shelter account created for {Email}.", model.Email);
-                return RedirectToAction(nameof(Login));
-            }
-            catch (Exception ex)
+            if (!result.IsSuccess)
             {
-                _logger.LogError(ex, "Registration failed for shelter {Email}.", model.Email);
-                ModelState.AddModelError(string.Empty, "Сталася помилка під час реєстрації.");
+                _logger.LogWarning("Registration failed for shelter {Email}: {Error}", model.Email, result.ErrorMessage);
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Сталася помилка.");
                 return View(model);
             }
+
+            _logger.LogInformation("New shelter account created for {Email}.", model.Email);
+            return RedirectToAction(nameof(Login));
         }
 
         // POST: /Account/Logout
@@ -169,14 +160,12 @@ namespace PetSearchHome_WEB.Controllers
 
             if (authContext.UserId.HasValue)
             {
-                try
+                LogoutRequest request = new(authContext.UserId.Value);
+                var result = await _logoutUseCase.ExecuteAsync(request, authContext, cancellationToken);
+
+                if (!result.IsSuccess)
                 {
-                    var request = new LogoutRequest(authContext.UserId.Value);
-                    await _logoutUseCase.ExecuteAsync(request, authContext, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error occurred during UseCase logout for user {UserId}", authContext.UserId);
+                    _logger.LogWarning("Error occurred during UseCase logout for user {UserId}: {Error}", authContext.UserId, result.ErrorMessage);
                 }
             }
 
@@ -184,11 +173,10 @@ namespace PetSearchHome_WEB.Controllers
 
             _logger.LogInformation("User {UserId} logged out successfully.", authContext.UserId);
 
-            // Повертаємо на головну сторінку
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: /Account/Logout (confirmation screen)
+        // GET: /Account/Logout 
         [HttpGet]
         public IActionResult Logout()
         {
@@ -212,7 +200,6 @@ namespace PetSearchHome_WEB.Controllers
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(userIdString, out Guid userId);
 
-
             var roleString = User.FindFirstValue(ClaimTypes.Role);
             Role userRole = Role.Person;
             if (!string.IsNullOrEmpty(roleString) && Enum.TryParse<Role>(roleString, true, out var parsedRole))
@@ -222,6 +209,5 @@ namespace PetSearchHome_WEB.Controllers
 
             return new AuthContext { UserId = userId, Role = userRole };
         }
-
     }
 }

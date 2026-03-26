@@ -1,4 +1,4 @@
-using PetSearchHome_WEB.Application.Shared;
+﻿using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Auth
@@ -6,7 +6,7 @@ namespace PetSearchHome_WEB.Application.Auth
     public sealed record LoginRequest(string Email, string Password);
     public sealed record LoginResponse(string Token, Guid UserId, Domain.ValueObjects.Role Role);
 
-    public class LoginUseCase : IUseCase<LoginRequest, LoginResponse>
+    public class LoginUseCase : IUseCase<LoginRequest, Result<LoginResponse>>
     {
         private readonly IUserRepository _users;
         private readonly IPasswordHasher _hasher;
@@ -19,18 +19,19 @@ namespace PetSearchHome_WEB.Application.Auth
             _tokens = tokens;
         }
 
-        public async Task<LoginResponse> ExecuteAsync(LoginRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<LoginResponse>> ExecuteAsync(LoginRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-            var user = await _users.GetByEmailAsync(request.Email, cancellationToken)
-                ?? throw new UnauthorizedAccessException("Invalid credentials.");
+            var user = await _users.GetByEmailAsync(request.Email, cancellationToken);
 
-            if (!_hasher.Verify(request.Password, user.PasswordHash))
+            if (user == null || !_hasher.Verify(request.Password, user.PasswordHash))
             {
-                throw new UnauthorizedAccessException("Invalid credentials.");
+                return Result.Failure<LoginResponse>("Неправильний email або пароль.");
             }
 
             var token = _tokens.IssueToken(user);
-            return new LoginResponse(token, user.Id, user.Role);
+            LoginResponse response = new(token, user.Id, user.Role);
+
+            return Result.Success(response);
         }
     }
 }

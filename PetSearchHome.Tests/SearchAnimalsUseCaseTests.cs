@@ -1,5 +1,5 @@
 ﻿using Moq;
-using PetSearchHome_WEB.Application.Catalog; 
+using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
@@ -10,62 +10,56 @@ namespace PetSearchHome.Tests
 {
     public class SearchAnimalsUseCaseTests
     {
-
         private readonly Mock<ISearchGateway> _searchGatewayMock;
         private readonly SearchAnimalsUseCase _useCase;
 
         public SearchAnimalsUseCaseTests()
         {
-            _searchGatewayMock = new Mock<ISearchGateway>();
-
+            _searchGatewayMock = new();
             _useCase = new SearchAnimalsUseCase(_searchGatewayMock.Object);
         }
 
         [Fact]
         public async Task ExecuteAsync_WhenListingsExist_ReturnsListOfAnimals()
         {
+            SearchFilters filters = new();
 
-            var filters = new SearchFilters();
-
-            var mockDatabaseResult = new List<PetListing>
+            // Короткий синтаксис для виправлення IDE0028
+            List<PetListing> mockDatabaseResult = new()
             {
-                new PetListing { Id = Guid.NewGuid(), Title = "Rocky", AnimalType = "Dog" },
-                new PetListing { Id = Guid.NewGuid(), Title = "Mira", AnimalType = "Cat" }
+                new() { Id = Guid.NewGuid(), Title = "Rocky", AnimalType = "Dog" },
+                new() { Id = Guid.NewGuid(), Title = "Mira", AnimalType = "Cat" }
             };
 
             _searchGatewayMock
                 .Setup(gateway => gateway.SearchAsync(filters, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockDatabaseResult);
 
-  
-            var request = new SearchAnimalsRequest(filters);
-            var authContext = new AuthContext { UserId = null, Role = Role.Guest };
+            SearchAnimalsRequest request = new(filters);
+            AuthContext authContext = new() { UserId = null, Role = Role.Guest };
 
             var result = await _useCase.ExecuteAsync(request, authContext, CancellationToken.None);
 
-
-
-            Assert.NotNull(result); 
-            Assert.Equal(2, result.Count); 
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
         }
 
         [Fact]
         public async Task ExecuteAsync_WhenNoAnimalsMatchFilters_ReturnsEmptyList()
         {
-
-            var filters = new SearchFilters { AnimalType = "Parrot" };
+            SearchFilters filters = new() { AnimalType = "Parrot" };
 
             _searchGatewayMock
                 .Setup(gateway => gateway.SearchAsync(filters, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<PetListing>());
 
-            var request = new SearchAnimalsRequest(filters);
-            var authContext = new AuthContext { UserId = null, Role = Role.Guest };
+            SearchAnimalsRequest request = new(filters);
+            AuthContext authContext = new() { UserId = null, Role = Role.Guest };
 
             var result = await _useCase.ExecuteAsync(request, authContext, CancellationToken.None);
 
             Assert.NotNull(result);
-            Assert.Empty(result); 
+            Assert.Empty(result);
         }
     }
 }

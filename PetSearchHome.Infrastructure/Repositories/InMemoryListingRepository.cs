@@ -1,9 +1,11 @@
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Infrastructure.Repositories
 {
-    public class InMemoryListingRepository : IListingRepository
+
+    public class InMemoryListingRepository : IListingRepository, ISearchGateway
     {
         private readonly List<PetListing> _listings;
 
@@ -15,6 +17,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         public Task<IReadOnlyList<PetListing>> GetFeaturedAsync(int take, CancellationToken cancellationToken = default)
         {
             var featured = _listings
+                .Where(x => x.Status == Domain.ValueObjects.ListingStatus.Published)
                 .OrderByDescending(x => x.IsUrgent)
                 .ThenByDescending(x => x.ListedAt)
                 .Take(take)
@@ -40,6 +43,16 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
             return Task.FromResult<IReadOnlyList<PetListing>>(results);
         }
+        public Task<IReadOnlyList<PetListing>> ListByStatusAsync(Domain.ValueObjects.ListingStatus status, CancellationToken cancellationToken = default)
+        {
+            var results = _listings
+                .Where(x => x.Status == status)
+                .OrderByDescending(x => x.ListedAt)
+                .ToList()
+                .AsReadOnly();
+
+            return Task.FromResult<IReadOnlyList<PetListing>>(results);
+        }
 
         public Task AddAsync(PetListing listing, CancellationToken cancellationToken = default)
         {
@@ -54,10 +67,21 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 Status = listing.Status,
                 ListedAt = DateTimeOffset.UtcNow,
                 Description = listing.Description,
-                IsUrgent = listing.IsUrgent
+                IsUrgent = listing.IsUrgent,
+                PhotoUrls = listing.PhotoUrls
             });
 
             return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<PetListing>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+        {
+            var results = _listings
+                .Where(x => ids.Contains(x.Id))
+                .ToList()
+                .AsReadOnly();
+
+            return Task.FromResult<IReadOnlyList<PetListing>>(results);
         }
 
         public Task UpdateAsync(PetListing listing, CancellationToken cancellationToken = default)
@@ -77,6 +101,42 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
+        public Task<IReadOnlyList<PetListing>> SearchAsync(SearchFilters filters, CancellationToken cancellationToken = default)
+        {
+            IEnumerable<PetListing> query = _listings
+                .Where(l => l.Status == Domain.ValueObjects.ListingStatus.Published);
+
+            if (!string.IsNullOrWhiteSpace(filters.SearchQuery))
+            {
+                query = query.Where(l =>
+                    l.Title.Contains(filters.SearchQuery, StringComparison.OrdinalIgnoreCase)
+                    || (l.Description?.Contains(filters.SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.AnimalType))
+            {
+                query = query.Where(l => string.Equals(l.AnimalType, filters.AnimalType, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.Location))
+            {
+                query = query.Where(l => l.Location.Contains(filters.Location, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (filters.IsUrgent.HasValue)
+            {
+                query = query.Where(l => l.IsUrgent == filters.IsUrgent.Value);
+            }
+
+            var results = query
+                .OrderByDescending(l => l.IsUrgent)
+                .ThenByDescending(l => l.ListedAt)
+                .ToList()
+                .AsReadOnly();
+
+            return Task.FromResult<IReadOnlyList<PetListing>>(results);
+        }
+
         private static List<PetListing> Seed()
         {
             return new List<PetListing>
@@ -91,7 +151,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Published,
                     ListedAt = DateTimeOffset.UtcNow.AddHours(-6),
                     Description = "Friendly, 2 years old, loves long walks.",
-                    IsUrgent = true
+                    IsUrgent = true,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -103,7 +164,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Published,
                     ListedAt = DateTimeOffset.UtcNow.AddDays(-1),
                     Description = "Very gentle, sterilized, indoor only.",
-                    IsUrgent = false
+                    IsUrgent = false,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -115,7 +177,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.PendingModeration,
                     ListedAt = DateTimeOffset.UtcNow.AddHours(-12),
                     Description = "3 months, leash trained.",
-                    IsUrgent = true
+                    IsUrgent = true,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -127,7 +190,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Published,
                     ListedAt = DateTimeOffset.UtcNow.AddDays(-2),
                     Description = "Calm temperament, good with kids.",
-                    IsUrgent = false
+                    IsUrgent = false,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -139,7 +203,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Rejected,
                     ListedAt = DateTimeOffset.UtcNow.AddHours(-30),
                     Description = "Vaccinated, playful, medium size.",
-                    IsUrgent = false
+                    IsUrgent = false,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -151,7 +216,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Published,
                     ListedAt = DateTimeOffset.UtcNow.AddHours(-3),
                     Description = "Loves attention, sterilized.",
-                    IsUrgent = true
+                    IsUrgent = true,
+                    PhotoUrls = System.Array.Empty<string>()
                 }
             };
         }

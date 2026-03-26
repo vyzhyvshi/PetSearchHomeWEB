@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Вихід із системи";
+}
+
+@await Html.PartialAsync("_AuthStyles")
+
+<div class="auth-theme">
+    <div class="container auth-viewport">
+        <div class="auth-grid">
+            <section class="auth-hero-card">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="auth-chip">Приватна особа</span>
+                    <span class="auth-chip">Притулок</span>
+                    <span class="auth-chip">Адміністратор</span>
+                    <span class="auth-chip auth-chip--accent">Завершення сесії</span>
+                </div>
+                <h1 class="h3 mb-2">Вихід із PetSearch Home</h1>
+                <p class="auth-small mb-3">
+                    Підтвердьте вихід, щоб закрити сесію й очистити cookie авторизації. Повернутися можна в будь-який момент через форму входу.
+                </p>
+                <ul class="auth-list">
+                    <li><span class="badge bg-warning-subtle text-warning-emphasis">Безпека</span> Сесія завершується, токен очищується.</li>
+                    <li><span class="badge bg-success-subtle text-success-emphasis">Гнучкість</span> Після виходу можна увійти під іншою роллю або як гість.</li>
+                </ul>
+            </section>
+
+            <section class="auth-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div>
+                            <p class="text-uppercase small text-secondary mb-1">Use-case</p>
+                            <h2 class="h4 auth-section-title mb-0">Вихід із системи</h2>
+                        </div>
+                        <span class="badge text-bg-primary">Person · Shelter · Admin</span>
+                    </div>
+
+                    <form asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <button type="submit" class="btn btn-danger px-4">Вийти</button>
+                            <a asp-action="Login" class="btn btn-outline-light">Увійти знову</a>
+                            <a asp-action="GuestEntry" class="auth-link ms-auto">Перегляд як гість</a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>

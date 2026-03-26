@@ -1,0 +1,30 @@
+﻿using PetSearchHome_WEB.Application.Shared;
+using PetSearchHome_WEB.Domain.Entities;
+using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Domain.Policies;
+using PetSearchHome_WEB.Domain.ValueObjects;
+
+namespace PetSearchHome_WEB.Application.Moderation
+{
+    public sealed record GetPendingListingsRequest();
+
+    public class GetPendingListingsUseCase : IUseCase<GetPendingListingsRequest, IReadOnlyList<PetListing>>
+    {
+        private readonly IListingRepository _listings;
+
+        public GetPendingListingsUseCase(IListingRepository listings)
+        {
+            _listings = listings;
+        }
+
+        public async Task<IReadOnlyList<PetListing>> ExecuteAsync(GetPendingListingsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        {
+            if (!AdminPolicy.IsAdmin(authContext.Role))
+            {
+                throw new UnauthorizedAccessException("Admin role required.");
+            }
+
+            return await _listings.ListByStatusAsync(ListingStatus.PendingModeration, cancellationToken);
+        }
+    }
+}

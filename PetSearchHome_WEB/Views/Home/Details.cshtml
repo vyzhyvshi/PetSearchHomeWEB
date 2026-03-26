@@ -1,0 +1,118 @@
+@model PetSearchHome_WEB.Models.Listing.ListingDetailsViewModel
+@{
+    ViewData["Title"] = "Деталі оголошення";
+    var photoCount = Model.Listing.PhotoUrls.Count;
+}
+
+<div class="container py-4">
+    <a class="btn btn-link ps-0 mb-3" asp-controller="Home" asp-action="Index">← До каталогу</a>
+
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (photoCount > 0)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-12">
+                        <img src="@Model.Listing.PhotoUrls[0]"
+                             alt="Фото @Model.Listing.Title"
+                             class="img-fluid rounded w-100"
+                             style="max-height: 420px; object-fit: cover;" />
+                    </div>
+                    @for (var i = 1; i < photoCount; i++)
+                    {
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <img src="@Model.Listing.PhotoUrls[i]"
+                                 alt="Фото @Model.Listing.Title"
+                                 class="img-fluid rounded"
+                                 style="height: 140px; object-fit: cover; width: 100%;" />
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-light border mb-4">
+            Фото для цього оголошення ще не додані.
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h1 class="h3 mb-1">@Model.Listing.Title</h1>
+                    <div class="text-muted">@Model.Listing.AnimalType • @Model.Listing.Location</div>
+                </div>
+                @if (Model.Listing.IsUrgent)
+                {
+                    <span class="badge bg-danger">Терміново</span>
+                }
+            </div>
+
+            <div class="mb-3">
+                <strong>Опис:</strong>
+                <p class="mb-0">@Model.Listing.Description</p>
+            </div>
+
+            <div class="text-secondary">
+                Дата публікації: @Model.Listing.ListedAt.LocalDateTime.ToString("dd.MM.yyyy HH:mm")
+            </div>
+        </div>
+    </div>
+
+    @if (User?.Identity?.IsAuthenticated ?? false)
+    {
+        <div class="row g-3">
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h2 class="h5">Улюблені</h2>
+                        <p class="text-muted">
+                            @(Model.IsFavorite ? "Це оголошення вже в улюблених." : "Додайте оголошення до улюблених.")
+                        </p>
+                        <form asp-controller="Home" asp-action="ToggleFavorite" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Listing.Id" />
+                            <button type="submit" class="btn @(Model.IsFavorite ? "btn-outline-danger" : "btn-outline-primary")">
+                                @(Model.IsFavorite ? "Видалити з улюблених" : "Додати до улюблених")
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h2 class="h5">Поскаржитися</h2>
+                        <form asp-controller="Home" asp-action="ReportListing" method="post" class="vstack gap-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Listing.Id" />
+                            <label class="form-label" for="reason">Причина скарги</label>
+                            <textarea id="reason" name="reason" class="form-control" rows="3" maxlength="500" required
+                                      placeholder="Опишіть причину..."></textarea>
+                            <button type="submit" class="btn btn-warning">Надіслати скаргу</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            Щоб додавати в улюблені або надсилати скарги, увійдіть у систему.
+        </div>
+    }
+</div>

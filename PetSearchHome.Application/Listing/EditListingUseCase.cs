@@ -1,4 +1,4 @@
-using PetSearchHome_WEB.Application.Shared;
+﻿using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.Policies;
 using PetSearchHome_WEB.Domain.ValueObjects;
@@ -13,7 +13,7 @@ namespace PetSearchHome_WEB.Application.Listing
         string? Description,
         bool IsUrgent);
 
-    public class EditListingUseCase : IUseCase<EditListingRequest, bool>
+    public class EditListingUseCase : IUseCase<EditListingRequest, Result<bool>>
     {
         private readonly IListingRepository _listings;
 
@@ -22,14 +22,17 @@ namespace PetSearchHome_WEB.Application.Listing
             _listings = listings;
         }
 
-        public async Task<bool> ExecuteAsync(EditListingRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<bool>> ExecuteAsync(EditListingRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-            var listing = await _listings.GetByIdAsync(request.ListingId, cancellationToken)
-                ?? throw new InvalidOperationException("Listing not found.");
+            var listing = await _listings.GetByIdAsync(request.ListingId, cancellationToken);
+            if (listing == null)
+            {
+                return Result.Failure<bool>("Оголошення не знайдено.");
+            }
 
             if (!ListingAccessPolicy.CanManage(authContext.Role, listing.OwnerId, authContext.UserId))
             {
-                throw new UnauthorizedAccessException("Cannot edit listing.");
+                return Result.Failure<bool>("У вас немає прав для редагування цього оголошення.");
             }
 
             var updated = listing with
@@ -43,7 +46,7 @@ namespace PetSearchHome_WEB.Application.Listing
             };
 
             await _listings.UpdateAsync(updated, cancellationToken);
-            return true;
+            return Result.Success(true);
         }
     }
 }

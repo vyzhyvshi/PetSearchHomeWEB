@@ -1,14 +1,15 @@
-//Тест для аналізатора
+﻿using System.ComponentModel.DataAnnotations;
+
 namespace PetSearchHome_WEB.Models.Auth
 {
     public class LoginViewModel
     {
-        public bool IsOk(bool flag)
-        {
-            if (flag == true)
-                return true;
-            else
-                return false;
-        }
+        [Required(ErrorMessage = "Email є обов'язковим")]
+        [EmailAddress(ErrorMessage = "Некоректний формат Email")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Пароль є обов'язковим")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
     }
 }

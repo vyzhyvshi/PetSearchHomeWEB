@@ -1,0 +1,42 @@
+@model PetSearchHome_WEB.Models.Auth.LoginViewModel
+@{
+    ViewData["Title"] = "Вхід";
+}
+
+<div class="container py-5" style="max-width: 520px;">
+    <h1 class="h3 mb-4 text-center">Вхід</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-action="Login" method="post" class="vstack gap-3">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+                <div>
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email" type="email" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Password" class="form-label">Пароль</label>
+                    <input asp-for="Password" type="password"
+						   class="form-control"
+						   autocomplete="current-password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Увійти</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="text-center mt-3 d-grid gap-2">
+        <a asp-controller="Account" asp-action="RegisterIndividual" class="btn btn-outline-primary">Створити акаунт</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-link">Перейти як гість</a>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

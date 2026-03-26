@@ -1,35 +1,118 @@
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using PetSearchHome_WEB.Application.Auth;
+using PetSearchHome_WEB.Application.Catalog;
+using PetSearchHome_WEB.Application.Favorites;
+using PetSearchHome_WEB.Application.Listing;
+using PetSearchHome_WEB.Application.Moderation;
+using PetSearchHome_WEB.Application.Profiles;
+using PetSearchHome_WEB.Application.Reviews;
 using PetSearchHome_WEB.Application.Services;
 using PetSearchHome_WEB.Domain.Interfaces;
-using PetSearchHome_WEB.Infrastructure.Repositories;
 using PetSearchHome_WEB.Infrastructure.Logging;
+using PetSearchHome_WEB.Infrastructure.Persistence;
+using PetSearchHome_WEB.Infrastructure.Repositories;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<IListingRepository, InMemoryListingRepository>();
-builder.Services.AddScoped<ListingService>();
 
+builder.Services.AddControllersWithViews();
+
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/Login";
+    });
+builder.Services.AddAuthorization();
+
+var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DefaultConnection is not configured.");
+var dbPassword = builder.Configuration["Database:Password"];
+var connectionString = string.IsNullOrWhiteSpace(dbPassword)
+    ? baseConnectionString
+    : new NpgsqlConnectionStringBuilder(baseConnectionString)
+    {
+        Password = dbPassword
+    }.ConnectionString;
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+builder.Services.AddScoped<EfListingRepository>();
+builder.Services.AddScoped<IListingRepository>(sp => sp.GetRequiredService<EfListingRepository>());
+builder.Services.AddScoped<ISearchGateway>(sp => sp.GetRequiredService<EfListingRepository>());
+
+builder.Services.AddScoped<ListingService>();
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
+builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
+builder.Services.AddSingleton<IComplaintRepository, InMemoryComplaintRepository>();
+builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
+builder.Services.AddSingleton<IOrgStatsRepository, InMemoryOrgStatsRepository>();
+builder.Services.AddSingleton<INotificationGateway, InMemoryNotificationGateway>();
+builder.Services.AddSingleton<IPasswordHasher, SimplePasswordHasher>();
+builder.Services.AddSingleton<IAuthTokenService, DummyAuthTokenService>();
+builder.Services.AddSingleton<IModerationQueue, InMemoryModerationQueue>();
+
+builder.Services.AddScoped<SearchAnimalsUseCase>();
+builder.Services.AddScoped<ViewListingDetailUseCase>();
+builder.Services.AddScoped<CreateListingUseCase>();
+builder.Services.AddScoped<ListMyListingsUseCase>();
+builder.Services.AddScoped<DeleteListingUseCase>();
+builder.Services.AddScoped<EditListingUseCase>();
+builder.Services.AddScoped<SubmitListingForModerationUseCase>();
+builder.Services.AddScoped<LoginUseCase>();
+builder.Services.AddScoped<RegisterUserUseCase>();
+builder.Services.AddScoped<RegisterShelterUseCase>();
+builder.Services.AddScoped<LogoutUseCase>();
+builder.Services.AddScoped<ModerateListingUseCase>();
+builder.Services.AddScoped<BlockUserUseCase>();
+builder.Services.AddScoped<HandleComplaintUseCase>();
+builder.Services.AddScoped<SubmitComplaintUseCase>();
+builder.Services.AddScoped<GetPendingListingsUseCase>();
+builder.Services.AddScoped<GetOpenComplaintsUseCase>();
+builder.Services.AddScoped<ViewProfileUseCase>();
+builder.Services.AddScoped<UpdateProfileUseCase>();
+builder.Services.AddScoped<UpdateShelterProfileUseCase>();
+builder.Services.AddScoped<ViewOrgStatsUseCase>();
+builder.Services.AddScoped<LeaveReviewUseCase>();
+builder.Services.AddScoped<ToggleFavoriteUseCase>();
+builder.Services.AddScoped<ListFavoritesUseCase>();
 
 var app = builder.Build();
 
+if (!app.Environment.IsDevelopment())
+{
+    // Якщо проект запущено на реальному сервері, всі краші будуть летіти на сторінку /Home/Error
+    app.UseExceptionHandler("/Home/Error");
+    // app.UseHsts(); // (це для HTTPS, скоріш за все у тебе вже є)
+}
+else
+{
+    // Якщо ти розробляєш на своєму ПК, ти будеш бачити детальну сторінку розробника
+    app.UseExceptionHandler("/Home/Error"); // Можеш розкоментувати це і для Development, щоб протестувати!
+}
+
 app.UseSerilogRequestLogging();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
@@ -39,5 +122,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
-app.Run();
+await app.RunAsync();

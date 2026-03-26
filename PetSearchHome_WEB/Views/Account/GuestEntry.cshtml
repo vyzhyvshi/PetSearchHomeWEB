@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Вхід як гість";
+}
+
+@await Html.PartialAsync("_AuthStyles")
+
+<div class="auth-theme">
+    <div class="container auth-viewport">
+        <div class="auth-grid">
+            <section class="auth-hero-card">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="auth-chip">Гість</span>
+                    <span class="auth-chip auth-chip--accent">Ознайомчий режим</span>
+                </div>
+                <h1 class="h3 mb-2">Перегляд каталогу без реєстрації</h1>
+                <p class="auth-small mb-3">
+                    Дивіться оголошення, відгуки та статистику. Щоб створювати або редагувати оголошення, додайте аккаунт.
+                </p>
+                <ul class="auth-list">
+                    <li><span class="badge bg-info-subtle text-info-emphasis">Перегляд</span> Каталог тварин, фільтри, профілі притулків.</li>
+                    <li><span class="badge bg-warning-subtle text-warning-emphasis">Обмеження</span> Без публікації оголошень та взаємодії до авторизації.</li>
+                </ul>
+            </section>
+
+            <section class="auth-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div>
+                            <p class="text-uppercase small text-secondary mb-1">Use-case</p>
+                            <h2 class="h4 auth-section-title mb-0">Вхід як гість</h2>
+                        </div>
+                        <span class="badge text-bg-primary">Guest</span>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-success px-4">Перейти на головну</a>
+                        <a asp-action="Login" class="btn btn-outline-light">Авторизація</a>
+                        <a asp-action="RegisterIndividual" class="btn btn-outline-info">Реєстрація</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>

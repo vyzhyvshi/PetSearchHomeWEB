@@ -1,0 +1,59 @@
+@model PetSearchHome_WEB.Models.Favorite.FavoriteViewModel
+@{
+    ViewData["Title"] = "Улюблені";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h4 mb-0">Улюблені оголошення</h1>
+        <a class="btn btn-outline-secondary btn-sm" asp-controller="Home" asp-action="Index">До каталогу</a>
+    </div>
+
+    @if (Model.Items.Any())
+    {
+        <div class="row g-3">
+            @foreach (var listing in Model.Items)
+            {
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="row g-0 align-items-stretch">
+                            <div class="col-5 col-md-3">
+                                <div class="ratio ratio-4x3">
+                                    @if (!string.IsNullOrWhiteSpace(listing.PhotoUrl))
+                                    {
+                                        <img src="@listing.PhotoUrl"
+                                             alt="Фото @listing.Title"
+                                             class="w-100 h-100 object-fit-cover rounded-start" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light d-flex flex-column justify-content-center align-items-center text-muted rounded-start">
+                                            <span class="small">Без фото</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-7 col-md-9">
+                                <div class="card-body d-flex justify-content-between align-items-start h-100">
+                                    <div class="pe-3">
+                                        <h2 class="h5 mb-1">@listing.Title</h2>
+                                        <div class="text-muted mb-2">@listing.AnimalType • @listing.Location</div>
+                                        <small class="text-secondary">Опубліковано: @listing.ListedAt.LocalDateTime.ToShortDateString()</small>
+                                    </div>
+                                    <a class="btn btn-primary btn-sm"
+                                       asp-controller="Home"
+                                       asp-action="Details"
+                                       asp-route-id="@listing.Id">Деталі</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">Список улюблених порожній.</div>
+    }
+</div>

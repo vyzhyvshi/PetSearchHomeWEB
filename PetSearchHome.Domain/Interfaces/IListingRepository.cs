@@ -10,5 +10,8 @@ namespace PetSearchHome_WEB.Domain.Interfaces
         Task AddAsync(PetListing listing, CancellationToken cancellationToken = default);
         Task UpdateAsync(PetListing listing, CancellationToken cancellationToken = default);
         Task RemoveAsync(Guid id, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<PetListing>> ListByStatusAsync(ValueObjects.ListingStatus status, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<PetListing>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
     }
 }

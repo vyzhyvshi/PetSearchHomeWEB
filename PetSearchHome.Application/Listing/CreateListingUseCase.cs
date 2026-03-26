@@ -1,4 +1,4 @@
-using PetSearchHome_WEB.Application.Shared;
+﻿using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.Policies;
@@ -13,7 +13,7 @@ namespace PetSearchHome_WEB.Application.Listing
         string? Description,
         bool IsUrgent);
 
-    public class CreateListingUseCase : IUseCase<CreateListingRequest, Guid>
+    public class CreateListingUseCase : IUseCase<CreateListingRequest, Result<Guid>>
     {
         private readonly IListingRepository _listings;
         private readonly IModerationQueue _moderationQueue;
@@ -24,23 +24,23 @@ namespace PetSearchHome_WEB.Application.Listing
             _moderationQueue = moderationQueue;
         }
 
-        public async Task<Guid> ExecuteAsync(CreateListingRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<Guid>> ExecuteAsync(CreateListingRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (authContext.UserId is null)
             {
-                throw new UnauthorizedAccessException("Authentication required.");
+                return Result.Failure<Guid>("Необхідна авторизація.");
             }
 
             if (!ListingAccessPolicy.CanCreate(authContext.Role))
             {
-                throw new UnauthorizedAccessException("Role cannot create listings.");
+                return Result.Failure<Guid>("Ваша роль не дозволяє створювати оголошення.");
             }
 
             var status = ModerationPolicy.RequiresModeration(authContext.Role)
                 ? ListingStatus.PendingModeration
                 : ListingStatus.Published;
 
-            var listing = new PetListing
+            PetListing listing = new()
             {
                 OwnerId = authContext.UserId.Value,
                 OwnerRole = authContext.Role,
@@ -60,7 +60,7 @@ namespace PetSearchHome_WEB.Application.Listing
                 await _moderationQueue.EnqueueAsync(listing, cancellationToken);
             }
 
-            return listing.Id;
+            return Result.Success(listing.Id);
         }
     }
 }

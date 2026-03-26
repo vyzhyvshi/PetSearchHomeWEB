@@ -15,7 +15,7 @@ namespace PetSearchHome.Tests
 
         public SearchAnimalsUseCaseTests()
         {
-            _searchGatewayMock = new();
+            _searchGatewayMock = new Mock<ISearchGateway>();
             _useCase = new SearchAnimalsUseCase(_searchGatewayMock.Object);
         }
 
@@ -24,7 +24,6 @@ namespace PetSearchHome.Tests
         {
             SearchFilters filters = new();
 
-            // Короткий синтаксис для виправлення IDE0028 та IDE0090
             List<PetListing> mockDatabaseResult = new()
             {
                 new() { Id = Guid.NewGuid(), Title = "Rocky", AnimalType = "Dog" },
@@ -32,7 +31,7 @@ namespace PetSearchHome.Tests
             };
 
             _searchGatewayMock
-                .Setup(gateway => gateway.SearchAsync(filters, It.IsAny<CancellationToken>()))
+                .Setup(gateway => gateway.SearchAsync(It.IsAny<SearchFilters>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockDatabaseResult);
 
             SearchAnimalsRequest request = new(filters);
@@ -40,7 +39,6 @@ namespace PetSearchHome.Tests
 
             var result = await _useCase.ExecuteAsync(request, authContext, CancellationToken.None);
 
-            // ВИПРАВЛЕННЯ: Тепер ми перевіряємо об'єкт Result, а список лежить у result.Value
             Assert.True(result.IsSuccess);
             Assert.NotNull(result.Value);
             Assert.Equal(2, result.Value.Count);
@@ -52,8 +50,8 @@ namespace PetSearchHome.Tests
             SearchFilters filters = new() { AnimalType = "Parrot" };
 
             _searchGatewayMock
-                .Setup(gateway => gateway.SearchAsync(filters, It.IsAny<CancellationToken>()))
-                .ReturnsAsync([]);
+                .Setup(gateway => gateway.SearchAsync(It.IsAny<SearchFilters>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<PetListing>());
 
             SearchAnimalsRequest request = new(filters);
             AuthContext authContext = new() { UserId = null, Role = Role.Guest };

@@ -20,6 +20,7 @@ namespace PetSearchHome_WEB.Application.Auth
 
         public async Task<Guid> ExecuteAsync(RegisterUserRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
+
             if (authContext.Role == Role.Guest || authContext.Role == Role.Admin || authContext.Role == Role.Person || authContext.Role == Role.Shelter)
             {
                 var existingUser = await _users.GetByEmailAsync(request.Email, cancellationToken);

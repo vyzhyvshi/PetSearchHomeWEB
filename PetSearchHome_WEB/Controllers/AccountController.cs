@@ -76,9 +76,12 @@ namespace PetSearchHome_WEB.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
+				await HttpContext.SignInAsync(
+	                CookieAuthenticationDefaults.AuthenticationScheme,
+	                new ClaimsPrincipal(claimsIdentity),
+	                authProperties);
 
-
-                _logger.LogInformation("User {Email} logged in successfully.", model.Email);
+				_logger.LogInformation("User {Email} logged in successfully.", model.Email);
 
                 return RedirectToAction("Index", "Home");
             }

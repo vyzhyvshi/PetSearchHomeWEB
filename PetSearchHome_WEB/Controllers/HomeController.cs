@@ -57,20 +57,24 @@ namespace PetSearchHome_WEB.Controllers
 
             SearchAnimalsRequest request = new(domainFilters);
             var result = await _searchAnimalsUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            
+            var listings = result.IsSuccess && result.Value != null ? result.Value : new List<PetSearchHome_WEB.Domain.Entities.PetListing>();
 
-                var viewModel = new CatalogViewModel
+            var viewModel = new CatalogViewModel
+            {
+                Filter = filter,
+                Results = listings.Select(l => new ListingSummaryViewModel
                 {
-                    Filter = filter,
-                    Results = listings.Select(l => new ListingSummaryViewModel
-                    {
-                        Id = l.Id,
-                        Title = l.Title,
-                        AnimalType = l.AnimalType,
-                        Location = l.Location,
-                        ListedAt = l.ListedAt,
-                        IsUrgent = l.IsUrgent
-                    }).ToList()
-                };
+                    Id = l.Id,
+                    Title = l.Title,
+                    AnimalType = l.AnimalType,
+                    Location = l.Location,
+                    ListedAt = l.ListedAt,
+                    IsUrgent = l.IsUrgent,
+                    PhotoUrl = l.PrimaryPhotoUrl
+
+                }).ToList()
+            };
 
             return View(viewModel);
         }

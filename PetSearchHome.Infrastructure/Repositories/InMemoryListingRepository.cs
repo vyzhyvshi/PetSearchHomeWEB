@@ -67,7 +67,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 Status = listing.Status,
                 ListedAt = DateTimeOffset.UtcNow,
                 Description = listing.Description,
-                IsUrgent = listing.IsUrgent
+                IsUrgent = listing.IsUrgent,
+                PhotoUrls = listing.PhotoUrls
             });
 
             return Task.CompletedTask;
@@ -150,7 +151,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Published,
                     ListedAt = DateTimeOffset.UtcNow.AddHours(-6),
                     Description = "Friendly, 2 years old, loves long walks.",
-                    IsUrgent = true
+                    IsUrgent = true,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -162,7 +164,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Published,
                     ListedAt = DateTimeOffset.UtcNow.AddDays(-1),
                     Description = "Very gentle, sterilized, indoor only.",
-                    IsUrgent = false
+                    IsUrgent = false,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -174,7 +177,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.PendingModeration,
                     ListedAt = DateTimeOffset.UtcNow.AddHours(-12),
                     Description = "3 months, leash trained.",
-                    IsUrgent = true
+                    IsUrgent = true,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -186,7 +190,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Published,
                     ListedAt = DateTimeOffset.UtcNow.AddDays(-2),
                     Description = "Calm temperament, good with kids.",
-                    IsUrgent = false
+                    IsUrgent = false,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -198,7 +203,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Rejected,
                     ListedAt = DateTimeOffset.UtcNow.AddHours(-30),
                     Description = "Vaccinated, playful, medium size.",
-                    IsUrgent = false
+                    IsUrgent = false,
+                    PhotoUrls = System.Array.Empty<string>()
                 },
                 new()
                 {
@@ -210,7 +216,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     Status = Domain.ValueObjects.ListingStatus.Published,
                     ListedAt = DateTimeOffset.UtcNow.AddHours(-3),
                     Description = "Loves attention, sterilized.",
-                    IsUrgent = true
+                    IsUrgent = true,
+                    PhotoUrls = System.Array.Empty<string>()
                 }
             };
         }

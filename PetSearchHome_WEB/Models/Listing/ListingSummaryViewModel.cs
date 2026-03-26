@@ -10,5 +10,7 @@ namespace PetSearchHome_WEB.Models.Listing
             = DateTimeOffset.UtcNow;
         public bool IsUrgent { get; init; }
             = false;
+        public string? PhotoUrl { get; init; }
+            = null;
     }
 }

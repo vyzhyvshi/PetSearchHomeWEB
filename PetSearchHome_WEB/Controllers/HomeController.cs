@@ -58,22 +58,19 @@ namespace PetSearchHome_WEB.Controllers
             SearchAnimalsRequest request = new(domainFilters);
             var result = await _searchAnimalsUseCase.ExecuteAsync(request, authContext, cancellationToken);
 
-            // Якщо сталася помилка логіки, показуємо порожній список (або можна додати повідомлення)
-            var listings = result.IsSuccess && result.Value != null ? result.Value : new List<Domain.Entities.PetListing>();
-
-            CatalogViewModel viewModel = new()
-            {
-                Filter = filter,
-                Results = listings.Select(l => new ListingSummaryViewModel
+                var viewModel = new CatalogViewModel
                 {
-                    Id = l.Id,
-                    Title = l.Title,
-                    AnimalType = l.AnimalType,
-                    Location = l.Location,
-                    ListedAt = l.ListedAt,
-                    IsUrgent = l.IsUrgent
-                }).ToList()
-            };
+                    Filter = filter,
+                    Results = listings.Select(l => new ListingSummaryViewModel
+                    {
+                        Id = l.Id,
+                        Title = l.Title,
+                        AnimalType = l.AnimalType,
+                        Location = l.Location,
+                        ListedAt = l.ListedAt,
+                        IsUrgent = l.IsUrgent
+                    }).ToList()
+                };
 
             return View(viewModel);
         }

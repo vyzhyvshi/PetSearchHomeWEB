@@ -1,6 +1,7 @@
 @model PetSearchHome_WEB.Models.Listing.ListingDetailsViewModel
 @{
     ViewData["Title"] = "Деталі оголошення";
+    var photoCount = Model.Listing.PhotoUrls.Count;
 }
 
 <div class="container py-4">
@@ -13,6 +14,37 @@
     @if (TempData["ErrorMessage"] is string errorMessage)
     {
         <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (photoCount > 0)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-12">
+                        <img src="@Model.Listing.PhotoUrls[0]"
+                             alt="Фото @Model.Listing.Title"
+                             class="img-fluid rounded w-100"
+                             style="max-height: 420px; object-fit: cover;" />
+                    </div>
+                    @for (var i = 1; i < photoCount; i++)
+                    {
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <img src="@Model.Listing.PhotoUrls[i]"
+                                 alt="Фото @Model.Listing.Title"
+                                 class="img-fluid rounded"
+                                 style="height: 140px; object-fit: cover; width: 100%;" />
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-light border mb-4">
+            Фото для цього оголошення ще не додані.
+        </div>
     }
 
     <div class="card shadow-sm mb-4">

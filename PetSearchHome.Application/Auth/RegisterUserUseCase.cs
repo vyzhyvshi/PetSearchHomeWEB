@@ -26,7 +26,8 @@ namespace PetSearchHome_WEB.Application.Auth
                 var existingUser = await _users.GetByEmailAsync(request.Email, cancellationToken);
                 if (existingUser != null)
                 {
-                    throw new Exception("Користувач з таким email вже існує.");
+                    Exception exception = new InvalidOperationException("Користувач з таким email вже існує.");
+                    throw exception;
                 }
                 var user = new User
                 {

@@ -14,13 +14,15 @@
 
                 <div>
                     <label asp-for="Email" class="form-label">Email</label>
-                    <input asp-for="Email" class="form-control" autocomplete="email" />
+                    <input asp-for="Email" type="email" class="form-control" autocomplete="email" />
                     <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
 
                 <div>
                     <label asp-for="Password" class="form-label">Пароль</label>
-                    <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                    <input asp-for="Password" type="password"
+						   class="form-control"
+						   autocomplete="current-password" />
                     <span asp-validation-for="Password" class="text-danger small"></span>
                 </div>
 

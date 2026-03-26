@@ -148,7 +148,8 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         if (!string.IsNullOrWhiteSpace(filters.AnimalType))
         {
             var animalType = filters.AnimalType.Trim();
-            query = query.Where(l => l.AnimalType == animalType);
+            // ВИПРАВЛЕНО: Замінено 'l.AnimalType == animalType' на ILike для підтримки PostgreSQL case-insensitive пошуку
+            query = query.Where(l => EF.Functions.ILike(l.AnimalType, animalType));
         }
 
         if (!string.IsNullOrWhiteSpace(filters.Location))

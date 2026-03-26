@@ -18,7 +18,16 @@ namespace PetSearchHome_WEB.Application.Catalog
 
         public async Task<Result<IReadOnlyList<PetListing>>> ExecuteAsync(SearchAnimalsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-            var result = await _searchGateway.SearchAsync(request.Filters, cancellationToken);
+            var normalizedFilters = new SearchFilters
+            {
+                SearchQuery = request.Filters.SearchQuery?.ToLowerInvariant(),
+                AnimalType = request.Filters.AnimalType?.ToLowerInvariant(),
+                Location = request.Filters.Location?.ToLowerInvariant(),
+                IsUrgent = request.Filters.IsUrgent
+            };
+
+            var result = await _searchGateway.SearchAsync(normalizedFilters, cancellationToken);
+
             return Result.Success(result);
         }
     }

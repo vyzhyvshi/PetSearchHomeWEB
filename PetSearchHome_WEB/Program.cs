@@ -45,9 +45,9 @@ var connectionString = string.IsNullOrWhiteSpace(dbPassword)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-builder.Services.AddSingleton<InMemoryListingRepository>();
-builder.Services.AddSingleton<IListingRepository>(sp => sp.GetRequiredService<InMemoryListingRepository>());
-builder.Services.AddSingleton<ISearchGateway>(sp => sp.GetRequiredService<InMemoryListingRepository>());
+builder.Services.AddScoped<EfListingRepository>();
+builder.Services.AddScoped<IListingRepository>(sp => sp.GetRequiredService<EfListingRepository>());
+builder.Services.AddScoped<ISearchGateway>(sp => sp.GetRequiredService<EfListingRepository>());
 
 builder.Services.AddScoped<ListingService>();
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();

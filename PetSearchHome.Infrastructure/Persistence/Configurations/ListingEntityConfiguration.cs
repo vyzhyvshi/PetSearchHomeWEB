@@ -12,13 +12,36 @@ public class ListingEntityConfiguration : IEntityTypeConfiguration<ListingEntity
         builder.HasKey(l => l.ListingId);
         builder.Property(l => l.ListingId)
             .HasColumnName("listing_id");
+
+        builder.Property(l => l.DomainId)
+            .HasColumnName("domain_id")
+            .HasDefaultValueSql("gen_random_uuid()")
+            .IsRequired();
+
         builder.Property(l => l.UserId)
             .HasColumnName("user_id")
             .IsRequired();
+
+        builder.Property(l => l.Title)
+            .HasColumnName("title")
+            .HasMaxLength(128)
+            .IsRequired();
+
         builder.Property(l => l.AnimalType)
             .HasColumnName("animal_type")
             .HasMaxLength(64)
             .IsRequired();
+
+        builder.Property(l => l.Location)
+            .HasColumnName("location")
+            .HasMaxLength(256)
+            .IsRequired();
+
+        builder.Property(l => l.IsUrgent)
+            .HasColumnName("is_urgent")
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.Property(l => l.Breed)
             .HasColumnName("breed")
             .HasMaxLength(128);
@@ -49,6 +72,8 @@ public class ListingEntityConfiguration : IEntityTypeConfiguration<ListingEntity
             .HasColumnName("created_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+        builder.HasIndex(l => l.DomainId)
+            .IsUnique();
         builder.HasIndex(l => l.Status);
         builder.HasIndex(l => l.City);
 

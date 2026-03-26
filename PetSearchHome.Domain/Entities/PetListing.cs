@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace PetSearchHome_WEB.Domain.Entities
 {
     public record PetListing
@@ -16,5 +18,8 @@ namespace PetSearchHome_WEB.Domain.Entities
             = null;
         public bool IsUrgent { get; init; }
             = false;
+        public IReadOnlyList<string> PhotoUrls { get; init; }
+            = System.Array.Empty<string>();
+        public string? PrimaryPhotoUrl => PhotoUrls.Count > 0 ? PhotoUrls[0] : null;
     }
 }

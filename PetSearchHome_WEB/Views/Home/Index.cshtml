@@ -49,22 +49,43 @@
                     {
                         <div class="col-12">
                             <div class="card shadow-sm">
-                                <div class="card-body d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h3 class="h5 mb-1">@listing.Title</h3>
-                                        <p class="text-muted mb-1">@listing.AnimalType • @listing.Location</p>
-                                        <small class="text-secondary">Опубліковано: @listing.ListedAt.LocalDateTime.ToShortDateString()</small>
+                                <div class="row g-0 align-items-stretch">
+                                    <div class="col-5 col-md-3">
+                                        <div class="ratio ratio-4x3">
+                                            @if (!string.IsNullOrWhiteSpace(listing.PhotoUrl))
+                                            {
+                                                <img src="@listing.PhotoUrl"
+                                                     alt="Фото @listing.Title"
+                                                     class="w-100 h-100 object-fit-cover rounded-start" />
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-light d-flex flex-column justify-content-center align-items-center text-muted rounded-start">
+                                                    <span class="small">Без фото</span>
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
-                                    <div class="text-end">
-                                        @if (listing.IsUrgent)
-                                        {
-                                            <span class="badge bg-danger mb-2 d-inline-block">Терміново</span>
-                                        }
-                                        <div>
-                                            <a class="btn btn-outline-primary btn-sm"
-                                               asp-controller="Home"
-                                               asp-action="Details"
-                                               asp-route-id="@listing.Id">Деталі</a>
+                                    <div class="col-7 col-md-9">
+                                        <div class="card-body d-flex justify-content-between align-items-start h-100">
+                                            <div class="pe-3">
+                                                <h3 class="h5 mb-1">@listing.Title</h3>
+                                                <p class="text-muted mb-1">@listing.AnimalType • @listing.Location</p>
+                                                <small class="text-secondary">Опубліковано: @listing.ListedAt.LocalDateTime.ToShortDateString()
+                                                    </small>
+                                            </div>
+                                            <div class="text-end">
+                                                @if (listing.IsUrgent)
+                                                {
+                                                    <span class="badge bg-danger mb-2 d-inline-block">Терміново</span>
+                                                }
+                                                <div>
+                                                    <a class="btn btn-outline-primary btn-sm"
+                                                       asp-controller="Home"
+                                                       asp-action="Details"
+                                                       asp-route-id="@listing.Id">Деталі</a>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

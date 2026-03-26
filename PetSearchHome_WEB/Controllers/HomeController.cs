@@ -69,7 +69,8 @@ namespace PetSearchHome_WEB.Controllers
                         AnimalType = l.AnimalType,
                         Location = l.Location,
                         ListedAt = l.ListedAt,
-                        IsUrgent = l.IsUrgent
+                        IsUrgent = l.IsUrgent,
+                        PhotoUrl = l.PrimaryPhotoUrl
                     }).ToList()
                 };
 

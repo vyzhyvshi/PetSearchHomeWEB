@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
@@ -171,11 +173,18 @@ public class EfListingRepository : IListingRepository, ISearchGateway
     private IQueryable<ListingEntity> QueryBase() =>
         _db.Listings
             .AsNoTracking()
-            .Include(l => l.User);
+            .Include(l => l.User)
+            .Include(l => l.Photos);
 
     private static PetListing MapToDomain(ListingEntity entity)
     {
         var createdAt = DateTime.SpecifyKind(entity.CreatedAt, DateTimeKind.Utc);
+        var photoUrls = entity.Photos
+            ?.OrderByDescending(p => p.IsPrimary)
+            .ThenBy(p => p.PhotoId)
+            .Select(p => p.Url)
+            .ToList() ?? new List<string>();
+
         return new PetListing
         {
             Id = entity.DomainId,
@@ -187,7 +196,8 @@ public class EfListingRepository : IListingRepository, ISearchGateway
             Description = entity.Description,
             IsUrgent = entity.IsUrgent,
             Status = entity.Status,
-            ListedAt = new DateTimeOffset(createdAt)
+            ListedAt = new DateTimeOffset(createdAt),
+            PhotoUrls = photoUrls
         };
     }
 

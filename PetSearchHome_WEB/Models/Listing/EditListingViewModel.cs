@@ -21,6 +21,9 @@ namespace PetSearchHome_WEB.Models.Listing
         [MaxLength(2000, ErrorMessage = "Опис не може перевищувати 2000 символів")]
         public string? Description { get; set; }
 
+        [Display(Name = "Фото (кожне посилання з нового рядка)")]
+        public string? PhotoUrlsText { get; set; }
+
         [Display(Name = "Терміновий пошук")]
         public bool IsUrgent { get; set; }
     }

@@ -1,0 +1,79 @@
+@model IReadOnlyList<PetSearchHome_WEB.Domain.Entities.PetListing>
+@using PetSearchHome_WEB.Domain.ValueObjects
+@{
+    ViewData["Title"] = "Мої оголошення";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Мої оголошення</h1>
+            <p class="text-muted mb-0">Усі ваші оголошення: активні, на модерації та відхилені.</p>
+        </div>
+        <a class="btn btn-primary" asp-action="Create">Створити оголошення</a>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-light border">
+            У вас ще немає оголошень.
+        </div>
+    }
+    else
+    {
+        <div class="vstack gap-3">
+            @foreach (var listing in Model)
+            {
+                var badgeClass = listing.Status switch
+                {
+                    ListingStatus.Published => "bg-success",
+                    ListingStatus.PendingModeration => "bg-warning text-dark",
+                    ListingStatus.Rejected => "bg-danger",
+                    ListingStatus.Archived => "bg-secondary",
+                    _ => "bg-secondary"
+                };
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-3">
+                                @if (!string.IsNullOrWhiteSpace(listing.PrimaryPhotoUrl))
+                                {
+                                    <img src="@listing.PrimaryPhotoUrl" alt="@listing.Title" class="img-fluid rounded" style="height: 160px; width: 100%; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="rounded bg-light border d-flex align-items-center justify-content-center text-muted" style="height: 160px;">
+                                        Без фото
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <h2 class="h5 mb-0">@listing.Title</h2>
+                                    <span class="badge @badgeClass">@listing.Status</span>
+                                    @if (listing.IsUrgent)
+                                    {
+                                        <span class="badge bg-danger">Терміново</span>
+                                    }
+                                </div>
+                                <div class="text-muted mb-2">@listing.AnimalType • @listing.Location</div>
+                                <p class="mb-0">@(string.IsNullOrWhiteSpace(listing.Description) ? "Опис ще не додано." : listing.Description)</p>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-grid gap-2">
+                                    <a class="btn btn-outline-primary" asp-controller="Home" asp-action="Details" asp-route-id="@listing.Id">Переглянути</a>
+                                    <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@listing.Id">Редагувати</a>
+                                    <form asp-action="Delete" asp-route-id="@listing.Id" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger w-100">Видалити</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

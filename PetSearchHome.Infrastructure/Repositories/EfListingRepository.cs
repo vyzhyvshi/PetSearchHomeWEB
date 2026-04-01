@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
@@ -72,13 +70,27 @@ public class EfListingRepository : IListingRepository, ISearchGateway
             CreatedAt = listing.ListedAt.UtcDateTime
         };
 
+        foreach (var (url, index) in listing.PhotoUrls
+                     .Where(static url => !string.IsNullOrWhiteSpace(url))
+                     .Distinct(StringComparer.OrdinalIgnoreCase)
+                     .Select((url, index) => (url.Trim(), index)))
+        {
+            entity.Photos.Add(new PhotoEntity
+            {
+                Url = url,
+                IsPrimary = index == 0
+            });
+        }
+
         await _db.Listings.AddAsync(entity, cancellationToken);
         await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateAsync(PetListing listing, CancellationToken cancellationToken = default)
     {
-        var entity = await _db.Listings.FirstOrDefaultAsync(l => l.DomainId == listing.Id, cancellationToken);
+        var entity = await _db.Listings
+            .Include(l => l.Photos)
+            .FirstOrDefaultAsync(l => l.DomainId == listing.Id, cancellationToken);
         if (entity is null)
         {
             return;
@@ -94,6 +106,19 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         entity.District = district;
         entity.Description = listing.Description ?? string.Empty;
         entity.Status = listing.Status;
+        entity.Photos.Clear();
+
+        foreach (var (url, index) in listing.PhotoUrls
+                     .Where(static url => !string.IsNullOrWhiteSpace(url))
+                     .Distinct(StringComparer.OrdinalIgnoreCase)
+                     .Select((url, index) => (url.Trim(), index)))
+        {
+            entity.Photos.Add(new PhotoEntity
+            {
+                Url = url,
+                IsPrimary = index == 0
+            });
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
     }
@@ -148,7 +173,6 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         if (!string.IsNullOrWhiteSpace(filters.AnimalType))
         {
             var animalType = filters.AnimalType.Trim();
-            // ВИПРАВЛЕНО: Замінено 'l.AnimalType == animalType' на ILike для підтримки PostgreSQL case-insensitive пошуку
             query = query.Where(l => EF.Functions.ILike(l.AnimalType, animalType));
         }
 
@@ -174,7 +198,6 @@ public class EfListingRepository : IListingRepository, ISearchGateway
     private IQueryable<ListingEntity> QueryBase() =>
         _db.Listings
             .AsNoTracking()
-            .Include(l => l.User)
             .Include(l => l.Photos);
 
     private static PetListing MapToDomain(ListingEntity entity)

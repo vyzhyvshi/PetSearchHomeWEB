@@ -12,18 +12,11 @@ public class UserEntity
     public bool IsActive { get; set; } = true;
     public bool IsVerified { get; set; } = false;
 
-    public IndividualProfileEntity? IndividualProfile { get; set; }
-        = null;
-    public ShelterProfileEntity? ShelterProfile { get; set; }
-        = null;
-    public ICollection<ListingEntity> Listings { get; set; }
-        = new List<ListingEntity>();
-    public ICollection<FavoriteEntity> Favorites { get; set; }
-        = new List<FavoriteEntity>();
-    public ICollection<ReviewEntity> ReviewsWritten { get; set; }
-        = new List<ReviewEntity>();
-    public ICollection<ReviewEntity> ReviewsReceived { get; set; }
-        = new List<ReviewEntity>();
-    public ICollection<ReportEntity> ReportsFiled { get; set; }
-        = new List<ReportEntity>();
+    public IndividualProfileEntity? IndividualProfile { get; set; } = null;
+    public ShelterProfileEntity? ShelterProfile { get; set; } = null;
+    public ICollection<ListingEntity> Listings { get; set; } = new List<ListingEntity>();
+    public ICollection<FavoriteEntity> Favorites { get; set; } = new List<FavoriteEntity>();
+    public ICollection<ReviewEntity> ReviewsWritten { get; set; } = new List<ReviewEntity>();
+    public ICollection<ReviewEntity> ReviewsReceived { get; set; } = new List<ReviewEntity>();
+    public ICollection<ReportEntity> ReportsFiled { get; set; } = new List<ReportEntity>();
 }

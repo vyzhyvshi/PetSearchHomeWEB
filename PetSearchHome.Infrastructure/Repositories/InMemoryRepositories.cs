@@ -114,7 +114,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
         public Task<ShelterProfile?> GetProfileAsync(Guid shelterId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_profiles.FirstOrDefault(p => p.ShelterId == shelterId));
         }
 
         public Task UpsertProfileAsync(ShelterProfile profile, CancellationToken cancellationToken = default)
@@ -194,11 +194,21 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
     public class InMemoryReviewRepository : IReviewRepository
     {
-        public Task AddAsync(Review review, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        private readonly List<Review> _reviews = new();
+
+        public Task AddAsync(Review review, CancellationToken cancellationToken = default)
+        {
+            _reviews.Add(review);
+            return Task.CompletedTask;
+        }
 
         public Task<IReadOnlyList<Review>> ListByListingAsync(Guid listingId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return Task.FromResult<IReadOnlyList<Review>>(
+                _reviews
+                    .Where(r => r.ListingId == listingId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToList());
         }
     }
 
@@ -232,23 +242,12 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
     {
         private readonly List<Guid> _queue = new();
 
-        public Task EnqueueAsync(Guid listingId, CancellationToken cancellationToken = default)
-        {
-            if (!_queue.Contains(listingId))
-            {
-                _queue.Add(listingId);
-            }
-            return Task.CompletedTask;
-        }
-
         public Task EnqueueAsync(PetListing listing, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task RemoveFromQueueAsync(Guid listingId, CancellationToken cancellationToken = default)
-        {
-            _queue.Remove(listingId);
+            if (!_queue.Contains(listing.Id))
+            {
+                _queue.Add(listing.Id);
+            }
             return Task.CompletedTask;
         }
     }

@@ -1,0 +1,52 @@
+@using System.Security.Claims
+@model PetSearchHome_WEB.Models.Profile.EditProfileViewModel
+@{
+    ViewData["Title"] = "Редагувати профіль";
+    var currentUserId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h3 mb-3">Редагування профілю</h1>
+
+                    <form asp-action="Edit" method="post" class="vstack gap-3">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div>
+                            <label asp-for="DisplayName" class="form-label"></label>
+                            <input asp-for="DisplayName" class="form-control" />
+                            <span asp-validation-for="DisplayName" class="text-danger"></span>
+                        </div>
+
+                        @if (Model.IsShelter)
+                        {
+                            <div>
+                                <label asp-for="Description" class="form-label"></label>
+                                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            </div>
+                            <div>
+                                <label asp-for="Website" class="form-label"></label>
+                                <input asp-for="Website" class="form-control" />
+                            </div>
+                            <div>
+                                <label asp-for="Address" class="form-label"></label>
+                                <input asp-for="Address" class="form-control" />
+                            </div>
+                        }
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Зберегти</button>
+                            <a class="btn btn-light" asp-action="Details" asp-route-id="@currentUserId">Скасувати</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_ValidationScriptsPartial" />

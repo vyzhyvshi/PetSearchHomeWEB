@@ -58,7 +58,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         {
             _listings.Add(new PetListing
             {
-                Id = Guid.NewGuid(),
+                Id = listing.Id == Guid.Empty ? Guid.NewGuid() : listing.Id,
                 OwnerId = listing.OwnerId == Guid.Empty ? Guid.NewGuid() : listing.OwnerId,
                 OwnerRole = listing.OwnerRole,
                 Title = listing.Title,

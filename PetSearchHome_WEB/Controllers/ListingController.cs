@@ -2,17 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Listing;
-using PetSearchHome_WEB.Application.Shared;
-using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.Policies;
-using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models.Listing;
-using System.Security.Claims;
 
 namespace PetSearchHome_WEB.Controllers
 {
     [Authorize]
-    public class ListingController : Controller
+    public class ListingController : AppController
     {
         private readonly ILogger<ListingController> _logger;
         private readonly CreateListingUseCase _createListingUseCase;
@@ -21,7 +17,6 @@ namespace PetSearchHome_WEB.Controllers
         private readonly EditListingUseCase _editListingUseCase;
         private readonly SubmitListingForModerationUseCase _submitListingForModerationUseCase;
         private readonly ViewListingDetailUseCase _viewListingDetailUseCase;
-        private readonly IUserRepository _users;
 
         public ListingController(
             ILogger<ListingController> logger,
@@ -30,8 +25,7 @@ namespace PetSearchHome_WEB.Controllers
             DeleteListingUseCase deleteListingUseCase,
             EditListingUseCase editListingUseCase,
             SubmitListingForModerationUseCase submitListingForModerationUseCase,
-            ViewListingDetailUseCase viewListingDetailUseCase,
-            IUserRepository users)
+            ViewListingDetailUseCase viewListingDetailUseCase)
         {
             _logger = logger;
             _createListingUseCase = createListingUseCase;
@@ -40,7 +34,6 @@ namespace PetSearchHome_WEB.Controllers
             _editListingUseCase = editListingUseCase;
             _submitListingForModerationUseCase = submitListingForModerationUseCase;
             _viewListingDetailUseCase = viewListingDetailUseCase;
-            _users = users;
         }
 
         [HttpGet]
@@ -93,7 +86,7 @@ namespace PetSearchHome_WEB.Controllers
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("User {UserId} failed to create a listing: {Error}", authContext.UserId, result.ErrorMessage);
-                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Сталася помилка при створенні оголошення.");
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "\u0421\u0442\u0430\u043B\u0430\u0441\u044F \u043F\u043E\u043C\u0438\u043B\u043A\u0430 \u043F\u0440\u0438 \u0441\u0442\u0432\u043E\u0440\u0435\u043D\u043D\u0456 \u043E\u0433\u043E\u043B\u043E\u0448\u0435\u043D\u043D\u044F.");
                 return View(model);
             }
 
@@ -178,7 +171,7 @@ namespace PetSearchHome_WEB.Controllers
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("Failed to edit listing {ListingId} by user {UserId}: {Error}", model.Id, authContext.UserId, result.ErrorMessage);
-                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Не вдалося оновити оголошення.");
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u043E\u043D\u043E\u0432\u0438\u0442\u0438 \u043E\u0433\u043E\u043B\u043E\u0448\u0435\u043D\u043D\u044F.");
                 return View(model);
             }
 
@@ -201,45 +194,6 @@ namespace PetSearchHome_WEB.Controllers
 
             _logger.LogInformation("Listing {ListingId} submitted for moderation by user {UserId}", id, authContext.UserId);
             return RedirectToAction(nameof(MyListings));
-        }
-
-        private async Task<AuthContext> GetAuthContextAsync(CancellationToken cancellationToken)
-        {
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                return new AuthContext { UserId = null, Role = Role.Guest };
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(userIdString, out var userId);
-            var roleString = User.FindFirstValue(ClaimTypes.Role);
-            var email = User.FindFirstValue(ClaimTypes.Email);
-
-            var role = Role.Person;
-            if (!string.IsNullOrEmpty(roleString) && Enum.TryParse<Role>(roleString, true, out var parsedRole))
-            {
-                role = parsedRole;
-            }
-
-            if (userId != Guid.Empty)
-            {
-                var existing = await _users.GetByIdAsync(userId, cancellationToken);
-                if (existing is not null)
-                {
-                    return new AuthContext { UserId = userId, Role = role };
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(email))
-            {
-                var user = await _users.GetByEmailAsync(email, cancellationToken);
-                if (user is not null)
-                {
-                    return new AuthContext { UserId = user.Id, Role = user.Role };
-                }
-            }
-
-            return new AuthContext { UserId = userId == Guid.Empty ? null : userId, Role = role };
         }
 
         private static IReadOnlyList<string> ParsePhotoUrls(string? photoUrlsText)

@@ -2,14 +2,12 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Auth;
-using PetSearchHome_WEB.Application.Shared;
-using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models.Auth;
 using System.Security.Claims;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : AppController
     {
         private readonly ILogger<AccountController> _logger;
         private readonly LoginUseCase _loginUseCase;
@@ -183,31 +181,5 @@ namespace PetSearchHome_WEB.Controllers
             return View();
         }
 
-        private AuthContext GetGuestContext()
-        {
-            return new AuthContext { UserId = null, Role = Role.Guest };
-        }
-
-        private AuthContext GetAuthContext()
-        {
-            var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-
-            if (!isAuthenticated)
-            {
-                return GetGuestContext();
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(userIdString, out Guid userId);
-
-            var roleString = User.FindFirstValue(ClaimTypes.Role);
-            Role userRole = Role.Person;
-            if (!string.IsNullOrEmpty(roleString) && Enum.TryParse<Role>(roleString, true, out var parsedRole))
-            {
-                userRole = parsedRole;
-            }
-
-            return new AuthContext { UserId = userId, Role = userRole };
-        }
     }
 }

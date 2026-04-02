@@ -4,17 +4,15 @@ using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Favorites;
 using PetSearchHome_WEB.Application.Moderation;
-using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models;
 using PetSearchHome_WEB.Models.Listing;
 using System.Diagnostics;
-using System.Security.Claims;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : AppController
     {
         private readonly ILogger<HomeController> _logger;
         private readonly SearchAnimalsUseCase _searchAnimalsUseCase;
@@ -57,8 +55,10 @@ namespace PetSearchHome_WEB.Controllers
 
             SearchAnimalsRequest request = new(domainFilters);
             var result = await _searchAnimalsUseCase.ExecuteAsync(request, authContext, cancellationToken);
-            
-            var listings = result.IsSuccess && result.Value != null ? result.Value : new List<PetSearchHome_WEB.Domain.Entities.PetListing>();
+
+            var listings = result.IsSuccess && result.Value != null
+                ? result.Value
+                : new List<PetSearchHome_WEB.Domain.Entities.PetListing>();
 
             var viewModel = new CatalogViewModel
             {
@@ -72,7 +72,6 @@ namespace PetSearchHome_WEB.Controllers
                     ListedAt = l.ListedAt,
                     IsUrgent = l.IsUrgent,
                     PhotoUrl = l.PrimaryPhotoUrl
-
                 }).ToList()
             };
 
@@ -121,14 +120,14 @@ namespace PetSearchHome_WEB.Controllers
 
             if (result.IsSuccess)
             {
-                TempData["SuccessMessage"] = result.Value
-                    ? "Оголошення додано в улюблені."
-                    : "Оголошення видалено з улюблених.";
+                SetSuccessMessage(result.Value
+                    ? "\u041E\u0433\u043E\u043B\u043E\u0448\u0435\u043D\u043D\u044F \u0434\u043E\u0434\u0430\u043D\u043E \u0432 \u0443\u043B\u044E\u0431\u043B\u0435\u043D\u0456."
+                    : "\u041E\u0433\u043E\u043B\u043E\u0448\u0435\u043D\u043D\u044F \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E \u0437 \u0443\u043B\u044E\u0431\u043B\u0435\u043D\u0438\u0445.");
             }
             else
             {
                 _logger.LogWarning("Failed to toggle favorite for listing {ListingId}: {Error}", id, result.ErrorMessage);
-                TempData["ErrorMessage"] = result.ErrorMessage ?? "Не вдалося оновити улюблені.";
+                SetErrorMessage(result.ErrorMessage ?? "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u043E\u043D\u043E\u0432\u0438\u0442\u0438 \u0443\u043B\u044E\u0431\u043B\u0435\u043D\u0456.");
             }
 
             return RedirectToAction(nameof(Details), new { id });
@@ -146,33 +145,15 @@ namespace PetSearchHome_WEB.Controllers
 
             if (result.IsSuccess)
             {
-                TempData["SuccessMessage"] = "Скаргу успішно надіслано.";
+                SetSuccessMessage("\u0421\u043A\u0430\u0440\u0433\u0443 \u0443\u0441\u043F\u0456\u0448\u043D\u043E \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u043D\u043E.");
             }
             else
             {
                 _logger.LogWarning("Validation error while submitting complaint for listing {ListingId}: {Error}", id, result.ErrorMessage);
-                TempData["ErrorMessage"] = result.ErrorMessage ?? "Не вдалося надіслати скаргу.";
+                SetErrorMessage(result.ErrorMessage ?? "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u0442\u0438 \u0441\u043A\u0430\u0440\u0433\u0443.");
             }
 
             return RedirectToAction(nameof(Details), new { id });
-        }
-
-        private AuthContext GetAuthContext()
-        {
-            var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-            if (!isAuthenticated) return new AuthContext { UserId = null, Role = Role.Guest };
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(userIdString, out Guid userId);
-            var roleString = User.FindFirstValue(ClaimTypes.Role);
-
-            Role userRole = Role.Person;
-            if (!string.IsNullOrEmpty(roleString) && Enum.TryParse<Role>(roleString, true, out var parsedRole))
-            {
-                userRole = parsedRole;
-            }
-
-            return new AuthContext { UserId = userId, Role = userRole };
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -183,7 +164,7 @@ namespace PetSearchHome_WEB.Controllers
             if (exceptionHandlerPathFeature?.Error != null)
             {
                 _logger.LogError(exceptionHandlerPathFeature.Error,
-                    "Глобальний обробник спіймав фатальну помилку на шляху: {Path}",
+                    "\u0413\u043B\u043E\u0431\u0430\u043B\u044C\u043D\u0438\u0439 \u043E\u0431\u0440\u043E\u0431\u043D\u0438\u043A \u0441\u043F\u0456\u0439\u043C\u0430\u0432 \u0444\u0430\u0442\u0430\u043B\u044C\u043D\u0443 \u043F\u043E\u043C\u0438\u043B\u043A\u0443 \u043D\u0430 \u0448\u043B\u044F\u0445\u0443: {Path}",
                     exceptionHandlerPathFeature.Path);
             }
 

@@ -2,15 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Application.Reviews;
-using PetSearchHome_WEB.Application.Shared;
-using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models.Profile;
-using System.Security.Claims;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    public class ProfileController : Controller
+    public class ProfileController : AppController
     {
         private readonly ILogger<ProfileController> _logger;
         private readonly ViewProfileUseCase _viewProfileUseCase;
@@ -19,7 +16,6 @@ namespace PetSearchHome_WEB.Controllers
         private readonly UpdateShelterProfileUseCase _updateShelterProfileUseCase;
         private readonly ViewOrgStatsUseCase _viewOrgStatsUseCase;
         private readonly LeaveReviewUseCase _leaveReviewUseCase;
-        private readonly IUserRepository _users;
 
         public ProfileController(
             ILogger<ProfileController> logger,
@@ -28,8 +24,7 @@ namespace PetSearchHome_WEB.Controllers
             UpdateProfileUseCase updateProfileUseCase,
             UpdateShelterProfileUseCase updateShelterProfileUseCase,
             ViewOrgStatsUseCase viewOrgStatsUseCase,
-            LeaveReviewUseCase leaveReviewUseCase,
-            IUserRepository users)
+            LeaveReviewUseCase leaveReviewUseCase)
         {
             _logger = logger;
             _viewProfileUseCase = viewProfileUseCase;
@@ -38,7 +33,6 @@ namespace PetSearchHome_WEB.Controllers
             _updateShelterProfileUseCase = updateShelterProfileUseCase;
             _viewOrgStatsUseCase = viewOrgStatsUseCase;
             _leaveReviewUseCase = leaveReviewUseCase;
-            _users = users;
         }
 
         [HttpGet]
@@ -185,7 +179,7 @@ namespace PetSearchHome_WEB.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating profile for {UserId}", authContext.UserId);
-                ModelState.AddModelError(string.Empty, "Помилка при збереженні даних.");
+                ModelState.AddModelError(string.Empty, "\u041F\u043E\u043C\u0438\u043B\u043A\u0430 \u043F\u0440\u0438 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043D\u0456 \u0434\u0430\u043D\u0438\u0445.");
                 return View(model);
             }
         }
@@ -206,41 +200,6 @@ namespace PetSearchHome_WEB.Controllers
             {
                 return Forbid();
             }
-        }
-
-        private async Task<AuthContext> GetAuthContextAsync(CancellationToken cancellationToken)
-        {
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                return new AuthContext { UserId = null, Role = Role.Guest };
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(userIdString, out var userId);
-            var roleString = User.FindFirstValue(ClaimTypes.Role);
-            var email = User.FindFirstValue(ClaimTypes.Email);
-
-            Enum.TryParse<Role>(roleString, out var role);
-
-            if (userId != Guid.Empty)
-            {
-                var existing = await _users.GetByIdAsync(userId, cancellationToken);
-                if (existing is not null)
-                {
-                    return new AuthContext { UserId = userId, Role = role };
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(email))
-            {
-                var user = await _users.GetByEmailAsync(email, cancellationToken);
-                if (user is not null)
-                {
-                    return new AuthContext { UserId = user.Id, Role = user.Role };
-                }
-            }
-
-            return new AuthContext { UserId = userId == Guid.Empty ? null : userId, Role = role };
         }
     }
 }

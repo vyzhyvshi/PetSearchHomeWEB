@@ -38,7 +38,7 @@ namespace PetSearchHome.Tests
         public async Task ExecuteAsync_WhenUserIsNotOwner_ReturnsFailure()
         {
             var ownerId = Guid.NewGuid();
-            var hackerId = Guid.NewGuid()
+            var hackerId = Guid.NewGuid();
             var listing = new PetListing { Id = Guid.NewGuid(), OwnerId = ownerId };
 
             _listingsMock.Setup(repo => repo.GetByIdAsync(listing.Id, It.IsAny<CancellationToken>()))

@@ -1,4 +1,4 @@
-using PetSearchHome_WEB.Application.Shared;
+﻿using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
 
@@ -6,7 +6,7 @@ namespace PetSearchHome_WEB.Application.Profiles
 {
     public sealed record ViewProfileRequest(Guid UserId);
 
-    public class ViewProfileUseCase : IUseCase<ViewProfileRequest, User?>
+    public class ViewProfileUseCase : IUseCase<ViewProfileRequest, Result<User>>
     {
         private readonly IUserRepository _users;
 
@@ -15,9 +15,16 @@ namespace PetSearchHome_WEB.Application.Profiles
             _users = users;
         }
 
-        public Task<User?> ExecuteAsync(ViewProfileRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<User>> ExecuteAsync(ViewProfileRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-            return _users.GetByIdAsync(request.UserId, cancellationToken);
+            var user = await _users.GetByIdAsync(request.UserId, cancellationToken);
+
+            if (user == null)
+            {
+                return Result.Failure<User>("Профіль користувача не знайдено.");
+            }
+
+            return Result.Success(user);
         }
     }
 }

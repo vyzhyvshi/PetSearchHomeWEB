@@ -118,11 +118,14 @@ namespace PetSearchHome_WEB.Controllers
                 return Challenge();
             }
 
-            var user = await _viewProfileUseCase.ExecuteAsync(new ViewProfileRequest(authContext.UserId.Value), authContext, cancellationToken);
-            if (user == null)
+            var result = await _viewProfileUseCase.ExecuteAsync(new ViewProfileRequest(authContext.UserId.Value), authContext, cancellationToken);
+
+            if (!result.IsSuccess || result.Value == null)
             {
                 return NotFound();
             }
+
+            var user = result.Value;
 
             var model = new EditProfileViewModel
             {

@@ -23,7 +23,7 @@ namespace PetSearchHome_WEB.Application.Listing
                 return Result.Failure<IReadOnlyList<PetListing>>("Необхідна авторизація для перегляду ваших оголошень.");
             }
 
-            var listings = await _listings.ListByOwnerAsync(authContext.UserId.Value, cancellationToken);
+            IReadOnlyList<PetListing> listings = await _listings.ListByOwnerAsync(authContext.UserId.Value, cancellationToken);
             return Result.Success(listings);
         }
     }

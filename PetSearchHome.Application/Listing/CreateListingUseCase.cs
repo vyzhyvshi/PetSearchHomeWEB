@@ -62,7 +62,7 @@ namespace PetSearchHome_WEB.Application.Listing
                 await _moderationQueue.EnqueueAsync(listing, cancellationToken);
             }
 
-            return Result.Success(listing.Id);
+            return listing.Id;
         }
     }
 }

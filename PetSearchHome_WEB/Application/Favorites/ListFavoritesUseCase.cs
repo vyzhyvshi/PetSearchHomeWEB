@@ -36,7 +36,8 @@ namespace PetSearchHome_WEB.Application.Favorites
                 }
             }
 
-            return Result.Success<IReadOnlyList<PetListing>>(listings);
+            IReadOnlyList<PetListing> result = listings;
+            return Result.Success(result);
         }
     }
 }

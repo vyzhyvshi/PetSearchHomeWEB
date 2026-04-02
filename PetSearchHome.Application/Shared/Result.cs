@@ -33,5 +33,7 @@ namespace PetSearchHome_WEB.Application.Shared
         {
             Value = value;
         }
+
+        public static implicit operator Result<T>(T value) => new Result<T>(true, value, null);
     }
 }

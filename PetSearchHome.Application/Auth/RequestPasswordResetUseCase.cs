@@ -32,7 +32,7 @@ namespace PetSearchHome_WEB.Application.Auth
             var token = _tokens.IssueToken(user);
             await _emailSender.SendPasswordResetAsync(user.Email, token, cancellationToken);
 
-            return Result.Success(true);
+            return true;
         }
     }
 }

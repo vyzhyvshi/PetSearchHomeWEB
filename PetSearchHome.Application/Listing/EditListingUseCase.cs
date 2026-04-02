@@ -48,7 +48,7 @@ namespace PetSearchHome_WEB.Application.Listing
             };
 
             await _listings.UpdateAsync(updated, cancellationToken);
-            return Result.Success(true);
+            return true;
         }
     }
 }

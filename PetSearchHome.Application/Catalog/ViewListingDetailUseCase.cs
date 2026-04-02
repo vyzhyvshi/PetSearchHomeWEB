@@ -29,7 +29,7 @@ namespace PetSearchHome_WEB.Application.Catalog
                 return Result.Failure<PetListing>("У вас немає доступу до цього оголошення.");
             }
 
-            return Result.Success(listing);
+            return listing;
         }
     }
 }

@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Listing;
-using PetSearchHome_WEB.Application.Shared;
-using PetSearchHome_WEB.Domain.ValueObjects;
+using PetSearchHome_WEB.Domain.Policies;
 using PetSearchHome_WEB.Models.Listing;
-using System.Security.Claims;
+using PetSearchHome_WEB.Security;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    [Authorize]
-    public class ListingController : Controller
+    [Authorize(Roles = RoleNames.AuthenticatedUser)]
+    public class ListingController : AppController
     {
         private readonly ILogger<ListingController> _logger;
         private readonly CreateListingUseCase _createListingUseCase;
@@ -39,21 +38,25 @@ namespace PetSearchHome_WEB.Controllers
         }
 
         [HttpGet]
+        public Task<IActionResult> Index(CancellationToken cancellationToken)
+        {
+            return MyListings(cancellationToken);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> MyListings(CancellationToken cancellationToken)
         {
-            var authContext = GetAuthContext();
+            var authContext = await GetAuthContextAsync(cancellationToken);
             _logger.LogInformation("User {UserId} requested their listings.", authContext.UserId);
 
-            ListMyListingsRequest request = new();
-            var result = await _listMyListingsUseCase.ExecuteAsync(request, authContext, cancellationToken);
-
+            var result = await _listMyListingsUseCase.ExecuteAsync(new ListMyListingsRequest(), authContext, cancellationToken);
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("Failed access to MyListings by user {UserId}: {Error}", authContext.UserId, result.ErrorMessage);
                 return Forbid();
             }
 
-            return View(result.Value);
+            return View("Index", result.Value);
         }
 
         [HttpGet]
@@ -71,22 +74,20 @@ namespace PetSearchHome_WEB.Controllers
                 return View(model);
             }
 
-            var authContext = GetAuthContext();
-
-            CreateListingRequest request = new(
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var request = new CreateListingRequest(
                 model.Title,
                 model.AnimalType,
                 model.Location,
                 model.Description,
-                model.IsUrgent
-            );
+                model.IsUrgent,
+                ParsePhotoUrls(model.PhotoUrlsText));
 
             var result = await _createListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
-
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("User {UserId} failed to create a listing: {Error}", authContext.UserId, result.ErrorMessage);
-                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Сталася помилка при створенні оголошення.");
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "\u0421\u0442\u0430\u043B\u0430\u0441\u044F \u043F\u043E\u043C\u0438\u043B\u043A\u0430 \u043F\u0440\u0438 \u0441\u0442\u0432\u043E\u0440\u0435\u043D\u043D\u0456 \u043E\u0433\u043E\u043B\u043E\u0448\u0435\u043D\u043D\u044F.");
                 return View(model);
             }
 
@@ -98,15 +99,12 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
-            var authContext = GetAuthContext();
-
-            DeleteListingRequest request = new(id);
-            var result = await _deleteListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _deleteListingUseCase.ExecuteAsync(new DeleteListingRequest(id), authContext, cancellationToken);
 
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("Failed to delete listing {ListingId} by user {UserId}: {Error}", id, authContext.UserId, result.ErrorMessage);
-                // Можемо використати TempData щоб показати помилку на UI, або повернути NotFound/Forbid залежно від логіки.
                 return NotFound();
             }
 
@@ -117,10 +115,8 @@ namespace PetSearchHome_WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
         {
-            var authContext = GetAuthContext();
-
-            ViewListingDetailRequest request = new(id);
-            var result = await _viewListingDetailUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _viewListingDetailUseCase.ExecuteAsync(new ViewListingDetailRequest(id), authContext, cancellationToken);
 
             if (!result.IsSuccess || result.Value == null)
             {
@@ -129,14 +125,20 @@ namespace PetSearchHome_WEB.Controllers
             }
 
             var listing = result.Value;
-            EditListingViewModel model = new()
+            if (!ListingAccessPolicy.CanManage(authContext.Role, listing.OwnerId, authContext.UserId))
+            {
+                return Forbid();
+            }
+
+            var model = new EditListingViewModel
             {
                 Id = listing.Id,
                 Title = listing.Title,
                 AnimalType = listing.AnimalType,
                 Location = listing.Location,
                 Description = listing.Description,
-                IsUrgent = listing.IsUrgent
+                IsUrgent = listing.IsUrgent,
+                PhotoUrlsText = string.Join(Environment.NewLine, listing.PhotoUrls)
             };
 
             return View(model);
@@ -146,30 +148,31 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, EditListingViewModel model, CancellationToken cancellationToken)
         {
-            if (id != model.Id) return BadRequest();
+            if (id != model.Id)
+            {
+                return BadRequest();
+            }
 
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var authContext = GetAuthContext();
-
-            EditListingRequest request = new(
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var request = new EditListingRequest(
                 model.Id,
                 model.Title,
                 model.AnimalType,
                 model.Location,
                 model.Description,
-                model.IsUrgent
-            );
+                model.IsUrgent,
+                ParsePhotoUrls(model.PhotoUrlsText));
 
             var result = await _editListingUseCase.ExecuteAsync(request, authContext, cancellationToken);
-
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("Failed to edit listing {ListingId} by user {UserId}: {Error}", model.Id, authContext.UserId, result.ErrorMessage);
-                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Не вдалося оновити оголошення.");
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u043E\u043D\u043E\u0432\u0438\u0442\u0438 \u043E\u0433\u043E\u043B\u043E\u0448\u0435\u043D\u043D\u044F.");
                 return View(model);
             }
 
@@ -181,10 +184,8 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitForModeration(Guid id, CancellationToken cancellationToken)
         {
-            var authContext = GetAuthContext();
-
-            SubmitListingForModerationRequest request = new(id);
-            var result = await _submitListingForModerationUseCase.ExecuteAsync(request, authContext, cancellationToken);
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _submitListingForModerationUseCase.ExecuteAsync(new SubmitListingForModerationRequest(id), authContext, cancellationToken);
 
             if (!result.IsSuccess)
             {
@@ -196,24 +197,18 @@ namespace PetSearchHome_WEB.Controllers
             return RedirectToAction(nameof(MyListings));
         }
 
-        private AuthContext GetAuthContext()
+        private static IReadOnlyList<string> ParsePhotoUrls(string? photoUrlsText)
         {
-            var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-
-            if (!isAuthenticated) return new AuthContext { UserId = null, Role = Role.Guest };
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(userIdString, out Guid userId);
-
-            var roleString = User.FindFirstValue(ClaimTypes.Role);
-
-            Role userRole = Role.Person;
-            if (!string.IsNullOrEmpty(roleString) && Enum.TryParse<Role>(roleString, true, out var parsedRole))
+            if (string.IsNullOrWhiteSpace(photoUrlsText))
             {
-                userRole = parsedRole;
+                return Array.Empty<string>();
             }
 
-            return new AuthContext { UserId = userId, Role = userRole };
+            return photoUrlsText
+                .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(static url => Uri.TryCreate(url, UriKind.Absolute, out _))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
         }
     }
 }

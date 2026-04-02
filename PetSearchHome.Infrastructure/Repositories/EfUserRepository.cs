@@ -7,10 +7,6 @@ using PetSearchHome_WEB.Infrastructure.Persistence.Entities;
 
 namespace PetSearchHome_WEB.Infrastructure.Repositories
 {
-    /// <summary>
-    /// EF-backed user repository that maps domain users to persisted UserEntity rows.
-    /// Domain Id (Guid) is stored in the database as DomainId alongside the int identity PK.
-    /// </summary>
     public class EfUserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _db;
@@ -23,13 +19,23 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var userId = FromDomainId(id);
-            var entity = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+            var entity = await _db.Users
+                .AsNoTracking()
+                .Include(u => u.IndividualProfile)
+                .Include(u => u.ShelterProfile)
+                .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+
             return entity is null ? null : Map(entity);
         }
 
         public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
-            var entity = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+            var entity = await _db.Users
+                .AsNoTracking()
+                .Include(u => u.IndividualProfile)
+                .Include(u => u.ShelterProfile)
+                .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+
             return entity is null ? null : Map(entity);
         }
 
@@ -45,15 +51,41 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 IsVerified = false
             };
 
+            if (user.Role == Role.Shelter)
+            {
+                entity.ShelterProfile = new ShelterProfileEntity
+                {
+                    Name = user.DisplayName,
+                    ContactPerson = user.DisplayName,
+                    Address = string.Empty,
+                    Phone = string.Empty
+                };
+            }
+            else
+            {
+                entity.IndividualProfile = new IndividualProfileEntity
+                {
+                    FirstName = user.DisplayName,
+                    LastName = string.Empty,
+                    Phone = string.Empty,
+                    City = string.Empty,
+                    District = string.Empty
+                };
+            }
+
             await _db.Users.AddAsync(entity, cancellationToken);
-            object value = await _db.SaveChangesAsync(cancellationToken);
+            await _db.SaveChangesAsync(cancellationToken);
         }
 
         public async Task UpdateRoleAsync(Guid id, Role role, CancellationToken cancellationToken = default)
         {
             var userId = FromDomainId(id);
             var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
-            if (entity is null) return;
+            if (entity is null)
+            {
+                return;
+            }
+
             entity.Role = role;
             await _db.SaveChangesAsync(cancellationToken);
         }
@@ -62,7 +94,11 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         {
             var userId = FromDomainId(id);
             var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
-            if (entity is null) return;
+            if (entity is null)
+            {
+                return;
+            }
+
             entity.PasswordHash = passwordHash;
             await _db.SaveChangesAsync(cancellationToken);
         }
@@ -70,12 +106,43 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         public async Task UpdateProfileAsync(User user, CancellationToken cancellationToken = default)
         {
             var userId = FromDomainId(user.Id);
-            var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
-            if (entity is null) return;
+            var entity = await _db.Users
+                .Include(u => u.IndividualProfile)
+                .Include(u => u.ShelterProfile)
+                .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+
+            if (entity is null)
+            {
+                return;
+            }
 
             entity.Email = user.Email;
             entity.Role = user.Role;
             entity.IsActive = !user.IsBlocked;
+
+            if (user.Role == Role.Shelter)
+            {
+                entity.ShelterProfile ??= new ShelterProfileEntity
+                {
+                    UserId = entity.UserId,
+                    Address = string.Empty,
+                    Phone = string.Empty
+                };
+                entity.ShelterProfile.Name = user.DisplayName;
+                entity.ShelterProfile.ContactPerson = user.DisplayName;
+            }
+            else
+            {
+                entity.IndividualProfile ??= new IndividualProfileEntity
+                {
+                    UserId = entity.UserId,
+                    LastName = string.Empty,
+                    Phone = string.Empty,
+                    City = string.Empty,
+                    District = string.Empty
+                };
+                entity.IndividualProfile.FirstName = user.DisplayName;
+            }
 
             await _db.SaveChangesAsync(cancellationToken);
         }
@@ -84,7 +151,11 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         {
             var userId = FromDomainId(id);
             var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
-            if (entity is null) return;
+            if (entity is null)
+            {
+                return;
+            }
+
             entity.IsActive = !isBlocked;
             await _db.SaveChangesAsync(cancellationToken);
         }
@@ -104,14 +175,28 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         }
 
         private static User Map(UserEntity entity) =>
-            new User
+            new()
             {
                 Id = ToDomainId(entity.UserId),
                 Email = entity.Email,
-                DisplayName = entity.Email, // fallback, оскільки в БД немає колонки display_name
+                DisplayName = ResolveDisplayName(entity),
                 PasswordHash = entity.PasswordHash,
                 Role = entity.Role,
                 IsBlocked = !entity.IsActive
             };
+
+        private static string ResolveDisplayName(UserEntity entity)
+        {
+            if (entity.Role == Role.Shelter)
+            {
+                return string.IsNullOrWhiteSpace(entity.ShelterProfile?.Name)
+                    ? entity.Email
+                    : entity.ShelterProfile.Name;
+            }
+
+            return string.IsNullOrWhiteSpace(entity.IndividualProfile?.FirstName)
+                ? entity.Email
+                : entity.IndividualProfile.FirstName;
+        }
     }
 }

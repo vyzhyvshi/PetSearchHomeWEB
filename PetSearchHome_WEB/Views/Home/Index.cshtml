@@ -71,8 +71,7 @@
                                             <div class="pe-3">
                                                 <h3 class="h5 mb-1">@listing.Title</h3>
                                                 <p class="text-muted mb-1">@listing.AnimalType • @listing.Location</p>
-                                                <small class="text-secondary">Опубліковано: @listing.ListedAt.LocalDateTime.ToShortDateString()
-                                                    </small>
+                                                <small class="text-secondary">Опубліковано: @listing.ListedAt.LocalDateTime.ToShortDateString()</small>
                                             </div>
                                             <div class="text-end">
                                                 @if (listing.IsUrgent)

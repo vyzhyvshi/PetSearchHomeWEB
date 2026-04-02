@@ -27,7 +27,7 @@ namespace PetSearchHome_WEB.Application.Favorites
             if (favorite != null)
             {
                 await _favorites.RemoveAsync(authContext.UserId.Value, request.ListingId, cancellationToken);
-                return Result.Success(false); 
+                return false; 
             }
 
             Favorite newFavorite = new()
@@ -38,7 +38,7 @@ namespace PetSearchHome_WEB.Application.Favorites
 
             await _favorites.AddAsync(newFavorite, cancellationToken);
 
-            return Result.Success(true);
+            return true;
         }
     }
 }

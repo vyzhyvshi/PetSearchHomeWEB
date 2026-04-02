@@ -52,7 +52,7 @@ namespace PetSearchHome_WEB.Application.Moderation
             await _complaints.AddAsync(complaint, cancellationToken);
             await _audit.RecordAsync("submit_complaint", authContext.UserId.Value, complaint.Id.ToString(), cancellationToken);
 
-            return Result.Success(complaint.Id);
+            return complaint.Id;
         }
     }
 }

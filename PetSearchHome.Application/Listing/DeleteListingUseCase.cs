@@ -29,7 +29,7 @@ namespace PetSearchHome_WEB.Application.Listing
             }
 
             await _listings.RemoveAsync(request.ListingId, cancellationToken);
-            return Result.Success(true);
+            return true;
         }
     }
 }

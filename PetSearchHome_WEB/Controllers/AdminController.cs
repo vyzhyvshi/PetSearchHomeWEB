@@ -1,15 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Moderation;
-using PetSearchHome_WEB.Application.Shared;
-using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models.Admin;
-using System.Security.Claims;
+using PetSearchHome_WEB.Security;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    [Authorize(Roles = "Admin")]
-    public class AdminController : Controller
+    [Authorize(Roles = RoleNames.Admin)]
+    public class AdminController : AppController
     {
         private readonly ILogger<AdminController> _logger;
         private readonly ModerateListingUseCase _moderateListingUseCase;
@@ -148,26 +146,5 @@ namespace PetSearchHome_WEB.Controllers
             }
         }
 
-        private AuthContext GetAuthContext()
-        {
-            var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-
-            if (!isAuthenticated)
-            {
-                return new AuthContext { UserId = null, Role = Role.Guest };
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(userIdString, out Guid userId);
-
-            var roleString = User.FindFirstValue(ClaimTypes.Role);
-            Role userRole = Role.Person;
-            if (!string.IsNullOrEmpty(roleString) && Enum.TryParse<Role>(roleString, true, out var parsedRole))
-            {
-                userRole = parsedRole;
-            }
-
-            return new AuthContext { UserId = userId, Role = userRole };
-        }
     }
 }

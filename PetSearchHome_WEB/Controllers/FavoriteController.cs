@@ -1,16 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Favorites;
-using PetSearchHome_WEB.Application.Shared;
-using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models.Favorite;
 using PetSearchHome_WEB.Models.Listing;
-using System.Security.Claims;
+using PetSearchHome_WEB.Security;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    [Authorize]
-    public class FavoriteController : Controller
+    [Authorize(Roles = RoleNames.AuthenticatedUser)]
+    public class FavoriteController : AppController
     {
         private readonly ILogger<FavoriteController> _logger;
         private readonly ToggleFavoriteUseCase _toggleFavoriteUseCase;
@@ -79,14 +77,5 @@ namespace PetSearchHome_WEB.Controllers
             return Ok(new { added = isAdded });
         }
 
-        private AuthContext GetAuthContext()
-        {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(userIdString, out Guid userId);
-            var roleString = User.FindFirstValue(ClaimTypes.Role);
-            Enum.TryParse<Role>(roleString, out var role);
-
-            return new AuthContext { UserId = userId, Role = role };
-        }
     }
 }

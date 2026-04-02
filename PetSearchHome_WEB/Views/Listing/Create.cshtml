@@ -1,0 +1,71 @@
+@model PetSearchHome_WEB.Models.Listing.CreateListingViewModel
+@{
+    ViewData["Title"] = "Створити оголошення";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Нове оголошення</h1>
+                    <p class="text-muted mb-0">Заповніть дані про тварину та надішліть оголошення на модерацію.</p>
+                </div>
+                <a class="btn btn-outline-secondary" asp-action="MyListings">Мої оголошення</a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Create" method="post" class="vstack gap-3">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div>
+                            <label asp-for="Title" class="form-label"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="AnimalType" class="form-label"></label>
+                                <input asp-for="AnimalType" class="form-control" placeholder="Собака, кіт, кролик..." />
+                                <span asp-validation-for="AnimalType" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Location" class="form-label"></label>
+                                <input asp-for="Location" class="form-control" placeholder="Київ, Оболонь" />
+                                <span asp-validation-for="Location" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="5" placeholder="Стан тварини, характер, контакти, обставини..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="PhotoUrlsText" class="form-label"></label>
+                            <textarea asp-for="PhotoUrlsText" class="form-control" rows="4" placeholder="https://..."></textarea>
+                            <div class="form-text">Поки що підтримуються прямі URL-адреси фото, по одному на рядок.</div>
+                            <span asp-validation-for="PhotoUrlsText" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check">
+                            <input asp-for="IsUrgent" class="form-check-input" />
+                            <label asp-for="IsUrgent" class="form-check-label"></label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Створити оголошення</button>
+                            <a class="btn btn-light" asp-action="MyListings">Скасувати</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_ValidationScriptsPartial" />

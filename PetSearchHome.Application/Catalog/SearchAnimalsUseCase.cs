@@ -26,7 +26,7 @@ namespace PetSearchHome_WEB.Application.Catalog
                 IsUrgent = request.Filters.IsUrgent
             };
 
-            var result = await _searchGateway.SearchAsync(normalizedFilters, cancellationToken);
+            IReadOnlyList<PetListing> result = await _searchGateway.SearchAsync(normalizedFilters, cancellationToken);
 
             return Result.Success(result);
         }

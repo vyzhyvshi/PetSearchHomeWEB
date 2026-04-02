@@ -80,6 +80,7 @@ builder.Services.AddScoped<SubmitComplaintUseCase>();
 builder.Services.AddScoped<GetPendingListingsUseCase>();
 builder.Services.AddScoped<GetOpenComplaintsUseCase>();
 builder.Services.AddScoped<ViewProfileUseCase>();
+builder.Services.AddScoped<ViewProfileDetailsUseCase>();
 builder.Services.AddScoped<UpdateProfileUseCase>();
 builder.Services.AddScoped<UpdateShelterProfileUseCase>();
 builder.Services.AddScoped<ViewOrgStatsUseCase>();
@@ -91,14 +92,14 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    // Якщо проект запущено на реальному сервері, всі краші будуть летіти на сторінку /Home/Error
+
     app.UseExceptionHandler("/Home/Error");
-    // app.UseHsts(); // (це для HTTPS, скоріш за все у тебе вже є)
+
 }
 else
 {
-    // Якщо ти розробляєш на своєму ПК, ти будеш бачити детальну сторінку розробника
-    app.UseExceptionHandler("/Home/Error"); // Можеш розкоментувати це і для Development, щоб протестувати!
+
+    app.UseExceptionHandler("/Home/Error");
 }
 
 app.UseSerilogRequestLogging();

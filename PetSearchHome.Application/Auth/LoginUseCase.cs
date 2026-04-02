@@ -31,7 +31,7 @@ namespace PetSearchHome_WEB.Application.Auth
             var token = _tokens.IssueToken(user);
             LoginResponse response = new(token, user.Id, user.Role);
 
-            return Result.Success(response);
+            return response;
         }
     }
 }

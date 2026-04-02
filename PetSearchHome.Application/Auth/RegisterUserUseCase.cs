@@ -39,7 +39,7 @@ namespace PetSearchHome_WEB.Application.Auth
                 await _users.AddAsync(user, cancellationToken);
                 var persisted = await _users.GetByEmailAsync(request.Email, cancellationToken);
 
-                return Result.Success(persisted?.Id ?? user.Id);
+                return persisted?.Id ?? user.Id;
             }
 
             return Result.Failure<Guid>("У вас немає прав для реєстрації.");

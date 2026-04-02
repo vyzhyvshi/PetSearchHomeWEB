@@ -32,7 +32,7 @@ namespace PetSearchHome_WEB.Application.Auth
 
             await _users.UpdatePasswordAsync(user.Id, _hasher.Hash(request.NewPassword), cancellationToken);
             
-            return Result.Success(true);
+            return true;
         }
     }
 }

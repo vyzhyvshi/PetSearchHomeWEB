@@ -34,14 +34,14 @@ namespace PetSearchHome_WEB.Application.Listing
             var needsModeration = ModerationPolicy.RequiresModeration(authContext.Role);
             if (!needsModeration)
             {
-                return Result.Success(true);
+                return true;
             }
 
             var updated = listing with { Status = ListingStatus.PendingModeration };
             await _listings.UpdateAsync(updated, cancellationToken);
             await _moderationQueue.EnqueueAsync(updated, cancellationToken);
 
-            return Result.Success(true);
+            return true;
         }
     }
 }

@@ -11,7 +11,8 @@ namespace PetSearchHome_WEB.Application.Listing
         string AnimalType,
         string Location,
         string? Description,
-        bool IsUrgent);
+        bool IsUrgent,
+        IReadOnlyList<string> PhotoUrls);
 
     public class EditListingUseCase : IUseCase<EditListingRequest, Result<bool>>
     {
@@ -42,11 +43,12 @@ namespace PetSearchHome_WEB.Application.Listing
                 Location = request.Location,
                 Description = request.Description,
                 IsUrgent = request.IsUrgent,
+                PhotoUrls = request.PhotoUrls,
                 Status = ListingStatus.PendingModeration
             };
 
             await _listings.UpdateAsync(updated, cancellationToken);
-            return Result.Success(true);
+            return true;
         }
     }
 }

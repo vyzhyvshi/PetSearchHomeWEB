@@ -13,7 +13,7 @@ namespace PetSearchHome_WEB.Application.Auth
                 return Task.FromResult(Result.Failure<bool>("Cannot logout other user."));
             }
 
-            return Task.FromResult(Result.Success(true));
+            return Task.FromResult<Result<bool>>(true);
         }
     }
 }

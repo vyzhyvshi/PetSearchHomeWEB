@@ -1,21 +1,25 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="uk">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PetSearchHome_WEB</title>
+    <title>@ViewData["Title"] - PetSearchHome</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/PetSearchHome_WEB.styles.css" asp-append-version="true" />
 </head>
 <body>
+    @{
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+    }
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">PetSearchHome_WEB</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">PetSearchHome</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
@@ -23,7 +27,23 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Каталог</a>
                         </li>
-                        @if (User?.Identity?.IsAuthenticated ?? false)
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Listing" asp-action="Create">Створити оголошення</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Listing" asp-action="Index">Мої оголошення</a>
+                        </li>
+                        <li class="nav-item">
+                            @if (isAuthenticated)
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Profile" asp-action="Details" asp-route-id="@currentUserId">Переглянути профіль</a>
+                            }
+                            else
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Profile" asp-action="Index">Переглянути профіль</a>
+                            }
+                        </li>
+                        @if (isAuthenticated)
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Favorite" asp-action="Index">Улюблені</a>
@@ -31,7 +51,7 @@
                         }
                     </ul>
                     <div class="d-flex align-items-center gap-2">
-                        @if (User?.Identity?.IsAuthenticated ?? false)
+                        @if (isAuthenticated)
                         {
                             <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
@@ -56,7 +76,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - PetSearchHome_WEB - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - PetSearchHome - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

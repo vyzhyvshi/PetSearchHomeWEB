@@ -11,7 +11,8 @@ namespace PetSearchHome_WEB.Application.Listing
         string AnimalType,
         string Location,
         string? Description,
-        bool IsUrgent);
+        bool IsUrgent,
+        IReadOnlyList<string> PhotoUrls);
 
     public class CreateListingUseCase : IUseCase<CreateListingRequest, Result<Guid>>
     {
@@ -49,6 +50,7 @@ namespace PetSearchHome_WEB.Application.Listing
                 Location = request.Location,
                 Description = request.Description,
                 IsUrgent = request.IsUrgent,
+                PhotoUrls = request.PhotoUrls,
                 Status = status,
                 ListedAt = DateTimeOffset.UtcNow
             };
@@ -60,7 +62,7 @@ namespace PetSearchHome_WEB.Application.Listing
                 await _moderationQueue.EnqueueAsync(listing, cancellationToken);
             }
 
-            return Result.Success(listing.Id);
+            return listing.Id;
         }
     }
 }

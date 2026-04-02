@@ -4,10 +4,11 @@ using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Listing;
 using PetSearchHome_WEB.Domain.Policies;
 using PetSearchHome_WEB.Models.Listing;
+using PetSearchHome_WEB.Security;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = RoleNames.AuthenticatedUser)]
     public class ListingController : AppController
     {
         private readonly ILogger<ListingController> _logger;

@@ -8,6 +8,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models;
 using PetSearchHome_WEB.Models.Listing;
+using PetSearchHome_WEB.Security;
 using System.Diagnostics;
 
 namespace PetSearchHome_WEB.Controllers
@@ -108,7 +109,7 @@ namespace PetSearchHome_WEB.Controllers
             return View(model);
         }
 
-        [Authorize]
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleFavorite(Guid id, CancellationToken cancellationToken)
@@ -133,7 +134,7 @@ namespace PetSearchHome_WEB.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        [Authorize]
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReportListing(Guid id, string reason, CancellationToken cancellationToken)

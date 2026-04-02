@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Models.Admin;
+using PetSearchHome_WEB.Security;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = RoleNames.Admin)]
     public class AdminController : AppController
     {
         private readonly ILogger<AdminController> _logger;

@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Favorites;
 using PetSearchHome_WEB.Models.Favorite;
 using PetSearchHome_WEB.Models.Listing;
+using PetSearchHome_WEB.Security;
 
 namespace PetSearchHome_WEB.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = RoleNames.AuthenticatedUser)]
     public class FavoriteController : AppController
     {
         private readonly ILogger<FavoriteController> _logger;

@@ -4,6 +4,7 @@ using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Application.Reviews;
 using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models.Profile;
+using PetSearchHome_WEB.Security;
 
 namespace PetSearchHome_WEB.Controllers
 {
@@ -41,7 +42,7 @@ namespace PetSearchHome_WEB.Controllers
             return RedirectToAction(nameof(MyProfile));
         }
 
-        [Authorize]
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpGet]
         public async Task<IActionResult> MyProfile(CancellationToken cancellationToken)
         {
@@ -107,7 +108,7 @@ namespace PetSearchHome_WEB.Controllers
             return View(model);
         }
 
-        [Authorize]
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpGet]
         public async Task<IActionResult> Edit(CancellationToken cancellationToken)
         {
@@ -144,7 +145,7 @@ namespace PetSearchHome_WEB.Controllers
             return View(model);
         }
 
-        [Authorize]
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditProfileViewModel model, CancellationToken cancellationToken)
@@ -184,7 +185,7 @@ namespace PetSearchHome_WEB.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LeaveReview(Guid listingId, byte rating, string comment, CancellationToken cancellationToken)

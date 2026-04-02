@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using PetSearchHome_WEB.Application.Auth;
 using PetSearchHome_WEB.Models.Auth;
+using PetSearchHome_WEB.Security;
 using System.Security.Claims;
 
 namespace PetSearchHome_WEB.Controllers
@@ -31,6 +33,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // GET: /Account/Login
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Login()
         {
             return View();
@@ -38,6 +41,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // GET: /Account/GuestEntry
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult GuestEntry()
         {
             return View();
@@ -45,6 +49,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // POST: /Account/Login
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, CancellationToken cancellationToken)
         {
@@ -88,6 +93,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // GET: /Account/RegisterIndividual
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult RegisterIndividual()
         {
             return View();
@@ -95,6 +101,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // POST: /Account/RegisterIndividual
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterIndividual(RegisterIndividualViewModel model, CancellationToken cancellationToken)
         {
@@ -120,6 +127,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // GET: /Account/RegisterShelter
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult RegisterShelter()
         {
             return View();
@@ -127,6 +135,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // POST: /Account/RegisterShelter
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterShelter(RegisterShelterViewModel model, CancellationToken cancellationToken)
         {
@@ -151,6 +160,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // POST: /Account/Logout
         [HttpPost]
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(CancellationToken cancellationToken)
         {
@@ -176,6 +186,7 @@ namespace PetSearchHome_WEB.Controllers
 
         // GET: /Account/Logout 
         [HttpGet]
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
         public IActionResult Logout()
         {
             return View();

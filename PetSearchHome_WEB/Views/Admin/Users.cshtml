@@ -1,0 +1,73 @@
+@model PetSearchHome_WEB.Models.Admin.AdminUsersViewModel
+@{
+    ViewData["Title"] = "Пошук користувачів";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold text-danger">@ViewData["Title"]</h2>
+        <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard">Назад до адмінки</a>
+    </div>
+
+    <form asp-controller="Admin" asp-action="Users" method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="query" value="@Model.Query" class="form-control" placeholder="Email або ім'я користувача" />
+            <button type="submit" class="btn btn-primary">Пошук</button>
+        </div>
+    </form>
+
+    @if (string.IsNullOrWhiteSpace(Model.Query))
+    {
+        <div class="alert alert-info">Введіть запит для пошуку користувачів.</div>
+    }
+    else if (!Model.Results.Any())
+    {
+        <div class="alert alert-warning">Користувачів не знайдено.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Ім'я</th>
+                        <th>Email</th>
+                        <th>Роль</th>
+                        <th>Статус</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Results)
+                    {
+                        <tr>
+                            <td>@user.DisplayName</td>
+                            <td>@user.Email</td>
+                            <td>@user.Role</td>
+                            <td>
+                                @if (user.IsBlocked)
+                                {
+                                    <span class="badge bg-danger">Заблоковано</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Активний</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <form asp-controller="Admin" asp-action="BlockUser" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="targetUserId" value="@user.Id" />
+                                    <input type="hidden" name="block" value="@(!user.IsBlocked)" />
+                                    <button type="submit" class="btn btn-sm @(user.IsBlocked ? "btn-outline-success" : "btn-outline-danger")">
+                                        @(user.IsBlocked ? "Розблокувати" : "Заблокувати")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

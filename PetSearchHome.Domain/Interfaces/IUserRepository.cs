@@ -12,5 +12,6 @@ namespace PetSearchHome_WEB.Domain.Interfaces
         Task UpdatePasswordAsync(Guid id, string passwordHash, CancellationToken cancellationToken = default);
         Task UpdateProfileAsync(User user, CancellationToken cancellationToken = default);
         Task SetBlockedAsync(Guid id, bool isBlocked, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<User>> SearchAsync(string query, CancellationToken cancellationToken = default);
     }
 }

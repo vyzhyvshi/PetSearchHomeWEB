@@ -4,7 +4,10 @@
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4 fw-bold text-danger">@ViewData["Title"]</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-danger">@ViewData["Title"]</h2>
+        <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="Users">Користувачі</a>
+    </div>
 
     <ul class="nav nav-tabs" id="adminTabs" role="tablist">
         <li class="nav-item" role="presentation">

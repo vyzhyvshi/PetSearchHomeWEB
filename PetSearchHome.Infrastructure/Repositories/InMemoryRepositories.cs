@@ -106,6 +106,22 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<IReadOnlyList<User>> SearchAsync(string query, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Task.FromResult<IReadOnlyList<User>>(Array.Empty<User>());
+            }
+
+            var results = _users
+                .Where(u => u.Email.Contains(query, StringComparison.OrdinalIgnoreCase)
+                    || u.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(u => u.Email)
+                .ToList();
+
+            return Task.FromResult<IReadOnlyList<User>>(results);
+        }
     }
 
     public class InMemoryShelterRepository : IShelterRepository

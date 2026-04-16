@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Moderation;
+using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Models.Admin;
 using PetSearchHome_WEB.Security;
@@ -17,6 +18,7 @@ namespace PetSearchHome_WEB.Controllers
         private readonly GetPendingListingsUseCase _getPendingListingsUseCase;
         private readonly GetOpenComplaintsUseCase _getOpenComplaintsUseCase;
         private readonly ManageTagsCategoriesUseCase _manageTagsCategoriesUseCase;
+        private readonly SearchUsersWithListingsUseCase _searchUsersWithListingsUseCase;
         private readonly ITagRepository _tagRepository;
         private readonly ICategoryRepository _categoryRepository;
 
@@ -28,6 +30,7 @@ namespace PetSearchHome_WEB.Controllers
             GetPendingListingsUseCase getPendingListingsUseCase,
             GetOpenComplaintsUseCase getOpenComplaintsUseCase,
             ManageTagsCategoriesUseCase manageTagsCategoriesUseCase,
+            SearchUsersWithListingsUseCase searchUsersWithListingsUseCase,
             ITagRepository tagRepository,
             ICategoryRepository categoryRepository)
         {
@@ -38,6 +41,7 @@ namespace PetSearchHome_WEB.Controllers
             _getPendingListingsUseCase = getPendingListingsUseCase;
             _getOpenComplaintsUseCase = getOpenComplaintsUseCase;
             _manageTagsCategoriesUseCase = manageTagsCategoriesUseCase;
+            _searchUsersWithListingsUseCase = searchUsersWithListingsUseCase;
             _tagRepository = tagRepository;
             _categoryRepository = categoryRepository;
         }
@@ -153,6 +157,32 @@ namespace PetSearchHome_WEB.Controllers
 
             SetSuccessMessage(isCategory ? "Категорії оновлено." : "Теги оновлено.");
             return RedirectToAction(nameof(Dashboard));
+        }
+
+        // GET: /Admin/Users
+        [HttpGet]
+        public async Task<IActionResult> Users(string? query, CancellationToken cancellationToken)
+        {
+            var authContext = GetAuthContext();
+            var result = await _searchUsersWithListingsUseCase.ExecuteAsync(
+                new SearchUsersWithListingsRequest(query?.Trim() ?? string.Empty),
+                authContext,
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                return Forbid();
+            }
+
+            var results = result.Value ?? Array.Empty<User>();
+
+            var viewModel = new AdminUsersViewModel
+            {
+                Query = query?.Trim() ?? string.Empty,
+                Results = results
+            };
+
+            return View(viewModel);
         }
     }
 }

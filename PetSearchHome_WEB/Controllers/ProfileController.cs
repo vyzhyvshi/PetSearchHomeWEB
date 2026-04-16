@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Application.Reviews;
+using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models.Profile;
 using PetSearchHome_WEB.Security;
@@ -19,6 +20,7 @@ namespace PetSearchHome_WEB.Controllers
         private readonly ViewOrgStatsUseCase _viewOrgStatsUseCase;
         private readonly LeaveReviewUseCase _leaveReviewUseCase;
         private readonly SubmitUserComplaintUseCase _submitUserComplaintUseCase;
+        private readonly SearchPublicUsersWithListingsUseCase _searchPublicUsersWithListingsUseCase;
 
         public ProfileController(
             ILogger<ProfileController> logger,
@@ -28,7 +30,8 @@ namespace PetSearchHome_WEB.Controllers
             UpdateShelterProfileUseCase updateShelterProfileUseCase,
             ViewOrgStatsUseCase viewOrgStatsUseCase,
             LeaveReviewUseCase leaveReviewUseCase,
-            SubmitUserComplaintUseCase submitUserComplaintUseCase)
+            SubmitUserComplaintUseCase submitUserComplaintUseCase,
+            SearchPublicUsersWithListingsUseCase searchPublicUsersWithListingsUseCase)
         {
             _logger = logger;
             _viewProfileUseCase = viewProfileUseCase;
@@ -38,6 +41,7 @@ namespace PetSearchHome_WEB.Controllers
             _viewOrgStatsUseCase = viewOrgStatsUseCase;
             _leaveReviewUseCase = leaveReviewUseCase;
             _submitUserComplaintUseCase = submitUserComplaintUseCase;
+            _searchPublicUsersWithListingsUseCase = searchPublicUsersWithListingsUseCase;
         }
 
         [HttpGet]
@@ -118,6 +122,29 @@ namespace PetSearchHome_WEB.Controllers
             }
 
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Search(string? query, CancellationToken cancellationToken)
+        {
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _searchPublicUsersWithListingsUseCase.ExecuteAsync(
+                new SearchPublicUsersWithListingsRequest(query?.Trim() ?? string.Empty),
+                authContext,
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                return Forbid();
+            }
+
+            var viewModel = new UserSearchViewModel
+            {
+                Query = query?.Trim() ?? string.Empty,
+                Results = result.Value ?? Array.Empty<User>()
+            };
+
+            return View(viewModel);
         }
 
         [Authorize(Roles = RoleNames.AuthenticatedUser)]

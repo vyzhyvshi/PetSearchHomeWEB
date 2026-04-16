@@ -160,6 +160,28 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyList<User>> SearchAsync(string query, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Array.Empty<User>();
+            }
+
+            var pattern = $"%{query.Trim()}%";
+            var entities = await _db.Users
+                .AsNoTracking()
+                .Include(u => u.IndividualProfile)
+                .Include(u => u.ShelterProfile)
+                .Where(u => EF.Functions.Like(u.Email, pattern)
+                    || (u.ShelterProfile != null && EF.Functions.Like(u.ShelterProfile.Name, pattern))
+                    || (u.IndividualProfile != null && EF.Functions.Like(u.IndividualProfile.FirstName, pattern))
+                    || (u.IndividualProfile != null && EF.Functions.Like(u.IndividualProfile.LastName, pattern)))
+                .OrderBy(u => u.Email)
+                .ToListAsync(cancellationToken);
+
+            return entities.Select(Map).ToList();
+        }
+
         private static Guid ToDomainId(int userId)
         {
             Span<byte> bytes = stackalloc byte[16];

@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Options;
+using Moq;
 using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Entities;
@@ -13,6 +14,7 @@ namespace PetSearchHome.Tests
         private readonly Mock<IComplaintRepository> _complaintsMock;
         private readonly Mock<IListingRepository> _listingsMock;
         private readonly Mock<IAuditLogGateway> _auditMock;
+        private readonly IOptions<ModerationSettings> _options; 
         private readonly SubmitComplaintUseCase _useCase;
 
         public SubmitComplaintUseCaseTests()
@@ -21,10 +23,14 @@ namespace PetSearchHome.Tests
             _listingsMock = new Mock<IListingRepository>();
             _auditMock = new Mock<IAuditLogGateway>();
 
+            var settings = new ModerationSettings { ComplaintsThresholdForAutoHide = 3 };
+            _options = Options.Create(settings);
+
             _useCase = new SubmitComplaintUseCase(
                 _complaintsMock.Object,
                 _listingsMock.Object,
-                _auditMock.Object);
+                _auditMock.Object,
+                _options); 
         }
 
         [Fact]
@@ -50,7 +56,11 @@ namespace PetSearchHome.Tests
 
             _listingsMock
                 .Setup(repo => repo.GetByIdAsync(listingId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PetListing { Id = listingId });
+                .ReturnsAsync(new PetListing { Id = listingId, Status = ListingStatus.Published });
+
+            _complaintsMock
+                .Setup(repo => repo.CountPendingComplaintsForEntityAsync(listingId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
 
             var result = await _useCase.ExecuteAsync(request, authContext);
 
@@ -61,6 +71,41 @@ namespace PetSearchHome.Tests
                 It.Is<Complaint>(complaint =>
                     complaint.ReportedType == ReportedEntityType.Listing &&
                     complaint.ReportedEntityId == listingId),
+                It.IsAny<CancellationToken>()), Times.Once);
+                
+            _listingsMock.Verify(repo => repo.UpdateAsync(It.IsAny<PetListing>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_WhenThresholdReached_ChangesListingStatusToPendingModeration()
+        {
+            var userId = Guid.NewGuid();
+            var listingId = Guid.NewGuid();
+            var authContext = new AuthContext { UserId = userId, Role = Role.Person };
+            var request = new SubmitComplaintRequest(listingId, "Жорстоке поводження");
+
+            var existingListing = new PetListing { Id = listingId, Status = ListingStatus.Published };
+
+            _listingsMock
+                .Setup(repo => repo.GetByIdAsync(listingId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(existingListing);
+
+            _complaintsMock
+                .Setup(repo => repo.CountPendingComplaintsForEntityAsync(listingId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(3);
+
+            var result = await _useCase.ExecuteAsync(request, authContext);
+
+            Assert.True(result.IsSuccess);
+
+            _listingsMock.Verify(repo => repo.UpdateAsync(
+                It.Is<PetListing>(l => l.Id == listingId && l.Status == ListingStatus.PendingModeration),
+                It.IsAny<CancellationToken>()), Times.Once);
+                
+            _auditMock.Verify(audit => audit.RecordAsync(
+                "auto_hide_by_reports", 
+                Guid.Empty, 
+                listingId.ToString(), 
                 It.IsAny<CancellationToken>()), Times.Once);
         }
     }

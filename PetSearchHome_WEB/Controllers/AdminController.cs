@@ -149,7 +149,7 @@ namespace PetSearchHome_WEB.Controllers
                 authContext,
                 cancellationToken);
 
-            if (!result)
+            if (!result.IsSuccess)
             {
                 SetErrorMessage("Не вдалося оновити довідники.");
                 return RedirectToAction(nameof(Dashboard));

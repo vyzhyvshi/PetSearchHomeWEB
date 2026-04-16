@@ -1,4 +1,4 @@
-using PetSearchHome_WEB.Application.Shared;
+﻿using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.Policies;
@@ -7,7 +7,8 @@ namespace PetSearchHome_WEB.Application.Moderation
 {
     public sealed record ManageTagsCategoriesRequest(string Name, bool IsCategory, bool Remove, Guid? Id);
 
-    public class ManageTagsCategoriesUseCase : IUseCase<ManageTagsCategoriesRequest, bool>
+    // ЗМІНЕНО: тепер повертає Result<bool>
+    public class ManageTagsCategoriesUseCase : IUseCase<ManageTagsCategoriesRequest, Result<bool>>
     {
         private readonly ITagRepository _tags;
         private readonly ICategoryRepository _categories;
@@ -18,11 +19,12 @@ namespace PetSearchHome_WEB.Application.Moderation
             _categories = categories;
         }
 
-        public async Task<bool> ExecuteAsync(ManageTagsCategoriesRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<bool>> ExecuteAsync(ManageTagsCategoriesRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
+            // ЗМІНЕНО: замість throw тепер безпечний Result.Failure
             if (!AdminPolicy.IsAdmin(authContext.Role))
             {
-                throw new UnauthorizedAccessException("Admin role required.");
+                return Result.Failure<bool>("Немає прав доступу. Потрібна роль Адміністратора.");
             }
 
             if (request.IsCategory)
@@ -48,7 +50,7 @@ namespace PetSearchHome_WEB.Application.Moderation
                 }
             }
 
-            return true;
+            return Result.Success(true);
         }
     }
 }

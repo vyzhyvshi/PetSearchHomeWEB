@@ -24,6 +24,24 @@
                     <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
 
+                <div>
+                    <label asp-for="Address" class="form-label">Адреса</label>
+                    <input asp-for="Address" class="form-control" autocomplete="street-address" />
+                    <span asp-validation-for="Address" class="text-danger small"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Website" class="form-label">Сайт</label>
+                    <input asp-for="Website" class="form-control" placeholder="https://example.org" autocomplete="url" />
+                    <span asp-validation-for="Website" class="text-danger small"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Description" class="form-label">Опис притулку</label>
+                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label asp-for="Password" class="form-label">Пароль</label>

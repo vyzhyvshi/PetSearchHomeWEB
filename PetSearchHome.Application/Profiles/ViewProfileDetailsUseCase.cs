@@ -49,11 +49,7 @@ namespace PetSearchHome_WEB.Application.Profiles
                 ? listings
                 : listings.Where(static listing => listing.Status == ListingStatus.Published).ToList();
 
-            var reviews = new List<Review>();
-            foreach (var listing in listings)
-            {
-                reviews.AddRange(await _reviews.ListByListingAsync(listing.Id, cancellationToken));
-            }
+            var reviews = await _reviews.ListByReviewedUserAsync(request.UserId, cancellationToken);
 
             double? rating = reviews.Count == 0
                 ? null

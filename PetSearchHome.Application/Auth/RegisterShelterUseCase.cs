@@ -11,11 +11,13 @@ namespace PetSearchHome_WEB.Application.Auth
     {
         private readonly IUserRepository _users;
         private readonly IPasswordHasher _hasher;
+        private readonly IShelterRepository _shelters;
 
-        public RegisterShelterUseCase(IUserRepository users, IPasswordHasher hasher)
+        public RegisterShelterUseCase(IUserRepository users, IPasswordHasher hasher, IShelterRepository shelters)
         {
             _users = users;
             _hasher = hasher;
+            _shelters = shelters;
         }
 
         public async Task<Result<Guid>> ExecuteAsync(RegisterShelterRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
@@ -38,8 +40,15 @@ namespace PetSearchHome_WEB.Application.Auth
 
                 await _users.AddAsync(user, cancellationToken);
                 var persisted = await _users.GetByEmailAsync(request.Email, cancellationToken);
+                var shelterId = persisted?.Id ?? user.Id;
 
-                return persisted?.Id ?? user.Id;
+                await _shelters.UpsertProfileAsync(new ShelterProfile
+                {
+                    ShelterId = shelterId,
+                    DisplayName = request.DisplayName
+                }, cancellationToken);
+
+                return shelterId;
             }
 
             return Result.Failure<Guid>("У вас немає прав для реєстрації притулку.");

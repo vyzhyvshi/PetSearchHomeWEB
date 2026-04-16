@@ -74,6 +74,7 @@ namespace PetSearchHome_WEB.Controllers
                 return View(model);
             }
 
+
             var authContext = await GetAuthContextAsync(cancellationToken);
             var request = new CreateListingRequest(
                 model.Title,

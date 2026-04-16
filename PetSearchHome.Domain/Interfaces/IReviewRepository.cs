@@ -5,6 +5,6 @@ namespace PetSearchHome_WEB.Domain.Interfaces
     public interface IReviewRepository
     {
         Task AddAsync(Review review, CancellationToken cancellationToken = default);
-        Task<IReadOnlyList<Review>> ListByListingAsync(Guid listingId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<Review>> ListByReviewedUserAsync(Guid reviewedUserId, CancellationToken cancellationToken = default);
     }
 }

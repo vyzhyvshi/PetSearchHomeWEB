@@ -12,13 +12,15 @@ namespace PetSearchHome.Tests
     {
         private readonly Mock<IUserRepository> _userRepoMock;
         private readonly Mock<IPasswordHasher> _passwordHasherMock;
+        private readonly Mock<IShelterRepository> _shelterRepoMock;
         private readonly RegisterShelterUseCase _useCase;
 
         public RegisterShelterUseCaseTests()
         {
             _userRepoMock = new();
             _passwordHasherMock = new();
-            _useCase = new RegisterShelterUseCase(_userRepoMock.Object, _passwordHasherMock.Object);
+            _shelterRepoMock = new();
+            _useCase = new RegisterShelterUseCase(_userRepoMock.Object, _passwordHasherMock.Object, _shelterRepoMock.Object);
         }
 
         [Fact]
@@ -38,6 +40,9 @@ namespace PetSearchHome.Tests
             Assert.True(result.IsSuccess);
             _userRepoMock.Verify(repo =>
                 repo.AddAsync(It.Is<User>(u => u.Email == request.Email && u.Role == Role.Shelter), It.IsAny<CancellationToken>()),
+                Times.Once);
+            _shelterRepoMock.Verify(repo =>
+                repo.UpsertProfileAsync(It.Is<ShelterProfile>(profile => profile.DisplayName == request.DisplayName), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 

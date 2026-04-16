@@ -118,14 +118,12 @@ namespace PetSearchHome.Tests
                 });
 
             var reviews = new Mock<IReviewRepository>();
-            reviews.Setup(repo => repo.ListByListingAsync(publishedId, It.IsAny<CancellationToken>()))
+            reviews.Setup(repo => repo.ListByReviewedUserAsync(userId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<Review>
                 {
-                    new() { ListingId = publishedId, Rating = 4 },
-                    new() { ListingId = publishedId, Rating = 5 }
+                    new() { ReviewedUserId = userId, Rating = 4 },
+                    new() { ReviewedUserId = userId, Rating = 5 }
                 });
-            reviews.Setup(repo => repo.ListByListingAsync(pendingId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Array.Empty<Review>());
 
             var useCase = new ViewProfileDetailsUseCase(users.Object, listings.Object, shelters.Object, reviews.Object);
             var auth = new AuthContext { UserId = null, Role = Role.Guest };

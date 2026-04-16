@@ -57,7 +57,11 @@ namespace PetSearchHome.Tests
             Assert.True(result.IsSuccess);
             Assert.NotEqual(Guid.Empty, result.Value);
 
-            _complaintsMock.Verify(repo => repo.AddAsync(It.IsAny<Complaint>(), It.IsAny<CancellationToken>()), Times.Once);
+            _complaintsMock.Verify(repo => repo.AddAsync(
+                It.Is<Complaint>(complaint =>
+                    complaint.ReportedType == ReportedEntityType.Listing &&
+                    complaint.ReportedEntityId == listingId),
+                It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

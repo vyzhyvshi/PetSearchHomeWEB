@@ -13,6 +13,7 @@ public class ReportEntity
         = ReportStatus.Pending;
     public DateTime CreatedAt { get; set; }
         = DateTime.UtcNow;
+    public string? Text { get; set; } // Nullable text body of the report
 
     public UserEntity Reporter { get; set; } = null!;
 }

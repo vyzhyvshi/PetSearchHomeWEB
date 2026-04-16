@@ -28,6 +28,12 @@ public class ReportEntityConfiguration : IEntityTypeConfiguration<ReportEntity>
         builder.Property(r => r.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        
+        // map the text column
+        builder.Property(r => r.Text)
+            .HasColumnName("text")
+            .HasColumnType("text")
+            .IsRequired(false);
 
         builder.HasOne(r => r.Reporter)
             .WithMany(u => u.ReportsFiled)

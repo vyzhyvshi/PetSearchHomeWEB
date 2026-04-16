@@ -7,7 +7,7 @@ namespace PetSearchHome_WEB.Application.Moderation
 {
     public sealed record GetOpenComplaintsRequest();
 
-    public class GetOpenComplaintsUseCase : IUseCase<GetOpenComplaintsRequest, IReadOnlyList<Complaint>>
+    public class GetOpenComplaintsUseCase : IUseCase<GetOpenComplaintsRequest, Result<IReadOnlyList<Complaint>>>
     {
         private readonly IComplaintRepository _complaints;
 
@@ -16,15 +16,15 @@ namespace PetSearchHome_WEB.Application.Moderation
             _complaints = complaints;
         }
 
-        public async Task<IReadOnlyList<Complaint>> ExecuteAsync(GetOpenComplaintsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<IReadOnlyList<Complaint>>> ExecuteAsync(GetOpenComplaintsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (!AdminPolicy.IsAdmin(authContext.Role))
             {
-                throw new UnauthorizedAccessException("Admin role required.");
+                return Result.Failure<IReadOnlyList<Complaint>>("Немає прав доступу.");
             }
 
-            // Припускаємо, що у твоєму IComplaintRepository є метод для отримання відкритих скарг
-            return await _complaints.ListOpenAsync(cancellationToken);
+            var complaints = await _complaints.ListOpenAsync(cancellationToken);
+            return Result.Success(complaints);
         }
     }
 }

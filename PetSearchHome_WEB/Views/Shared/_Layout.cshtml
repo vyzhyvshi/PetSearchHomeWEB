@@ -49,6 +49,12 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Favorite" asp-action="Index">Улюблені</a>
                             </li>
                         }
+                        @if (User?.IsInRole("Admin") == true)
+                        {
+                            <li class="nav-item ms-auto">
+                                <a class="nav-link text-danger fw-bold" asp-area="" asp-controller="Admin" asp-action="Dashboard">Адмінка</a>
+                            </li>
+                        }
                     </ul>
                     <div class="d-flex align-items-center gap-2">
                         @if (isAuthenticated)

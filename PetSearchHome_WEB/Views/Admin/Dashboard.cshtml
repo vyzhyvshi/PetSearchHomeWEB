@@ -1,0 +1,101 @@
+﻿@model PetSearchHome_WEB.Models.Admin.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Панель Адміністратора";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 fw-bold text-danger">@ViewData["Title"]</h2>
+
+    <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="listings-tab" data-bs-toggle="tab" data-bs-target="#listings" type="button" role="tab" aria-controls="listings" aria-selected="true">
+                На модерації
+                <span class="badge bg-primary ms-1">@Model.PendingListings.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-danger" id="complaints-tab" data-bs-toggle="tab" data-bs-target="#complaints" type="button" role="tab" aria-controls="complaints" aria-selected="false">
+                Скарги
+                <span class="badge bg-danger ms-1">@Model.OpenComplaints.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-4" id="adminTabsContent">
+
+        <div class="tab-pane fade show active" id="listings" role="tabpanel" aria-labelledby="listings-tab">
+            @if (!Model.PendingListings.Any())
+            {
+                <div class="alert alert-success shadow-sm">
+                    Немає нових оголошень для перевірки. Ви чудово попрацювали!
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var listing in Model.PendingListings)
+                    {
+                        <div class="col-md-6 mb-4">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                                        @listing.Title
+                                        <span class="badge bg-info text-dark">@listing.AnimalType</span>
+                                    </h5>
+                                    <p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> Локація: @listing.Location</p>
+                                    <p class="card-text border-start border-3 border-secondary ps-2 bg-light p-2 rounded">
+                                        @(string.IsNullOrWhiteSpace(listing.Description) ? "Опис відсутній" : listing.Description)
+                                    </p>
+
+                                    <hr />
+                                    <form asp-controller="Admin" asp-action="ModerateListing" method="post">
+                                        <input type="hidden" name="listingId" value="@listing.Id" />
+                                        <div class="mb-3">
+                                            <input type="text" name="reason" class="form-control" placeholder="Причина (обов'язково при відхиленні)" />
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" name="approve" value="true" class="btn btn-success w-50">Схвалити</button>
+                                            <button type="submit" name="approve" value="false" class="btn btn-outline-danger w-50">Відхилити</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="tab-pane fade" id="complaints" role="tabpanel" aria-labelledby="complaints-tab">
+            @if (!Model.OpenComplaints.Any())
+            {
+                <div class="alert alert-success shadow-sm">
+                    Немає відкритих скарг. Усе спокійно!
+                </div>
+            }
+            else
+            {
+                <div class="list-group shadow-sm">
+                    @foreach (var complaint in Model.OpenComplaints)
+                    {
+                        <div class="list-group-item list-group-item-action mb-2 border rounded border-danger border-opacity-25">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 text-danger fw-bold">Скарга від користувача: @complaint.ReporterId</h6>
+                                <small class="text-muted">@complaint.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                            </div>
+                            <p class="mb-1"><strong>ID Оголошення:</strong> <span class="text-muted">@complaint.ListingId</span></p>
+                            <p class="mb-3 p-2 bg-light rounded text-dark"><strong>Суть скарги:</strong> @complaint.Reason</p>
+
+                            <form asp-controller="Admin" asp-action="HandleComplaint" method="post" class="d-flex gap-2 align-items-center bg-white p-2 border rounded">
+                                <input type="hidden" name="complaintId" value="@complaint.Id" />
+                                <input type="text" name="resolution" class="form-control" placeholder="Рішення адміністратора (наприклад: Оголошення видалено)..." required />
+                                <button type="submit" class="btn btn-primary px-4">Вирішити</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

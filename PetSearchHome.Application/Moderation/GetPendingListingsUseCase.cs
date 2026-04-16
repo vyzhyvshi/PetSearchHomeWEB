@@ -8,7 +8,7 @@ namespace PetSearchHome_WEB.Application.Moderation
 {
     public sealed record GetPendingListingsRequest();
 
-    public class GetPendingListingsUseCase : IUseCase<GetPendingListingsRequest, IReadOnlyList<PetListing>>
+    public class GetPendingListingsUseCase : IUseCase<GetPendingListingsRequest, Result<IReadOnlyList<PetListing>>>
     {
         private readonly IListingRepository _listings;
 
@@ -17,14 +17,15 @@ namespace PetSearchHome_WEB.Application.Moderation
             _listings = listings;
         }
 
-        public async Task<IReadOnlyList<PetListing>> ExecuteAsync(GetPendingListingsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<IReadOnlyList<PetListing>>> ExecuteAsync(GetPendingListingsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (!AdminPolicy.IsAdmin(authContext.Role))
             {
-                throw new UnauthorizedAccessException("Admin role required.");
+                return Result.Failure<IReadOnlyList<PetListing>>("Немає прав доступу. Потрібна роль Адміністратора.");
             }
 
-            return await _listings.ListByStatusAsync(ListingStatus.PendingModeration, cancellationToken);
+            var listings = await _listings.ListByStatusAsync(ListingStatus.PendingModeration, cancellationToken);
+            return Result.Success(listings);
         }
     }
 }

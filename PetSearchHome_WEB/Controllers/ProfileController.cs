@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Application.Reviews;
 using PetSearchHome_WEB.Domain.ValueObjects;
@@ -17,6 +18,7 @@ namespace PetSearchHome_WEB.Controllers
         private readonly UpdateShelterProfileUseCase _updateShelterProfileUseCase;
         private readonly ViewOrgStatsUseCase _viewOrgStatsUseCase;
         private readonly LeaveReviewUseCase _leaveReviewUseCase;
+        private readonly SubmitUserComplaintUseCase _submitUserComplaintUseCase;
 
         public ProfileController(
             ILogger<ProfileController> logger,
@@ -25,7 +27,8 @@ namespace PetSearchHome_WEB.Controllers
             UpdateProfileUseCase updateProfileUseCase,
             UpdateShelterProfileUseCase updateShelterProfileUseCase,
             ViewOrgStatsUseCase viewOrgStatsUseCase,
-            LeaveReviewUseCase leaveReviewUseCase)
+            LeaveReviewUseCase leaveReviewUseCase,
+            SubmitUserComplaintUseCase submitUserComplaintUseCase)
         {
             _logger = logger;
             _viewProfileUseCase = viewProfileUseCase;
@@ -34,6 +37,7 @@ namespace PetSearchHome_WEB.Controllers
             _updateShelterProfileUseCase = updateShelterProfileUseCase;
             _viewOrgStatsUseCase = viewOrgStatsUseCase;
             _leaveReviewUseCase = leaveReviewUseCase;
+            _submitUserComplaintUseCase = submitUserComplaintUseCase;
         }
 
         [HttpGet]
@@ -79,6 +83,14 @@ namespace PetSearchHome_WEB.Controllers
                 Rating = profile.Rating,
                 ReviewsCount = profile.ReviewsCount,
                 CanEdit = authContext.UserId == profile.User.Id || authContext.Role == Role.Admin,
+                CanReport = authContext.UserId.HasValue
+                    && authContext.UserId != profile.User.Id
+                    && authContext.Role is Role.Person or Role.Shelter,
+                CanLeaveReview = authContext.UserId.HasValue
+                    && authContext.UserId != profile.User.Id
+                    && authContext.Role is Role.Person or Role.Shelter,
+                IsAuthenticatedViewer = authContext.UserId.HasValue,
+                IsOwnProfile = authContext.UserId == profile.User.Id,
                 Listings = profile.Listings
                     .Select(listing => new ListingWithStatusViewModel
                     {
@@ -191,19 +203,45 @@ namespace PetSearchHome_WEB.Controllers
         [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LeaveReview(Guid listingId, byte rating, string comment, CancellationToken cancellationToken)
+        public async Task<IActionResult> LeaveReview(Guid id, byte rating, string comment, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             try
             {
-                var request = new LeaveReviewRequest(listingId, rating, comment, true);
+                var request = new LeaveReviewRequest(id, rating, comment ?? string.Empty, true);
                 await _leaveReviewUseCase.ExecuteAsync(request, authContext, cancellationToken);
-                return RedirectToAction("Details", "Home", new { id = listingId });
+                SetSuccessMessage("Оцінку профілю збережено.");
             }
             catch (UnauthorizedAccessException)
             {
                 return Forbid();
             }
+            catch (InvalidOperationException ex)
+            {
+                SetErrorMessage(ex.Message);
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReportUser(Guid id, string reason, CancellationToken cancellationToken)
+        {
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _submitUserComplaintUseCase.ExecuteAsync(new SubmitUserComplaintRequest(id, reason), authContext, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                SetSuccessMessage("Скаргу на користувача успішно надіслано.");
+            }
+            else
+            {
+                SetErrorMessage(result.ErrorMessage ?? "Не вдалося надіслати скаргу.");
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
         }
     }
 }

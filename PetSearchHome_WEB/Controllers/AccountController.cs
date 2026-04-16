@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using PetSearchHome_WEB.Application.Auth;
+using PetSearchHome_WEB.Application.Profiles;
+using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Domain.ValueObjects;
 using PetSearchHome_WEB.Models.Auth;
 using PetSearchHome_WEB.Security;
 using System.Security.Claims;
@@ -15,20 +18,26 @@ namespace PetSearchHome_WEB.Controllers
         private readonly LoginUseCase _loginUseCase;
         private readonly RegisterUserUseCase _registerUserUseCase;
         private readonly RegisterShelterUseCase _registerShelterUseCase;
+        private readonly UpdateShelterProfileUseCase _updateShelterProfileUseCase;
         private readonly LogoutUseCase _logoutUseCase;
+        private readonly IUserRepository _users;
 
         public AccountController(
             ILogger<AccountController> logger,
             LoginUseCase loginUseCase,
             RegisterUserUseCase registerUserUseCase,
             RegisterShelterUseCase registerShelterUseCase,
-            LogoutUseCase logoutUseCase)
+            UpdateShelterProfileUseCase updateShelterProfileUseCase,
+            LogoutUseCase logoutUseCase,
+            IUserRepository users)
         {
             _logger = logger;
             _loginUseCase = loginUseCase;
             _registerUserUseCase = registerUserUseCase;
             _registerShelterUseCase = registerShelterUseCase;
+            _updateShelterProfileUseCase = updateShelterProfileUseCase;
             _logoutUseCase = logoutUseCase;
+            _users = users;
         }
 
         // GET: /Account/Login
@@ -155,6 +164,14 @@ namespace PetSearchHome_WEB.Controllers
             }
 
             _logger.LogInformation("New shelter account created for {Email}.", model.Email);
+            var createdContext = await BuildShelterContextAsync(model.Email, cancellationToken);
+            if (createdContext is PetSearchHome_WEB.Application.Shared.AuthContext shelterContext)
+            {
+                await _updateShelterProfileUseCase.ExecuteAsync(
+                    new UpdateShelterProfileRequest(model.ShelterName, model.Description ?? string.Empty, model.Website, model.Address),
+                    shelterContext,
+                    cancellationToken);
+            }
             return RedirectToAction(nameof(Login));
         }
 
@@ -190,6 +207,21 @@ namespace PetSearchHome_WEB.Controllers
         public IActionResult Logout()
         {
             return View();
+        }
+
+        private async Task<PetSearchHome_WEB.Application.Shared.AuthContext?> BuildShelterContextAsync(string email, CancellationToken cancellationToken)
+        {
+            var user = await _users.GetByEmailAsync(email, cancellationToken);
+            if (user is null)
+            {
+                return null;
+            }
+
+            return new PetSearchHome_WEB.Application.Shared.AuthContext
+            {
+                UserId = user.Id,
+                Role = Role.Shelter
+            };
         }
 
     }

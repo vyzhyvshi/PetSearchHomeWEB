@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Moderation;
+using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Models.Admin;
 using PetSearchHome_WEB.Security;
 
@@ -15,6 +16,9 @@ namespace PetSearchHome_WEB.Controllers
         private readonly HandleComplaintUseCase _handleComplaintUseCase;
         private readonly GetPendingListingsUseCase _getPendingListingsUseCase;
         private readonly GetOpenComplaintsUseCase _getOpenComplaintsUseCase;
+        private readonly ManageTagsCategoriesUseCase _manageTagsCategoriesUseCase;
+        private readonly ITagRepository _tagRepository;
+        private readonly ICategoryRepository _categoryRepository;
 
         public AdminController(
             ILogger<AdminController> logger,
@@ -22,7 +26,10 @@ namespace PetSearchHome_WEB.Controllers
             BlockUserUseCase blockUserUseCase,
             HandleComplaintUseCase handleComplaintUseCase,
             GetPendingListingsUseCase getPendingListingsUseCase,
-            GetOpenComplaintsUseCase getOpenComplaintsUseCase)
+            GetOpenComplaintsUseCase getOpenComplaintsUseCase,
+            ManageTagsCategoriesUseCase manageTagsCategoriesUseCase,
+            ITagRepository tagRepository,
+            ICategoryRepository categoryRepository)
         {
             _logger = logger;
             _moderateListingUseCase = moderateListingUseCase;
@@ -30,6 +37,9 @@ namespace PetSearchHome_WEB.Controllers
             _handleComplaintUseCase = handleComplaintUseCase;
             _getPendingListingsUseCase = getPendingListingsUseCase;
             _getOpenComplaintsUseCase = getOpenComplaintsUseCase;
+            _manageTagsCategoriesUseCase = manageTagsCategoriesUseCase;
+            _tagRepository = tagRepository;
+            _categoryRepository = categoryRepository;
         }
 
         // GET: /Admin/Dashboard
@@ -50,7 +60,9 @@ namespace PetSearchHome_WEB.Controllers
             var viewModel = new AdminDashboardViewModel
             {
                 PendingListings = pendingResult.Value!,
-                OpenComplaints = complaintsResult.Value!
+                OpenComplaints = complaintsResult.Value!,
+                Tags = await _tagRepository.GetAllAsync(cancellationToken),
+                Categories = await _categoryRepository.GetAllAsync(cancellationToken)
             };
 
             return View(viewModel);
@@ -120,6 +132,26 @@ namespace PetSearchHome_WEB.Controllers
             }
 
             SetSuccessMessage("Скаргу успішно оброблено.");
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ManageCatalogMeta(string name, bool isCategory, bool remove, Guid? id, CancellationToken cancellationToken)
+        {
+            var authContext = GetAuthContext();
+            var result = await _manageTagsCategoriesUseCase.ExecuteAsync(
+                new ManageTagsCategoriesRequest(name, isCategory, remove, id),
+                authContext,
+                cancellationToken);
+
+            if (!result)
+            {
+                SetErrorMessage("Не вдалося оновити довідники.");
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            SetSuccessMessage(isCategory ? "Категорії оновлено." : "Теги оновлено.");
             return RedirectToAction(nameof(Dashboard));
         }
     }

@@ -139,7 +139,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 _complaints[index] = new Complaint
                 {
                     Id = existing.Id,
-                    ListingId = existing.ListingId,
+                    ReportedType = existing.ReportedType,
+                    ReportedEntityId = existing.ReportedEntityId,
                     ReporterId = existing.ReporterId,
                     Reason = existing.Reason,
                     CreatedAt = existing.CreatedAt,
@@ -160,6 +161,48 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         public Task AddAsync(Complaint complaint, CancellationToken cancellationToken = default)
         {
             _complaints.Add(complaint);
+            return Task.CompletedTask;
+        }
+    }
+
+    public class InMemoryTagRepository : ITagRepository
+    {
+        private readonly List<Tag> _tags = new();
+
+        public Task<IReadOnlyList<Tag>> GetAllAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<Tag>>(_tags.OrderBy(t => t.Name).ToList());
+
+        public Task AddAsync(Tag tag, CancellationToken cancellationToken = default)
+        {
+            _tags.RemoveAll(existing => string.Equals(existing.Name, tag.Name, StringComparison.OrdinalIgnoreCase));
+            _tags.Add(tag);
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            _tags.RemoveAll(tag => tag.Id == id);
+            return Task.CompletedTask;
+        }
+    }
+
+    public class InMemoryCategoryRepository : ICategoryRepository
+    {
+        private readonly List<Category> _categories = new();
+
+        public Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<Category>>(_categories.OrderBy(c => c.Name).ToList());
+
+        public Task AddAsync(Category category, CancellationToken cancellationToken = default)
+        {
+            _categories.RemoveAll(existing => string.Equals(existing.Name, category.Name, StringComparison.OrdinalIgnoreCase));
+            _categories.Add(category);
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            _categories.RemoveAll(category => category.Id == id);
             return Task.CompletedTask;
         }
     }
@@ -202,11 +245,11 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<Review>> ListByListingAsync(Guid listingId, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<Review>> ListByReviewedUserAsync(Guid reviewedUserId, CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IReadOnlyList<Review>>(
                 _reviews
-                    .Where(r => r.ListingId == listingId)
+                    .Where(r => r.ReviewedUserId == reviewedUserId)
                     .OrderByDescending(r => r.CreatedAt)
                     .ToList());
         }

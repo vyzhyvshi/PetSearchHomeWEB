@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Reviews
 {
-    public sealed record ListReviewsRequest(Guid ListingId);
+    public sealed record ListReviewsRequest(Guid ReviewedUserId);
 
     public class ListReviewsUseCase : IUseCase<ListReviewsRequest, IReadOnlyList<Review>>
     {
@@ -17,7 +17,7 @@ namespace PetSearchHome_WEB.Application.Reviews
 
         public Task<IReadOnlyList<Review>> ExecuteAsync(ListReviewsRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-            return _reviews.ListByListingAsync(request.ListingId, cancellationToken);
+            return _reviews.ListByReviewedUserAsync(request.ReviewedUserId, cancellationToken);
         }
     }
 }

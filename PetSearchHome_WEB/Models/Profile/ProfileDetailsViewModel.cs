@@ -17,6 +17,10 @@ namespace PetSearchHome_WEB.Models.Profile
         public int ReviewsCount { get; init; }
         public IReadOnlyList<ListingWithStatusViewModel> Listings { get; init; } = Array.Empty<ListingWithStatusViewModel>();
         public bool CanEdit { get; init; }
+        public bool CanReport { get; init; }
+        public bool CanLeaveReview { get; init; }
+        public bool IsAuthenticatedViewer { get; init; }
+        public bool IsOwnProfile { get; init; }
     }
 
     public class ListingWithStatusViewModel : ListingSummaryViewModel

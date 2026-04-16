@@ -49,6 +49,7 @@
 
                                     <hr />
                                     <form asp-controller="Admin" asp-action="ModerateListing" method="post">
+                                        @Html.AntiForgeryToken()
                                         <input type="hidden" name="listingId" value="@listing.Id" />
                                         <div class="mb-3">
                                             <input type="text" name="reason" class="form-control" placeholder="Причина (обов'язково при відхиленні)" />
@@ -83,18 +84,85 @@
                                 <h6 class="mb-1 text-danger fw-bold">Скарга від користувача: @complaint.ReporterId</h6>
                                 <small class="text-muted">@complaint.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
                             </div>
-                            <p class="mb-1"><strong>ID Оголошення:</strong> <span class="text-muted">@complaint.ListingId</span></p>
+                            <p class="mb-1"><strong>Об'єкт скарги:</strong> <span class="text-muted">@complaint.ReportedType / @complaint.ReportedEntityId</span></p>
                             <p class="mb-3 p-2 bg-light rounded text-dark"><strong>Суть скарги:</strong> @complaint.Reason</p>
 
                             <form asp-controller="Admin" asp-action="HandleComplaint" method="post" class="d-flex gap-2 align-items-center bg-white p-2 border rounded">
+                                @Html.AntiForgeryToken()
                                 <input type="hidden" name="complaintId" value="@complaint.Id" />
-                                <input type="text" name="resolution" class="form-control" placeholder="Рішення адміністратора (наприклад: Оголошення видалено)..." required />
+                                <select name="resolution" class="form-select" required>
+                                    <option value="">Оберіть рішення</option>
+                                    <option value="approved">Схвалити скаргу</option>
+                                    <option value="rejected">Відхилити скаргу</option>
+                                </select>
                                 <button type="submit" class="btn btn-primary px-4">Вирішити</button>
                             </form>
                         </div>
                     }
                 </div>
             }
+        </div>
+
+        <div class="mt-4">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Теги</h5>
+                            <form asp-controller="Admin" asp-action="ManageCatalogMeta" method="post" class="d-flex gap-2 mb-3">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="isCategory" value="false" />
+                                <input type="hidden" name="remove" value="false" />
+                                <input type="text" name="name" class="form-control" placeholder="Новий тег" required />
+                                <button type="submit" class="btn btn-outline-primary">Додати</button>
+                            </form>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var tag in Model.Tags)
+                                {
+                                    <form asp-controller="Admin" asp-action="ManageCatalogMeta" method="post" class="d-inline-flex">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="isCategory" value="false" />
+                                        <input type="hidden" name="remove" value="true" />
+                                        <input type="hidden" name="id" value="@tag.Id" />
+                                        <input type="hidden" name="name" value="@tag.Name" />
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">@tag.Name x</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Категорії</h5>
+                            <form asp-controller="Admin" asp-action="ManageCatalogMeta" method="post" class="d-flex gap-2 mb-3">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="isCategory" value="true" />
+                                <input type="hidden" name="remove" value="false" />
+                                <input type="text" name="name" class="form-control" placeholder="Нова категорія" required />
+                                <button type="submit" class="btn btn-outline-primary">Додати</button>
+                            </form>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <form asp-controller="Admin" asp-action="ManageCatalogMeta" method="post" class="d-inline-flex">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="isCategory" value="true" />
+                                        <input type="hidden" name="remove" value="true" />
+                                        <input type="hidden" name="id" value="@category.Id" />
+                                        <input type="hidden" name="name" value="@category.Name" />
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">@category.Name x</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>

@@ -21,6 +21,7 @@ namespace PetSearchHome_WEB.Controllers
         private readonly ToggleFavoriteUseCase _toggleFavoriteUseCase;
         private readonly SubmitComplaintUseCase _submitComplaintUseCase;
         private readonly IFavoriteRepository _favorites;
+        private readonly IUserRepository _users;
 
         public HomeController(
             ILogger<HomeController> logger,
@@ -28,7 +29,8 @@ namespace PetSearchHome_WEB.Controllers
             ViewListingDetailUseCase viewListingDetailUseCase,
             ToggleFavoriteUseCase toggleFavoriteUseCase,
             SubmitComplaintUseCase submitComplaintUseCase,
-            IFavoriteRepository favorites)
+            IFavoriteRepository favorites,
+            IUserRepository users)
         {
             _logger = logger;
             _searchAnimalsUseCase = searchAnimalsUseCase;
@@ -36,6 +38,7 @@ namespace PetSearchHome_WEB.Controllers
             _toggleFavoriteUseCase = toggleFavoriteUseCase;
             _submitComplaintUseCase = submitComplaintUseCase;
             _favorites = favorites;
+            _users = users;
         }
 
         [HttpGet]
@@ -100,10 +103,14 @@ namespace PetSearchHome_WEB.Controllers
                 isFavorite = await _favorites.GetAsync(authContext.UserId.Value, listing.Id, cancellationToken) is not null;
             }
 
+            var owner = await _users.GetByIdAsync(listing.OwnerId, cancellationToken);
+
             ListingDetailsViewModel model = new()
             {
                 Listing = listing,
-                IsFavorite = isFavorite
+                IsFavorite = isFavorite,
+                OwnerId = listing.OwnerId,
+                OwnerDisplayName = owner?.DisplayName ?? "Профіль користувача"
             };
 
             return View(model);

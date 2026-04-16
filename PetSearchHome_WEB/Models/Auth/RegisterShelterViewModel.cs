@@ -7,6 +7,18 @@ namespace PetSearchHome_WEB.Models.Auth
         [Required(ErrorMessage = "Введіть назву притулку")]
         public string ShelterName { get; set; } = string.Empty;
 
+        [Display(Name = "Опис притулку")]
+        [MaxLength(1000, ErrorMessage = "Опис не може перевищувати 1000 символів")]
+        public string? Description { get; set; }
+
+        [Display(Name = "Сайт")]
+        [Url(ErrorMessage = "Вкажіть коректне посилання")]
+        public string? Website { get; set; }
+
+        [Display(Name = "Адреса")]
+        [MaxLength(250, ErrorMessage = "Адреса не може перевищувати 250 символів")]
+        public string? Address { get; set; }
+
         [Required(ErrorMessage = "Email є обов'язковим")]
         [EmailAddress(ErrorMessage = "Некоректний формат Email")]
         public string Email { get; set; } = string.Empty;

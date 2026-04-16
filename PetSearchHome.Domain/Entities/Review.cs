@@ -3,7 +3,7 @@ namespace PetSearchHome_WEB.Domain.Entities
     public class Review
     {
         public Guid Id { get; init; } = Guid.NewGuid();
-        public Guid ListingId { get; init; }
+        public Guid ReviewedUserId { get; init; }
             = Guid.Empty;
         public Guid AuthorId { get; init; }
             = Guid.Empty;

@@ -2,9 +2,21 @@
 @using PetSearchHome_WEB.Domain.ValueObjects
 @{
     ViewData["Title"] = "Профіль користувача";
+    var roundedRating = Model.Rating.HasValue
+        ? (int)Math.Round(Model.Rating.Value, MidpointRounding.AwayFromZero)
+        : 0;
 }
 
 <div class="container py-4">
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
     <div class="row g-4">
         <div class="col-lg-4">
             <div class="card shadow-sm h-100">
@@ -20,20 +32,30 @@
                         }
                     </div>
 
+                    <div class="mb-3">
+                        <div class="fw-semibold mb-1">Рейтинг профілю</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="text-warning fs-5" aria-label="Рейтинг @((Model.Rating ?? 0).ToString("0.0")) з 5">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    @(i <= roundedRating ? Html.Raw("&#9733;") : Html.Raw("&#9734;"))
+                                }
+                            </div>
+                            <span class="fw-semibold">@(Model.Rating?.ToString("0.0") ?? "Немає оцінок")</span>
+                        </div>
+                        <div class="text-muted small">Відгуків: @Model.ReviewsCount</div>
+                    </div>
+
                     <dl class="row mb-0">
                         <dt class="col-sm-5">Email</dt>
                         <dd class="col-sm-7">@Model.Email</dd>
 
-                        <dt class="col-sm-5">Рейтинг</dt>
-                        <dd class="col-sm-7">@(Model.Rating?.ToString("0.0") ?? "Немає")</dd>
-
-                        <dt class="col-sm-5">Відгуки</dt>
-                        <dd class="col-sm-7">@Model.ReviewsCount</dd>
-
                         @if (!string.IsNullOrWhiteSpace(Model.Website))
                         {
                             <dt class="col-sm-5">Сайт</dt>
-                            <dd class="col-sm-7"><a href="@Model.Website" target="_blank" rel="noopener noreferrer">@Model.Website</a></dd>
+                            <dd class="col-sm-7">
+                                <a href="@Model.Website" target="_blank" rel="noopener noreferrer">@Model.Website</a>
+                            </dd>
                         }
 
                         @if (!string.IsNullOrWhiteSpace(Model.Address))
@@ -48,6 +70,91 @@
                         <hr />
                         <p class="mb-0">@Model.Description</p>
                     }
+
+                    <hr />
+
+                    <div class="vstack gap-4">
+                        <section>
+                            <h2 class="h5 mb-2">Оцінка профілю</h2>
+
+                            @if (Model.CanLeaveReview)
+                            {
+                                <form asp-action="LeaveReview" method="post" class="vstack gap-3">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@Model.UserId" />
+
+                                    <div>
+                                        <label class="form-label d-block">Оцініть профіль</label>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @for (var i = 5; i >= 1; i--)
+                                            {
+                                                <div class="form-check form-check-inline me-0">
+                                                    <input class="btn-check" type="radio" name="rating" id="rating-@i" value="@i" @(i == 5 ? "checked" : null) />
+                                                    <label class="btn btn-outline-warning" for="rating-@i">@i &#9733;</label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label" for="review-comment">Коментар</label>
+                                        <textarea id="review-comment"
+                                                  name="comment"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  maxlength="500"
+                                                  placeholder="Коротко опишіть ваш досвід взаємодії"></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-warning">Оцінити профіль</button>
+                                </form>
+                            }
+                            else if (!Model.IsAuthenticatedViewer)
+                            {
+                                <div class="alert alert-light border mb-0">
+                                    Щоб поставити оцінку користувачу, увійдіть у свій акаунт.
+                                </div>
+                            }
+                            else if (Model.IsOwnProfile)
+                            {
+                                <div class="alert alert-light border mb-0">
+                                    Власний профіль оцінювати не можна.
+                                </div>
+                            }
+                        </section>
+
+                        <section>
+                            <h2 class="h5 mb-2">Скарга на користувача</h2>
+
+                            @if (Model.CanReport)
+                            {
+                                <form asp-action="ReportUser" method="post" class="vstack gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@Model.UserId" />
+                                    <label class="form-label" for="report-reason">Причина скарги</label>
+                                    <textarea id="report-reason"
+                                              name="reason"
+                                              class="form-control"
+                                              rows="3"
+                                              maxlength="500"
+                                              required></textarea>
+                                    <button type="submit" class="btn btn-outline-danger">Поскаржитися на користувача</button>
+                                </form>
+                            }
+                            else if (!Model.IsAuthenticatedViewer)
+                            {
+                                <div class="alert alert-light border mb-0">
+                                    Щоб поскаржитися на користувача, увійдіть у свій акаунт.
+                                </div>
+                            }
+                            else if (Model.IsOwnProfile)
+                            {
+                                <div class="alert alert-light border mb-0">
+                                    На власний профіль скаргу подати не можна.
+                                </div>
+                            }
+                        </section>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,13 +186,36 @@
 
                                 <div class="border rounded p-3">
                                     <div class="d-flex justify-content-between align-items-start gap-3">
-                                        <div>
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <a class="text-decoration-none fw-semibold" asp-controller="Home" asp-action="Details" asp-route-id="@listing.Id">@listing.Title</a>
-                                                <span class="badge @badgeClass">@listing.Status</span>
+                                        <div class="d-flex gap-3 align-items-start flex-grow-1">
+                                            <a asp-controller="Home" asp-action="Details" asp-route-id="@listing.Id" class="text-decoration-none">
+                                                @if (!string.IsNullOrWhiteSpace(listing.PhotoUrl))
+                                                {
+                                                    <img src="@listing.PhotoUrl"
+                                                         alt="Фото @listing.Title"
+                                                         class="rounded border"
+                                                         style="width: 88px; height: 88px; object-fit: cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="rounded border bg-light d-flex align-items-center justify-content-center text-muted small"
+                                                         style="width: 88px; height: 88px;">
+                                                        Без фото
+                                                    </div>
+                                                }
+                                            </a>
+
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                                    <a class="text-decoration-none fw-semibold"
+                                                       asp-controller="Home"
+                                                       asp-action="Details"
+                                                       asp-route-id="@listing.Id">@listing.Title</a>
+                                                    <span class="badge @badgeClass">@listing.Status</span>
+                                                </div>
+                                                <div class="text-muted">@listing.AnimalType • @listing.Location</div>
                                             </div>
-                                            <div class="text-muted">@listing.AnimalType • @listing.Location</div>
                                         </div>
+
                                         @if (listing.IsUrgent)
                                         {
                                             <span class="badge bg-danger">Терміново</span>

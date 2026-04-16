@@ -21,12 +21,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, configuration) =>
  configuration.ReadFrom.Configuration(context.Configuration));
 
-// Load user secrets in Development so sensitive values (connection string, passwords) are kept out of source control
-if (builder.Environment.IsDevelopment())
-{
- // optional: if secrets aren't configured the call is harmless
+//if (builder.Environment.IsDevelopment())
+//{
+
  builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true);
-}
+//}
 
 builder.Services.AddControllersWithViews();
 
@@ -50,7 +49,6 @@ builder.Services.AddScoped<EfListingRepository>();
 builder.Services.AddScoped<IListingRepository>(sp => sp.GetRequiredService<EfListingRepository>());
 builder.Services.AddScoped<ISearchGateway>(sp => sp.GetRequiredService<EfListingRepository>());
 
-// Conditional registration for IComplaintRepository: use InMemory in Development, EF in other environments
 if (builder.Environment.IsDevelopment())
 {
  builder.Services.AddSingleton<IComplaintRepository, InMemoryComplaintRepository>();
@@ -88,6 +86,7 @@ builder.Services.AddScoped<ModerateListingUseCase>();
 builder.Services.AddScoped<BlockUserUseCase>();
 builder.Services.AddScoped<HandleComplaintUseCase>();
 builder.Services.AddScoped<SubmitComplaintUseCase>();
+builder.Services.AddScoped<SubmitUserComplaintUseCase>();
 builder.Services.AddScoped<GetPendingListingsUseCase>();
 builder.Services.AddScoped<GetOpenComplaintsUseCase>();
 builder.Services.AddScoped<ViewProfileUseCase>();
@@ -100,7 +99,7 @@ builder.Services.AddScoped<ToggleFavoriteUseCase>();
 builder.Services.AddScoped<ListFavoritesUseCase>();
 
 var app = builder.Build();
-
+app.UseStaticFiles();
 if (!app.Environment.IsDevelopment())
 {
 
@@ -115,11 +114,11 @@ else
 
 app.UseSerilogRequestLogging();
 
-if (!app.Environment.IsDevelopment())
-{
+//if (!app.Environment.IsDevelopment())
+//{
  app.UseExceptionHandler("/Home/Error");
  app.UseHsts();
-}
+//}
 
 app.UseHttpsRedirection();
 app.UseRouting();

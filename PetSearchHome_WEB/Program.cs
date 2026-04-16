@@ -100,6 +100,8 @@ builder.Services.AddScoped<ViewOrgStatsUseCase>();
 builder.Services.AddScoped<LeaveReviewUseCase>();
 builder.Services.AddScoped<ToggleFavoriteUseCase>();
 builder.Services.AddScoped<ListFavoritesUseCase>();
+builder.Services.AddScoped<ITagRepository, InMemoryTagRepository>();
+builder.Services.AddScoped<ICategoryRepository, InMemoryCategoryRepository>();
 
 var app = builder.Build();
 app.UseStaticFiles();

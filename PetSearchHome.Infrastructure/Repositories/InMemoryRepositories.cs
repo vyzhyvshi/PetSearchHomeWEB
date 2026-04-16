@@ -146,6 +146,10 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
     {
         private readonly List<Complaint> _complaints = new();
 
+        public Task<int> CountPendingComplaintsForEntityAsync(Guid entityId, CancellationToken cancellationToken = default)
+            => Task.FromResult(_complaints.Count(c => c.ReportedEntityId == entityId &&
+                                                      string.Equals(c.Status, "pending", StringComparison.OrdinalIgnoreCase)));
+
         public Task UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken = default)
         {
             var index = _complaints.FindIndex(c => c.Id == id);

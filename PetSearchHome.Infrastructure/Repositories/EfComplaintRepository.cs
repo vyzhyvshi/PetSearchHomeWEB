@@ -46,6 +46,14 @@ public class EfComplaintRepository : IComplaintRepository
  return entities.Select(MapToDomain).ToList();
  }
 
+ public Task<int> CountPendingComplaintsForEntityAsync(Guid entityId, CancellationToken cancellationToken = default)
+ {
+  var reportedId = FromDomainGuid(entityId);
+  return _db.Reports
+      .AsNoTracking()
+      .CountAsync(r => r.ReportedId == reportedId && r.Status == ReportStatus.Pending, cancellationToken);
+ }
+
  public async Task UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken = default)
  {
  var rId = FromDomainGuid(id);

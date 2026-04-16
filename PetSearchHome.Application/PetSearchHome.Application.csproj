@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PetSearchHome.Domain\PetSearchHome.Domain.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
     <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

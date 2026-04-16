@@ -39,6 +39,8 @@ builder.Services
  });
 builder.Services.AddAuthorization();
 
+builder.Services.Configure<ModerationSettings>(builder.Configuration.GetSection("Moderation"));
+
 var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
  ?? throw new InvalidOperationException("DefaultConnection is not configured.");
 

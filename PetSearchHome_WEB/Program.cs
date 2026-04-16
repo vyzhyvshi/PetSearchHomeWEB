@@ -14,50 +14,59 @@ using PetSearchHome_WEB.Infrastructure.Logging;
 using PetSearchHome_WEB.Infrastructure.Persistence;
 using PetSearchHome_WEB.Infrastructure.Repositories;
 using Serilog;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>
-    configuration.ReadFrom.Configuration(context.Configuration));
+ configuration.ReadFrom.Configuration(context.Configuration));
+
+// Load user secrets in Development so sensitive values (connection string, passwords) are kept out of source control
+if (builder.Environment.IsDevelopment())
+{
+ // optional: if secrets aren't configured the call is harmless
+ builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true);
+}
 
 builder.Services.AddControllersWithViews();
 
 builder.Services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Account/Login";
-        options.LogoutPath = "/Account/Logout";
-        options.AccessDeniedPath = "/Account/Login";
-    });
+ .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+ .AddCookie(options =>
+ {
+ options.LoginPath = "/Account/Login";
+ options.LogoutPath = "/Account/Logout";
+ options.AccessDeniedPath = "/Account/Login";
+ });
 builder.Services.AddAuthorization();
 
 var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("DefaultConnection is not configured.");
-var dbPassword = builder.Configuration["Database:Password"];
-var connectionString = string.IsNullOrWhiteSpace(dbPassword)
-    ? baseConnectionString
-    : new NpgsqlConnectionStringBuilder(baseConnectionString)
-    {
-        Password = dbPassword
-    }.ConnectionString;
+ ?? throw new InvalidOperationException("DefaultConnection is not configured.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+ options.UseNpgsql(baseConnectionString));
 
 builder.Services.AddScoped<EfListingRepository>();
 builder.Services.AddScoped<IListingRepository>(sp => sp.GetRequiredService<EfListingRepository>());
 builder.Services.AddScoped<ISearchGateway>(sp => sp.GetRequiredService<EfListingRepository>());
 
+// Conditional registration for IComplaintRepository: use InMemory in Development, EF in other environments
+if (builder.Environment.IsDevelopment())
+{
+ builder.Services.AddSingleton<IComplaintRepository, InMemoryComplaintRepository>();
+}
+else
+{
+ builder.Services.AddScoped<EfComplaintRepository>();
+ builder.Services.AddScoped<IComplaintRepository>(sp => sp.GetRequiredService<EfComplaintRepository>());
+}
+
 builder.Services.AddScoped<ListingService>();
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
-builder.Services.AddScoped<IReviewRepository, EfReviewRepository>();
 builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
-builder.Services.AddSingleton<IComplaintRepository, InMemoryComplaintRepository>();
-builder.Services.AddSingleton<ITagRepository, InMemoryTagRepository>();
-builder.Services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
+builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
 builder.Services.AddSingleton<IOrgStatsRepository, InMemoryOrgStatsRepository>();
 builder.Services.AddSingleton<INotificationGateway, InMemoryNotificationGateway>();
 builder.Services.AddSingleton<IPasswordHasher, SimplePasswordHasher>();
@@ -79,10 +88,8 @@ builder.Services.AddScoped<ModerateListingUseCase>();
 builder.Services.AddScoped<BlockUserUseCase>();
 builder.Services.AddScoped<HandleComplaintUseCase>();
 builder.Services.AddScoped<SubmitComplaintUseCase>();
-builder.Services.AddScoped<SubmitUserComplaintUseCase>();
 builder.Services.AddScoped<GetPendingListingsUseCase>();
 builder.Services.AddScoped<GetOpenComplaintsUseCase>();
-builder.Services.AddScoped<ManageTagsCategoriesUseCase>();
 builder.Services.AddScoped<ViewProfileUseCase>();
 builder.Services.AddScoped<ViewProfileDetailsUseCase>();
 builder.Services.AddScoped<UpdateProfileUseCase>();
@@ -97,21 +104,21 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
 
-    app.UseExceptionHandler("/Home/Error");
+ app.UseExceptionHandler("/Home/Error");
 
 }
 else
 {
 
-    app.UseExceptionHandler("/Home/Error");
+ app.UseExceptionHandler("/Home/Error");
 }
 
 app.UseSerilogRequestLogging();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+ app.UseExceptionHandler("/Home/Error");
+ app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -123,8 +130,8 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+ name: "default",
+ pattern: "{controller=Home}/{action=Index}/{id?}")
+ .WithStaticAssets();
 
 await app.RunAsync();

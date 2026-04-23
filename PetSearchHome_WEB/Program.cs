@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PetSearchHome_WEB.Application.Auth;
-using PetSearchHome_WEB.Application.Chat;
 using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Favorites;
 using PetSearchHome_WEB.Application.Listing;
@@ -10,25 +9,24 @@ using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Application.Reviews;
 using PetSearchHome_WEB.Application.Services;
-using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Infrastructure.Logging;
 using PetSearchHome_WEB.Infrastructure.Persistence;
 using PetSearchHome_WEB.Infrastructure.Repositories;
-using PetSearchHome_WEB.Infrastructure;
 using Serilog;
 using System.Reflection;
+using PetSearchHome_WEB.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>
  configuration.ReadFrom.Configuration(context.Configuration));
 
-//if (builder.Environment.IsDevelopment())
-//{
-
+// Load user secrets in Development
+if (builder.Environment.IsDevelopment())
+{
  builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true);
-//}
+}
 
 builder.Services.AddControllersWithViews();
 
@@ -40,10 +38,11 @@ builder.Services
  options.LogoutPath = "/Account/Logout";
  options.AccessDeniedPath = "/Account/Login";
  });
+
 builder.Services.AddAuthorization();
 
-builder.Services.Configure<ModerationSettings>(builder.Configuration.GetSection("Moderation"));
-builder.Services.Configure<SearchSettings>(builder.Configuration.GetSection("Search"));
+// configure caching
+builder.Services.AddMemoryCache();
 
 var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
  ?? throw new InvalidOperationException("DefaultConnection is not configured.");
@@ -51,6 +50,7 @@ var baseConnectionString = builder.Configuration.GetConnectionString("DefaultCon
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
  options.UseNpgsql(baseConnectionString));
 
+// repository registrations
 builder.Services.AddScoped<EfListingRepository>();
 builder.Services.AddScoped<IListingRepository>(sp => sp.GetRequiredService<EfListingRepository>());
 builder.Services.AddScoped<ISearchGateway>(sp => sp.GetRequiredService<EfListingRepository>());
@@ -68,8 +68,6 @@ else
 builder.Services.AddScoped<ListingService>();
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
-builder.Services.AddScoped<IChatRepository, EfChatRepository>();
-builder.Services.AddSingleton<IStorageGateway, LocalStorageGateway>();
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
 builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
 builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
@@ -81,6 +79,7 @@ builder.Services.AddSingleton<IModerationQueue, InMemoryModerationQueue>();
 
 builder.Services.AddScoped<SearchAnimalsUseCase>();
 builder.Services.AddScoped<ViewListingDetailUseCase>();
+// inject IMemoryCache into EfListingRepository via constructor DI already
 builder.Services.AddScoped<CreateListingUseCase>();
 builder.Services.AddScoped<ListMyListingsUseCase>();
 builder.Services.AddScoped<DeleteListingUseCase>();
@@ -97,54 +96,42 @@ builder.Services.AddScoped<SubmitComplaintUseCase>();
 builder.Services.AddScoped<SubmitUserComplaintUseCase>();
 builder.Services.AddScoped<GetPendingListingsUseCase>();
 builder.Services.AddScoped<GetOpenComplaintsUseCase>();
-builder.Services.AddScoped<ManageTagsCategoriesUseCase>();
-builder.Services.AddScoped<SearchUsersWithListingsUseCase>();
 builder.Services.AddScoped<ViewProfileUseCase>();
 builder.Services.AddScoped<ViewProfileDetailsUseCase>();
-builder.Services.AddScoped<SearchPublicUsersWithListingsUseCase>();
 builder.Services.AddScoped<UpdateProfileUseCase>();
 builder.Services.AddScoped<UpdateShelterProfileUseCase>();
 builder.Services.AddScoped<ViewOrgStatsUseCase>();
 builder.Services.AddScoped<LeaveReviewUseCase>();
 builder.Services.AddScoped<ToggleFavoriteUseCase>();
 builder.Services.AddScoped<ListFavoritesUseCase>();
-builder.Services.AddScoped<StartChatUseCase>();
-builder.Services.AddScoped<ListChatConversationsUseCase>();
-builder.Services.AddScoped<GetChatThreadUseCase>();
-builder.Services.AddScoped<SendChatMessageUseCase>();
-builder.Services.AddScoped<DeleteChatMessageUseCase>();
-builder.Services.AddScoped<BlockChatUserUseCase>();
-builder.Services.AddScoped<UnblockChatUserUseCase>();
-builder.Services.AddScoped<ITagRepository, InMemoryTagRepository>();
-builder.Services.AddScoped<ICategoryRepository, InMemoryCategoryRepository>();
 
 var app = builder.Build();
-app.UseStaticFiles();
+
 if (!app.Environment.IsDevelopment())
 {
-
  app.UseExceptionHandler("/Home/Error");
-
 }
 else
 {
-
  app.UseExceptionHandler("/Home/Error");
 }
 
 app.UseSerilogRequestLogging();
 
-//if (!app.Environment.IsDevelopment())
-//{
+if (!app.Environment.IsDevelopment())
+{
  app.UseExceptionHandler("/Home/Error");
  app.UseHsts();
-//}
+}
 
 app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<RequestTimingMiddleware>();
 
 app.MapStaticAssets();
 

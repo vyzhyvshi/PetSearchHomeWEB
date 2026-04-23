@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
@@ -10,14 +12,25 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories;
 public class EfListingRepository : IListingRepository, ISearchGateway
 {
     private readonly ApplicationDbContext _db;
+    private readonly IMemoryCache _cache;
+    private readonly IConfiguration _configuration;
 
-    public EfListingRepository(ApplicationDbContext db)
+    public EfListingRepository(ApplicationDbContext db, IMemoryCache cache, IConfiguration configuration)
     {
         _db = db;
+        _cache = cache;
+        _configuration = configuration;
     }
 
     public async Task<IReadOnlyList<PetListing>> GetFeaturedAsync(int take, CancellationToken cancellationToken = default)
     {
+        var cacheKey = $"featured:{take}";
+
+        if (_cache.TryGetValue<IReadOnlyList<PetListing>>(cacheKey, out var cached))
+        {
+            return cached!;
+        }
+
         var entities = await QueryBase()
             .Where(l => l.Status == ListingStatus.Published)
             .OrderByDescending(l => l.IsUrgent)
@@ -25,7 +38,24 @@ public class EfListingRepository : IListingRepository, ISearchGateway
             .Take(take)
             .ToListAsync(cancellationToken);
 
-        return entities.Select(MapToDomain).ToList();
+        var result = entities.Select(MapToDomain).ToList();
+
+        // read cache duration from configuration (seconds)
+        var seconds =300; // default
+        var configured = _configuration["CacheSettings:FeaturedSeconds"];
+        if (!string.IsNullOrWhiteSpace(configured) && int.TryParse(configured, out var parsed))
+        {
+            seconds = parsed;
+        }
+
+        var cacheEntryOptions = new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(seconds)
+        };
+
+        _cache.Set(cacheKey, result as IReadOnlyList<PetListing>, cacheEntryOptions);
+
+        return result;
     }
 
     public async Task<PetListing?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -59,7 +89,7 @@ public class EfListingRepository : IListingRepository, ISearchGateway
             Location = string.IsNullOrWhiteSpace(listing.Location) ? city : listing.Location,
             IsUrgent = listing.IsUrgent,
             Breed = string.IsNullOrWhiteSpace(listing.Title) ? listing.AnimalType : listing.Title,
-            AgeMonths = 0,
+            AgeMonths =0,
             Sex = Sex.Unknown,
             Size = PetSize.Unknown,
             Color = "Not specified",
@@ -78,12 +108,20 @@ public class EfListingRepository : IListingRepository, ISearchGateway
             entity.Photos.Add(new PhotoEntity
             {
                 Url = url,
-                IsPrimary = index == 0
+                IsPrimary = index ==0
             });
         }
 
         await _db.Listings.AddAsync(entity, cancellationToken);
         await _db.SaveChangesAsync(cancellationToken);
+
+        // invalidate featured cache because new listing may affect it
+        var cacheKeyPrefix = "featured:";
+        // naive approach: remove keys for small takes
+        for (int t =1; t <=12; t++)
+        {
+            _cache.Remove($"{cacheKeyPrefix}{t}");
+        }
     }
 
     public async Task UpdateAsync(PetListing listing, CancellationToken cancellationToken = default)
@@ -116,11 +154,17 @@ public class EfListingRepository : IListingRepository, ISearchGateway
             entity.Photos.Add(new PhotoEntity
             {
                 Url = url,
-                IsPrimary = index == 0
+                IsPrimary = index ==0
             });
         }
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        // invalidate featured cache
+        for (int t =1; t <=12; t++)
+        {
+            _cache.Remove($"featured:{t}");
+        }
     }
 
     public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
@@ -133,6 +177,12 @@ public class EfListingRepository : IListingRepository, ISearchGateway
 
         _db.Listings.Remove(entity);
         await _db.SaveChangesAsync(cancellationToken);
+
+        // invalidate featured cache
+        for (int t =1; t <=12; t++)
+        {
+            _cache.Remove($"featured:{t}");
+        }
     }
 
     public async Task<IReadOnlyList<PetListing>> ListByStatusAsync(ListingStatus status, CancellationToken cancellationToken = default)
@@ -148,7 +198,7 @@ public class EfListingRepository : IListingRepository, ISearchGateway
     public async Task<IReadOnlyList<PetListing>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         var list = ids.Distinct().ToArray();
-        if (list.Length == 0)
+        if (list.Length ==0)
         {
             return Array.Empty<PetListing>();
         }
@@ -232,14 +282,14 @@ public class EfListingRepository : IListingRepository, ISearchGateway
             return ("Unknown", string.Empty);
         }
 
-        var parts = location.Split(',', 2, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var parts = location.Split(',',2, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         return parts.Length switch
         {
-            0 => (location, string.Empty),
-            1 => (parts[0], string.Empty),
-            _ => (parts[0], parts[1])
-        };
-    }
+0 => (location, string.Empty),
+1 => (parts[0], string.Empty),
+ _ => (parts[0], parts[1])
+ };
+ }
 
     private static Guid ToDomainGuid(int value)
     {
@@ -257,6 +307,6 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         }
 
         var bytes = id.ToByteArray();
-        return BitConverter.ToInt32(bytes, 0);
+        return BitConverter.ToInt32(bytes,0);
     }
 }

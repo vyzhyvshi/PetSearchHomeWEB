@@ -6,7 +6,7 @@ namespace PetSearchHome_WEB.Application.Chat
 {
     public sealed record GetChatThreadRequest(Guid ConversationId);
 
-    public sealed record ChatThread(ChatConversation Conversation, IReadOnlyList<ChatMessage> Messages);
+    public sealed record ChatThread(ChatConversation Conversation, IReadOnlyList<ChatMessage> Messages, bool IsBlockedByMe, bool IsBlockedByOther);
 
     public class GetChatThreadUseCase : IUseCase<GetChatThreadRequest, Result<ChatThread>>
     {
@@ -36,7 +36,11 @@ namespace PetSearchHome_WEB.Application.Chat
             }
 
             var messages = await _chats.ListMessagesAsync(conversation.Id, cancellationToken);
-            return Result.Success(new ChatThread(conversation, messages));
+            var otherUserId = conversation.GetOtherParticipant(authContext.UserId.Value);
+            var blockedByMe = await _chats.IsBlockedAsync(authContext.UserId.Value, otherUserId, cancellationToken);
+            var blockedByOther = await _chats.IsBlockedAsync(otherUserId, authContext.UserId.Value, cancellationToken);
+
+            return Result.Success(new ChatThread(conversation, messages, blockedByMe, blockedByOther));
         }
     }
 }

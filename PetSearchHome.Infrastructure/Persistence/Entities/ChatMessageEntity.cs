@@ -6,6 +6,7 @@ public class ChatMessageEntity
     public int ConversationId { get; set; }
     public int SenderId { get; set; }
     public string Content { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
 
     public ChatConversationEntity Conversation { get; set; } = null!;

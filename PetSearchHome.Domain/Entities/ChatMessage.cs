@@ -6,6 +6,7 @@ namespace PetSearchHome_WEB.Domain.Entities
         public Guid ConversationId { get; init; }
         public Guid SenderId { get; init; }
         public string Content { get; init; } = string.Empty;
+        public string? ImageUrl { get; init; }
         public DateTimeOffset SentAt { get; init; } = DateTimeOffset.UtcNow;
     }
 }

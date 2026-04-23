@@ -94,10 +94,71 @@ public class EfChatRepository : IChatRepository
             ConversationId = FromDomainId(message.ConversationId),
             SenderId = FromDomainId(message.SenderId),
             Content = message.Content,
+            ImageUrl = message.ImageUrl,
             SentAt = message.SentAt.UtcDateTime
         };
 
         await _db.ChatMessages.AddAsync(entity, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<ChatMessage?> GetMessageByIdAsync(Guid messageId, CancellationToken cancellationToken = default)
+    {
+        var id = FromDomainId(messageId);
+        var entity = await _db.ChatMessages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.MessageId == id, cancellationToken);
+
+        return entity is null ? null : Map(entity);
+    }
+
+    public async Task DeleteMessageAsync(Guid messageId, CancellationToken cancellationToken = default)
+    {
+        var id = FromDomainId(messageId);
+        var entity = await _db.ChatMessages.FirstOrDefaultAsync(m => m.MessageId == id, cancellationToken);
+        if (entity is null)
+        {
+            return;
+        }
+
+        _db.ChatMessages.Remove(entity);
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<bool> IsBlockedAsync(Guid blockerId, Guid blockedId, CancellationToken cancellationToken = default)
+    {
+        var blocker = FromDomainId(blockerId);
+        var blocked = FromDomainId(blockedId);
+        return await _db.ChatBlocks
+            .AsNoTracking()
+            .AnyAsync(b => b.BlockerId == blocker && b.BlockedId == blocked, cancellationToken);
+    }
+
+    public async Task SetBlockedAsync(Guid blockerId, Guid blockedId, bool isBlocked, CancellationToken cancellationToken = default)
+    {
+        var blocker = FromDomainId(blockerId);
+        var blocked = FromDomainId(blockedId);
+
+        var entity = await _db.ChatBlocks
+            .FirstOrDefaultAsync(b => b.BlockerId == blocker && b.BlockedId == blocked, cancellationToken);
+
+        if (isBlocked)
+        {
+            if (entity is null)
+            {
+                await _db.ChatBlocks.AddAsync(new ChatBlockEntity
+                {
+                    BlockerId = blocker,
+                    BlockedId = blocked,
+                    CreatedAt = DateTime.UtcNow
+                }, cancellationToken);
+            }
+        }
+        else if (entity is not null)
+        {
+            _db.ChatBlocks.Remove(entity);
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
     }
 
@@ -122,6 +183,7 @@ public class EfChatRepository : IChatRepository
         ConversationId = ToDomainId(entity.ConversationId),
         SenderId = ToDomainId(entity.SenderId),
         Content = entity.Content,
+        ImageUrl = entity.ImageUrl,
         SentAt = new DateTimeOffset(DateTime.SpecifyKind(entity.SentAt, DateTimeKind.Utc))
     };
 

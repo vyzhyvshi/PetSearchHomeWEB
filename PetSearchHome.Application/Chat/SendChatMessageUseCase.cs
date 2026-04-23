@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Chat
 {
-    public sealed record SendChatMessageRequest(Guid ConversationId, string Message);
+    public sealed record SendChatMessageRequest(Guid ConversationId, string Message, string? ImageUrl);
 
     public class SendChatMessageUseCase : IUseCase<SendChatMessageRequest, Result>
     {
@@ -34,16 +34,25 @@ namespace PetSearchHome_WEB.Application.Chat
             }
 
             var messageText = request.Message?.Trim();
-            if (string.IsNullOrWhiteSpace(messageText))
+            if (string.IsNullOrWhiteSpace(messageText) && string.IsNullOrWhiteSpace(request.ImageUrl))
             {
                 return Result.Failure("Повідомлення не може бути порожнім.");
+            }
+
+            var otherUserId = conversation.GetOtherParticipant(authContext.UserId.Value);
+            var blockedByMe = await _chats.IsBlockedAsync(authContext.UserId.Value, otherUserId, cancellationToken);
+            var blockedByOther = await _chats.IsBlockedAsync(otherUserId, authContext.UserId.Value, cancellationToken);
+            if (blockedByMe || blockedByOther)
+            {
+                return Result.Failure("Неможливо надіслати повідомлення в заблокований чат.");
             }
 
             var message = new ChatMessage
             {
                 ConversationId = conversation.Id,
                 SenderId = authContext.UserId.Value,
-                Content = messageText,
+                Content = messageText ?? string.Empty,
+                ImageUrl = request.ImageUrl,
                 SentAt = DateTimeOffset.UtcNow
             };
 

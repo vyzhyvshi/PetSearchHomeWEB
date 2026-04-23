@@ -15,6 +15,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Infrastructure.Logging;
 using PetSearchHome_WEB.Infrastructure.Persistence;
 using PetSearchHome_WEB.Infrastructure.Repositories;
+using PetSearchHome_WEB.Infrastructure;
 using Serilog;
 using System.Reflection;
 
@@ -68,6 +69,7 @@ builder.Services.AddScoped<ListingService>();
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IChatRepository, EfChatRepository>();
+builder.Services.AddSingleton<IStorageGateway, LocalStorageGateway>();
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
 builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
 builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
@@ -110,6 +112,9 @@ builder.Services.AddScoped<StartChatUseCase>();
 builder.Services.AddScoped<ListChatConversationsUseCase>();
 builder.Services.AddScoped<GetChatThreadUseCase>();
 builder.Services.AddScoped<SendChatMessageUseCase>();
+builder.Services.AddScoped<DeleteChatMessageUseCase>();
+builder.Services.AddScoped<BlockChatUserUseCase>();
+builder.Services.AddScoped<UnblockChatUserUseCase>();
 builder.Services.AddScoped<ITagRepository, InMemoryTagRepository>();
 builder.Services.AddScoped<ICategoryRepository, InMemoryCategoryRepository>();
 

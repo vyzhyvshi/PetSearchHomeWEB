@@ -35,6 +35,13 @@ namespace PetSearchHome_WEB.Application.Chat
                 return Result.Failure<ChatConversation>("Користувача не знайдено.");
             }
 
+            var blockedByMe = await _chats.IsBlockedAsync(authContext.UserId.Value, request.OtherUserId, cancellationToken);
+            var blockedByOther = await _chats.IsBlockedAsync(request.OtherUserId, authContext.UserId.Value, cancellationToken);
+            if (blockedByMe || blockedByOther)
+            {
+                return Result.Failure<ChatConversation>("Неможливо відкрити чат із заблокованим користувачем.");
+            }
+
             var existing = await _chats.GetConversationAsync(authContext.UserId.Value, request.OtherUserId, cancellationToken);
             if (existing is not null)
             {

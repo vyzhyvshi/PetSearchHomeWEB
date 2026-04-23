@@ -23,6 +23,9 @@ public class ChatMessageEntityConfiguration : IEntityTypeConfiguration<ChatMessa
             .HasColumnName("content")
             .HasMaxLength(2000)
             .IsRequired();
+        builder.Property(m => m.ImageUrl)
+            .HasColumnName("image_url")
+            .HasMaxLength(2048);
         builder.Property(m => m.SentAt)
             .HasColumnName("sent_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");

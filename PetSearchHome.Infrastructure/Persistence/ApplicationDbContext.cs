@@ -8,6 +8,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<UserEntity> Users => Set<UserEntity>();
     public DbSet<ChatConversationEntity> ChatConversations => Set<ChatConversationEntity>();
     public DbSet<ChatMessageEntity> ChatMessages => Set<ChatMessageEntity>();
+    public DbSet<ChatBlockEntity> ChatBlocks => Set<ChatBlockEntity>();
     public DbSet<IndividualProfileEntity> IndividualProfiles => Set<IndividualProfileEntity>();
     public DbSet<ShelterProfileEntity> ShelterProfiles => Set<ShelterProfileEntity>();
     public DbSet<ListingEntity> Listings => Set<ListingEntity>();

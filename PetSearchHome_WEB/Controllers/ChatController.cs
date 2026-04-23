@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetSearchHome_WEB.Application.Chat;
 using PetSearchHome_WEB.Domain.Interfaces;
@@ -15,7 +16,11 @@ namespace PetSearchHome_WEB.Controllers
         private readonly ListChatConversationsUseCase _listChatConversationsUseCase;
         private readonly GetChatThreadUseCase _getChatThreadUseCase;
         private readonly SendChatMessageUseCase _sendChatMessageUseCase;
+        private readonly DeleteChatMessageUseCase _deleteChatMessageUseCase;
+        private readonly BlockChatUserUseCase _blockChatUserUseCase;
+        private readonly UnblockChatUserUseCase _unblockChatUserUseCase;
         private readonly IUserRepository _users;
+        private readonly IStorageGateway _storageGateway;
 
         public ChatController(
             ILogger<ChatController> logger,
@@ -23,14 +28,22 @@ namespace PetSearchHome_WEB.Controllers
             ListChatConversationsUseCase listChatConversationsUseCase,
             GetChatThreadUseCase getChatThreadUseCase,
             SendChatMessageUseCase sendChatMessageUseCase,
-            IUserRepository users)
+            DeleteChatMessageUseCase deleteChatMessageUseCase,
+            BlockChatUserUseCase blockChatUserUseCase,
+            UnblockChatUserUseCase unblockChatUserUseCase,
+            IUserRepository users,
+            IStorageGateway storageGateway)
         {
             _logger = logger;
             _startChatUseCase = startChatUseCase;
             _listChatConversationsUseCase = listChatConversationsUseCase;
             _getChatThreadUseCase = getChatThreadUseCase;
             _sendChatMessageUseCase = sendChatMessageUseCase;
+            _deleteChatMessageUseCase = deleteChatMessageUseCase;
+            _blockChatUserUseCase = blockChatUserUseCase;
+            _unblockChatUserUseCase = unblockChatUserUseCase;
             _users = users;
+            _storageGateway = storageGateway;
         }
 
         [HttpGet]
@@ -49,12 +62,15 @@ namespace PetSearchHome_WEB.Controllers
             {
                 var otherUserId = summary.Conversation.GetOtherParticipant(authContext.UserId!.Value);
                 var otherUser = await _users.GetByIdAsync(otherUserId, cancellationToken);
+                var lastMessageText = string.IsNullOrWhiteSpace(summary.LastMessage?.Content)
+                    ? (summary.LastMessage?.ImageUrl is null ? null : "Фото")
+                    : summary.LastMessage?.Content;
                 items.Add(new ChatConversationItemViewModel
                 {
                     ConversationId = summary.Conversation.Id,
                     OtherUserId = otherUserId,
                     OtherDisplayName = otherUser?.DisplayName ?? "Користувач",
-                    LastMessage = summary.LastMessage?.Content,
+                    LastMessage = lastMessageText,
                     LastMessageAt = summary.LastMessage?.SentAt
                 });
             }
@@ -102,12 +118,17 @@ namespace PetSearchHome_WEB.Controllers
                 ConversationId = result.Value.Conversation.Id,
                 OtherUserId = otherUserId,
                 OtherDisplayName = otherUser?.DisplayName ?? "Користувач",
+                IsBlockedByMe = result.Value.IsBlockedByMe,
+                IsBlockedByOther = result.Value.IsBlockedByOther,
                 Messages = result.Value.Messages.Select(message => new ChatMessageViewModel
                 {
+                    MessageId = message.Id,
                     SenderId = message.SenderId,
                     Content = message.Content,
+                    ImageUrl = message.ImageUrl,
                     SentAt = message.SentAt,
-                    IsMine = message.SenderId == authContext.UserId
+                    IsMine = message.SenderId == authContext.UserId,
+                    CanDelete = message.SenderId == authContext.UserId
                 }).ToList()
             };
 
@@ -116,14 +137,72 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Send(Guid id, string message, CancellationToken cancellationToken)
+        public async Task<IActionResult> Send(Guid id, string message, IFormFile? photo, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
-            var result = await _sendChatMessageUseCase.ExecuteAsync(new SendChatMessageRequest(id, message), authContext, cancellationToken);
+            string? imageUrl = null;
+            if (photo is not null && photo.Length > 0)
+            {
+                await using var stream = photo.OpenReadStream();
+                imageUrl = await _storageGateway.UploadAsync(photo.FileName, stream, cancellationToken);
+            }
+
+            var result = await _sendChatMessageUseCase.ExecuteAsync(new SendChatMessageRequest(id, message, imageUrl), authContext, cancellationToken);
 
             if (!result.IsSuccess)
             {
                 SetErrorMessage(result.ErrorMessage ?? "Не вдалося надіслати повідомлення.");
+            }
+
+            return RedirectToAction(nameof(Thread), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteMessage(Guid id, Guid messageId, CancellationToken cancellationToken)
+        {
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _deleteChatMessageUseCase.ExecuteAsync(new DeleteChatMessageRequest(messageId), authContext, cancellationToken);
+
+            if (!result.IsSuccess || result.Value == null)
+            {
+                SetErrorMessage(result.ErrorMessage ?? "Не вдалося видалити повідомлення.");
+                return RedirectToAction(nameof(Thread), new { id });
+            }
+
+            if (!string.IsNullOrWhiteSpace(result.Value.ImageUrl))
+            {
+                await _storageGateway.DeleteAsync(result.Value.ImageUrl, cancellationToken);
+            }
+
+            return RedirectToAction(nameof(Thread), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Block(Guid id, Guid otherUserId, CancellationToken cancellationToken)
+        {
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _blockChatUserUseCase.ExecuteAsync(new BlockChatUserRequest(otherUserId), authContext, cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                SetErrorMessage(result.ErrorMessage ?? "Не вдалося заблокувати користувача.");
+            }
+
+            return RedirectToAction(nameof(Thread), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Unblock(Guid id, Guid otherUserId, CancellationToken cancellationToken)
+        {
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _unblockChatUserUseCase.ExecuteAsync(new UnblockChatUserRequest(otherUserId), authContext, cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                SetErrorMessage(result.ErrorMessage ?? "Не вдалося розблокувати користувача.");
             }
 
             return RedirectToAction(nameof(Thread), new { id });

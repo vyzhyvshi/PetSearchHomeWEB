@@ -19,6 +19,7 @@ namespace PetSearchHome_WEB.Models.Profile
         public bool CanEdit { get; init; }
         public bool CanReport { get; init; }
         public bool CanLeaveReview { get; init; }
+        public bool CanChat { get; init; }
         public bool IsAuthenticatedViewer { get; init; }
         public bool IsOwnProfile { get; init; }
     }

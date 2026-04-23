@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PetSearchHome_WEB.Application.Auth;
+using PetSearchHome_WEB.Application.Chat;
 using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Favorites;
 using PetSearchHome_WEB.Application.Listing;
@@ -9,6 +10,7 @@ using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Application.Reviews;
 using PetSearchHome_WEB.Application.Services;
+using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Infrastructure.Logging;
 using PetSearchHome_WEB.Infrastructure.Persistence;
@@ -40,6 +42,7 @@ builder.Services
 builder.Services.AddAuthorization();
 
 builder.Services.Configure<ModerationSettings>(builder.Configuration.GetSection("Moderation"));
+builder.Services.Configure<SearchSettings>(builder.Configuration.GetSection("Search"));
 
 var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
  ?? throw new InvalidOperationException("DefaultConnection is not configured.");
@@ -64,6 +67,7 @@ else
 builder.Services.AddScoped<ListingService>();
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IChatRepository, EfChatRepository>();
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
 builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
 builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
@@ -102,6 +106,10 @@ builder.Services.AddScoped<ViewOrgStatsUseCase>();
 builder.Services.AddScoped<LeaveReviewUseCase>();
 builder.Services.AddScoped<ToggleFavoriteUseCase>();
 builder.Services.AddScoped<ListFavoritesUseCase>();
+builder.Services.AddScoped<StartChatUseCase>();
+builder.Services.AddScoped<ListChatConversationsUseCase>();
+builder.Services.AddScoped<GetChatThreadUseCase>();
+builder.Services.AddScoped<SendChatMessageUseCase>();
 builder.Services.AddScoped<ITagRepository, InMemoryTagRepository>();
 builder.Services.AddScoped<ICategoryRepository, InMemoryCategoryRepository>();
 

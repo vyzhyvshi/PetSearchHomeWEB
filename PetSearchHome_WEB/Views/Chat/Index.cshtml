@@ -1,0 +1,47 @@
+@model PetSearchHome_WEB.Models.Chat.ChatOverviewViewModel
+@{
+    ViewData["Title"] = "Чати";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold mb-0">@ViewData["Title"]</h2>
+        <a class="btn btn-outline-secondary" asp-controller="Profile" asp-action="Search">Знайти користувача</a>
+    </div>
+
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (!Model.Conversations.Any())
+    {
+        <div class="alert alert-light border">Поки що немає активних чатів.</div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var conversation in Model.Conversations)
+            {
+                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                   asp-action="Thread"
+                   asp-route-id="@conversation.ConversationId">
+                    <div>
+                        <div class="fw-semibold">@conversation.OtherDisplayName</div>
+                        <div class="text-muted small">
+                            @(string.IsNullOrWhiteSpace(conversation.LastMessage)
+                                ? "Повідомлень ще немає"
+                                : conversation.LastMessage)
+                        </div>
+                    </div>
+                    <div class="text-muted small">
+                        @if (conversation.LastMessageAt.HasValue)
+                        {
+                            @conversation.LastMessageAt.Value.ToLocalTime().ToString("g")
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>

@@ -140,7 +140,8 @@ namespace PetSearchHome.Tests
             listingsMock.Setup(r => r.ListByOwnerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<PetListing> { new PetListing() });
 
-            var useCase = new SearchPublicUsersWithListingsUseCase(usersMock.Object, listingsMock.Object);
+            var options = Options.Create(new SearchSettings { MinQueryLength = 2, MaxResults = 50 });
+            var useCase = new SearchPublicUsersWithListingsUseCase(usersMock.Object, listingsMock.Object, options);
 
             var result = await useCase.ExecuteAsync(new SearchPublicUsersWithListingsRequest("Притулок"), _validAuth);
 
@@ -152,7 +153,8 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task SearchPublicUsers_WhenEmptyQuery_ReturnsEmptyListInstantly()
         {
-            var useCase = new SearchPublicUsersWithListingsUseCase(new Mock<IUserRepository>().Object, new Mock<IListingRepository>().Object);
+            var options = Options.Create(new SearchSettings { MinQueryLength = 2, MaxResults = 50 });
+            var useCase = new SearchPublicUsersWithListingsUseCase(new Mock<IUserRepository>().Object, new Mock<IListingRepository>().Object, options);
 
             var result = await useCase.ExecuteAsync(new SearchPublicUsersWithListingsRequest("   "), _validAuth);
 

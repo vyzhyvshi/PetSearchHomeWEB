@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Options;
+using Moq;
 using PetSearchHome_WEB.Application.Catalog;
 using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Entities;
@@ -16,7 +17,8 @@ namespace PetSearchHome.Tests
         public SearchAnimalsUseCaseTests()
         {
             _searchGatewayMock = new Mock<ISearchGateway>();
-            _useCase = new SearchAnimalsUseCase(_searchGatewayMock.Object);
+            var options = Options.Create(new SearchSettings { MinQueryLength = 2, MaxResults = 50 });
+            _useCase = new SearchAnimalsUseCase(_searchGatewayMock.Object, options);
         }
 
         [Fact]

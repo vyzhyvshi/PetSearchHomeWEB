@@ -26,10 +26,16 @@
                             <h1 class="h3 mb-1">@Model.DisplayName</h1>
                             <div class="text-muted">@Model.Role</div>
                         </div>
-                        @if (Model.CanEdit)
-                        {
-                            <a class="btn btn-outline-secondary btn-sm" asp-action="Edit">Редагувати</a>
-                        }
+                        <div class="d-flex gap-2">
+                            @if (Model.CanChat)
+                            {
+                                <a class="btn btn-outline-primary btn-sm" asp-controller="Chat" asp-action="Start" asp-route-id="@Model.UserId">Написати</a>
+                            }
+                            @if (Model.CanEdit)
+                            {
+                                <a class="btn btn-outline-secondary btn-sm" asp-action="Edit">Редагувати</a>
+                            }
+                        </div>
                     </div>
 
                     <div class="mb-3">

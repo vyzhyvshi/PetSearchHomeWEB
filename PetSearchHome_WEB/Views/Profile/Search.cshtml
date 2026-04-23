@@ -1,6 +1,10 @@
 @model PetSearchHome_WEB.Models.Profile.UserSearchViewModel
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Пошук користувачів";
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+    var hasCurrentUserId = Guid.TryParse(currentUserId, out var parsedUserId);
 }
 
 <div class="container mt-4">
@@ -29,16 +33,28 @@
         <div class="list-group">
             @foreach (var user in Model.Results)
             {
-                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                   asp-controller="Profile"
-                   asp-action="Details"
-                   asp-route-id="@user.Id">
-                    <div>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <a class="text-decoration-none flex-grow-1"
+                       asp-controller="Profile"
+                       asp-action="Details"
+                       asp-route-id="@user.Id">
                         <div class="fw-bold">@user.DisplayName</div>
                         <div class="text-muted small">@user.Email</div>
+                    </a>
+                    <div class="d-flex align-items-center gap-2">
+                        @if (isAuthenticated && hasCurrentUserId && parsedUserId != user.Id)
+                        {
+                            <a class="btn btn-outline-primary btn-sm"
+                               asp-controller="Chat"
+                               asp-action="Start"
+                               asp-route-id="@user.Id">Чат</a>
+                        }
+                        <a class="btn btn-primary btn-sm"
+                           asp-controller="Profile"
+                           asp-action="Details"
+                           asp-route-id="@user.Id">Профіль</a>
                     </div>
-                    <span class="badge bg-primary">Переглянути профіль</span>
-                </a>
+                </div>
             }
         </div>
     }

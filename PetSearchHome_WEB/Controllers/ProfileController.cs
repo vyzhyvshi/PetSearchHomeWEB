@@ -93,6 +93,8 @@ namespace PetSearchHome_WEB.Controllers
                 CanLeaveReview = authContext.UserId.HasValue
                     && authContext.UserId != profile.User.Id
                     && authContext.Role is Role.Person or Role.Shelter,
+                CanChat = authContext.UserId.HasValue
+                    && authContext.UserId != profile.User.Id,
                 IsAuthenticatedViewer = authContext.UserId.HasValue,
                 IsOwnProfile = authContext.UserId == profile.User.Id,
                 Listings = profile.Listings

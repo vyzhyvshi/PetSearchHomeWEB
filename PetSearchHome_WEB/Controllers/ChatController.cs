@@ -21,7 +21,7 @@ namespace PetSearchHome_WEB.Controllers
         private readonly UnblockChatUserUseCase _unblockChatUserUseCase;
         private readonly IUserRepository _users;
         private readonly IStorageGateway _storageGateway;
-
+        private readonly EditChatMessageUseCase _editChatMessageUseCase;
         public ChatController(
             ILogger<ChatController> logger,
             StartChatUseCase startChatUseCase,
@@ -32,7 +32,8 @@ namespace PetSearchHome_WEB.Controllers
             BlockChatUserUseCase blockChatUserUseCase,
             UnblockChatUserUseCase unblockChatUserUseCase,
             IUserRepository users,
-            IStorageGateway storageGateway)
+            IStorageGateway storageGateway,
+            EditChatMessageUseCase editChatMessageUseCase)
         {
             _logger = logger;
             _startChatUseCase = startChatUseCase;
@@ -44,6 +45,7 @@ namespace PetSearchHome_WEB.Controllers
             _unblockChatUserUseCase = unblockChatUserUseCase;
             _users = users;
             _storageGateway = storageGateway;
+            _editChatMessageUseCase = editChatMessageUseCase;
         }
 
         [HttpGet]
@@ -203,6 +205,25 @@ namespace PetSearchHome_WEB.Controllers
             if (!result.IsSuccess)
             {
                 SetErrorMessage(result.ErrorMessage ?? "Не вдалося розблокувати користувача.");
+            }
+
+            return RedirectToAction(nameof(Thread), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Guid id, Guid messageId, string newMessage, CancellationToken cancellationToken)
+        {
+            var authContext = await GetAuthContextAsync(cancellationToken);
+
+            var result = await _editChatMessageUseCase.ExecuteAsync(
+                new EditChatMessageRequest(messageId, newMessage),
+                authContext,
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                SetErrorMessage(result.ErrorMessage ?? "Не вдалося відредагувати повідомлення.");
             }
 
             return RedirectToAction(nameof(Thread), new { id });

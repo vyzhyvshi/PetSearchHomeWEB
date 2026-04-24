@@ -81,6 +81,8 @@ builder.Services.AddSingleton<IAuthTokenService, DummyAuthTokenService>();
 builder.Services.AddSingleton<IModerationQueue, InMemoryModerationQueue>();
 builder.Services.AddScoped<IStorageGateway, LocalStorageGateway>();
 
+builder.Services.AddScoped<PetSearchHome_WEB.Application.Profiles.SearchPublicUsersWithListingsUseCase>();
+builder.Services.AddScoped<EditChatMessageUseCase>();
 builder.Services.AddScoped<SearchAnimalsUseCase>();
 builder.Services.AddScoped<ViewListingDetailUseCase>();
 builder.Services.AddScoped<CreateListingUseCase>();

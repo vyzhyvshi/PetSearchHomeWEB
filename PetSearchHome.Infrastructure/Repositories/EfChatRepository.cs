@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Infrastructure.Persistence;
@@ -204,5 +204,17 @@ public class EfChatRepository : IChatRepository
 
         var bytes = id.ToByteArray();
         return BitConverter.ToInt32(bytes, 0);
+    }
+
+    public async Task UpdateMessageAsync(ChatMessage message, CancellationToken cancellationToken = default)
+    {
+       
+        var entity = await _db.ChatMessages.FirstOrDefaultAsync(e => e.SentAt == message.SentAt, cancellationToken);
+
+        if (entity != null)
+        {
+            entity.Content = message.Content;
+            await _db.SaveChangesAsync(cancellationToken);
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace PetSearchHome_WEB.Domain.Interfaces
         Task<IReadOnlyList<ChatMessage>> ListMessagesAsync(Guid conversationId, CancellationToken cancellationToken = default);
         Task<ChatMessage?> GetLastMessageAsync(Guid conversationId, CancellationToken cancellationToken = default);
         Task AddMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
+        Task UpdateMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
         Task<ChatMessage?> GetMessageByIdAsync(Guid messageId, CancellationToken cancellationToken = default);
         Task DeleteMessageAsync(Guid messageId, CancellationToken cancellationToken = default);
         Task<bool> IsBlockedAsync(Guid blockerId, Guid blockedId, CancellationToken cancellationToken = default);

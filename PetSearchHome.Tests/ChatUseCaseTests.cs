@@ -147,54 +147,57 @@ namespace PetSearchHome.Tests
             Assert.False(result.IsSuccess);
         }
 
-        // 4. SendChatMessageUseCase 
+        // 4. EditChatMessageUseCase
 
-        // Перевіряє, що повідомлення успішно відправляється, якщо користувач прикріпив лише фото (без тексту).
         [Fact]
-        public async Task SendMessage_WithPhotoOnly_ReturnsSuccess()
+        public async Task EditMessage_WhenAuthor_ReturnsSuccess()
         {
             var chatsMock = new Mock<IChatRepository>();
-            var conversation = new ChatConversation
+            var messageId = Guid.NewGuid();
+
+            var message = new ChatMessage
             {
-                Id = Guid.NewGuid(),
-                UserAId = _validAuth.UserId!.Value,
-                UserBId = Guid.NewGuid()
+                Id = messageId,
+                SenderId = _validAuth.UserId!.Value,
+                Content = "Старий текст"
             };
 
-            chatsMock.Setup(r => r.GetConversationByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(conversation);
+            chatsMock.Setup(r => r.GetMessageByIdAsync(messageId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(message);
 
-            chatsMock.Setup(r => r.IsBlockedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(false);
+            var useCase = new EditChatMessageUseCase(chatsMock.Object);
 
-            var useCase = new SendChatMessageUseCase(chatsMock.Object);
-
-            var result = await useCase.ExecuteAsync(new SendChatMessageRequest(Guid.NewGuid(), "", "photo.png"), _validAuth);
+            var result = await useCase.ExecuteAsync(new EditChatMessageRequest(messageId, "Оновлений текст!"), _validAuth);
 
             Assert.True(result.IsSuccess);
-            chatsMock.Verify(r => r.AddMessageAsync(It.Is<ChatMessage>(m => m.ImageUrl == "photo.png" && m.Content == string.Empty), It.IsAny<CancellationToken>()), Times.Once);
+            Assert.Equal("Оновлений текст!", message.Content);
+            chatsMock.Verify(r => r.UpdateMessageAsync(message, It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        // спроба відредагувати чуже повідомлення.
         [Fact]
-        public async Task SendMessage_WithEmptyTextAndNoPhoto_ReturnsFailure()
+        public async Task EditMessage_WhenNotAuthor_ReturnsFailure()
         {
             var chatsMock = new Mock<IChatRepository>();
-            var conversation = new ChatConversation
+            var messageId = Guid.NewGuid();
+
+            var message = new ChatMessage
             {
-                Id = Guid.NewGuid(),
-                UserAId = _validAuth.UserId!.Value,
-                UserBId = Guid.NewGuid()
+                Id = messageId,
+                SenderId = Guid.NewGuid(),
+                Content = "Текст іншого юзера"
             };
 
-            chatsMock.Setup(r => r.GetConversationByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(conversation);
+            chatsMock.Setup(r => r.GetMessageByIdAsync(messageId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(message);
 
-            var useCase = new SendChatMessageUseCase(chatsMock.Object);
+            var useCase = new EditChatMessageUseCase(chatsMock.Object);
 
-            var result = await useCase.ExecuteAsync(new SendChatMessageRequest(Guid.NewGuid(), "   ", null), _validAuth);
+            var result = await useCase.ExecuteAsync(new EditChatMessageRequest(messageId, "Спроба злому"), _validAuth);
 
             Assert.False(result.IsSuccess);
-            Assert.Contains("порожнім", result.ErrorMessage);
+            Assert.Contains("лише свої", result.ErrorMessage);
+            chatsMock.Verify(r => r.UpdateMessageAsync(It.IsAny<ChatMessage>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
 

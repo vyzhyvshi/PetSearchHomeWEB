@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using PetSearchHome.Infrastructure.Gateways;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PetSearchHome_WEB.Application.Auth;
 using PetSearchHome_WEB.Application.Catalog;
+using PetSearchHome_WEB.Application.Chat;
 using PetSearchHome_WEB.Application.Favorites;
 using PetSearchHome_WEB.Application.Listing;
 using PetSearchHome_WEB.Application.Moderation;
@@ -13,9 +15,9 @@ using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Infrastructure.Logging;
 using PetSearchHome_WEB.Infrastructure.Persistence;
 using PetSearchHome_WEB.Infrastructure.Repositories;
+using PetSearchHome_WEB.Middleware;
 using Serilog;
 using System.Reflection;
-using PetSearchHome_WEB.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +71,7 @@ builder.Services.AddScoped<ListingService>();
 builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
+builder.Services.AddScoped<IChatRepository, EfChatRepository>();
 builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
 builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
 builder.Services.AddSingleton<IOrgStatsRepository, InMemoryOrgStatsRepository>();
@@ -76,10 +79,10 @@ builder.Services.AddSingleton<INotificationGateway, InMemoryNotificationGateway>
 builder.Services.AddSingleton<IPasswordHasher, SimplePasswordHasher>();
 builder.Services.AddSingleton<IAuthTokenService, DummyAuthTokenService>();
 builder.Services.AddSingleton<IModerationQueue, InMemoryModerationQueue>();
+builder.Services.AddScoped<IStorageGateway, LocalStorageGateway>();
 
 builder.Services.AddScoped<SearchAnimalsUseCase>();
 builder.Services.AddScoped<ViewListingDetailUseCase>();
-// inject IMemoryCache into EfListingRepository via constructor DI already
 builder.Services.AddScoped<CreateListingUseCase>();
 builder.Services.AddScoped<ListMyListingsUseCase>();
 builder.Services.AddScoped<DeleteListingUseCase>();
@@ -104,6 +107,17 @@ builder.Services.AddScoped<ViewOrgStatsUseCase>();
 builder.Services.AddScoped<LeaveReviewUseCase>();
 builder.Services.AddScoped<ToggleFavoriteUseCase>();
 builder.Services.AddScoped<ListFavoritesUseCase>();
+builder.Services.AddScoped<SearchPublicUsersWithListingsUseCase>();
+builder.Services.AddScoped<SearchUsersWithListingsUseCase>();
+
+builder.Services.AddScoped<StartChatUseCase>();
+builder.Services.AddScoped<ListChatConversationsUseCase>();
+builder.Services.AddScoped<GetChatThreadUseCase>();
+builder.Services.AddScoped<SendChatMessageUseCase>();
+builder.Services.AddScoped<DeleteChatMessageUseCase>();
+builder.Services.AddScoped<BlockChatUserUseCase>();
+builder.Services.AddScoped<UnblockChatUserUseCase>();
+
 
 var app = builder.Build();
 

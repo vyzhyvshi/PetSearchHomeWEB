@@ -147,10 +147,11 @@ namespace PetSearchHome.Tests
             Assert.False(result.IsSuccess);
         }
 
-        // 4. GetChatThreadUseCase
+        // 4. SendChatMessageUseCase 
 
+        // Перевіряє, що повідомлення успішно відправляється, якщо користувач прикріпив лише фото (без тексту).
         [Fact]
-        public async Task GetChatThread_WhenParticipant_ReturnsThread()
+        public async Task SendMessage_WithPhotoOnly_ReturnsSuccess()
         {
             var chatsMock = new Mock<IChatRepository>();
             var conversation = new ChatConversation
@@ -163,39 +164,40 @@ namespace PetSearchHome.Tests
             chatsMock.Setup(r => r.GetConversationByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(conversation);
 
-            chatsMock.Setup(r => r.ListMessagesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<ChatMessage> { new ChatMessage() });
+            chatsMock.Setup(r => r.IsBlockedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
 
-            var useCase = new GetChatThreadUseCase(chatsMock.Object);
-            var result = await useCase.ExecuteAsync(new GetChatThreadRequest(Guid.NewGuid()), _validAuth);
+            var useCase = new SendChatMessageUseCase(chatsMock.Object);
+
+            var result = await useCase.ExecuteAsync(new SendChatMessageRequest(Guid.NewGuid(), "", "photo.png"), _validAuth);
 
             Assert.True(result.IsSuccess);
-            Assert.Single(result.Value!.Messages);
+            chatsMock.Verify(r => r.AddMessageAsync(It.Is<ChatMessage>(m => m.ImageUrl == "photo.png" && m.Content == string.Empty), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public async Task GetChatThread_WhenNotParticipant_ReturnsFailure()
+        public async Task SendMessage_WithEmptyTextAndNoPhoto_ReturnsFailure()
         {
             var chatsMock = new Mock<IChatRepository>();
-
             var conversation = new ChatConversation
             {
                 Id = Guid.NewGuid(),
-                UserAId = Guid.NewGuid(),
+                UserAId = _validAuth.UserId!.Value,
                 UserBId = Guid.NewGuid()
             };
 
             chatsMock.Setup(r => r.GetConversationByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(conversation);
 
-            var useCase = new GetChatThreadUseCase(chatsMock.Object);
-            var result = await useCase.ExecuteAsync(new GetChatThreadRequest(Guid.NewGuid()), _validAuth);
+            var useCase = new SendChatMessageUseCase(chatsMock.Object);
+
+            var result = await useCase.ExecuteAsync(new SendChatMessageRequest(Guid.NewGuid(), "   ", null), _validAuth);
 
             Assert.False(result.IsSuccess);
-            Assert.Contains("Немає доступу", result.ErrorMessage);
+            Assert.Contains("порожнім", result.ErrorMessage);
         }
 
-        
+
         // 5. BlockChatUserUseCase
 
         [Fact]

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using PetSearchHome.Infrastructure.Gateways;
 using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
@@ -14,12 +15,14 @@ public class EfListingRepository : IListingRepository, ISearchGateway
     private readonly ApplicationDbContext _db;
     private readonly IMemoryCache _cache;
     private readonly IConfiguration _configuration;
+    private readonly IGeocodingService _geocoding;
 
-    public EfListingRepository(ApplicationDbContext db, IMemoryCache cache, IConfiguration configuration)
+    public EfListingRepository(ApplicationDbContext db, IMemoryCache cache, IConfiguration configuration, IGeocodingService geocoding)
     {
         _db = db;
         _cache = cache;
         _configuration = configuration;
+        _geocoding = geocoding;
     }
 
     public async Task<IReadOnlyList<PetListing>> GetFeaturedAsync(int take, CancellationToken cancellationToken = default)
@@ -80,6 +83,16 @@ public class EfListingRepository : IListingRepository, ISearchGateway
     public async Task AddAsync(PetListing listing, CancellationToken cancellationToken = default)
     {
         var (city, district) = SplitLocation(listing.Location);
+        if (string.IsNullOrWhiteSpace(city))
+        {
+            var resolved = await _geocoding.ResolveLocationAsync(listing.Location, cancellationToken);
+            if (resolved.IsSuccess)
+            {
+                city = resolved.Value.city;
+                district = resolved.Value.district;
+            }
+        }
+
         var entity = new ListingEntity
         {
             DomainId = listing.Id == Guid.Empty ? Guid.NewGuid() : listing.Id,
@@ -135,6 +148,16 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         }
 
         var (city, district) = SplitLocation(listing.Location);
+        if (string.IsNullOrWhiteSpace(city))
+        {
+            var resolved = await _geocoding.ResolveLocationAsync(listing.Location, cancellationToken);
+            if (resolved.IsSuccess)
+            {
+                city = resolved.Value.city;
+                district = resolved.Value.district;
+            }
+        }
+
         entity.Title = listing.Title;
         entity.AnimalType = listing.AnimalType;
         entity.Location = listing.Location;

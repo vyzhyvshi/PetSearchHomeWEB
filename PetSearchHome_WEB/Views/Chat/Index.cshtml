@@ -1,12 +1,12 @@
 ﻿@model PetSearchHome_WEB.Models.Chat.ChatOverviewViewModel
 @{
-    ViewData["Title"] = "Р§Р°С‚Рё";
+    ViewData["Title"] = "Чати";
 }
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="fw-bold mb-0">@ViewData["Title"]</h2>
-        <a class="btn btn-outline-secondary" asp-controller="Profile" asp-action="Search">Р—РЅР°Р№С‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡Р°</a>
+        <a class="btn btn-outline-secondary" asp-controller="Profile" asp-action="Search">Знайти користувача</a>
     </div>
 
     @if (TempData["ErrorMessage"] is string errorMessage)
@@ -16,7 +16,7 @@
 
     @if (!Model.Conversations.Any())
     {
-        <div class="alert alert-light border">РџРѕРєРё С‰Рѕ РЅРµРјР°С” Р°РєС‚РёРІРЅРёС… С‡Р°С‚С–РІ.</div>
+        <div class="alert alert-light border">Поки що немає активних чатів.</div>
     }
     else
     {
@@ -30,7 +30,7 @@
                         <div class="fw-semibold">@conversation.OtherDisplayName</div>
                         <div class="text-muted small">
                             @(string.IsNullOrWhiteSpace(conversation.LastMessage)
-                                ? "РџРѕРІС–РґРѕРјР»РµРЅСЊ С‰Рµ РЅРµРјР°С”"
+                                ? "Повідомлень ще немає"
                                 : conversation.LastMessage)
                         </div>
                         @if (conversation.UnreadCount > 0)

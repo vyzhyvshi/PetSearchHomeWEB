@@ -1,13 +1,13 @@
 ﻿@model PetSearchHome_WEB.Models.Chat.ChatThreadViewModel
 @{
-    ViewData["Title"] = "Р§Р°С‚";
+    ViewData["Title"] = "Чат";
 }
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="fw-bold mb-0">Р§Р°С‚ С–Р· @Model.OtherDisplayName</h2>
-            <a class="text-decoration-none" asp-controller="Profile" asp-action="Details" asp-route-id="@Model.OtherUserId">РџРµСЂРµРіР»СЏРЅСѓС‚Рё РїСЂРѕС„С–Р»СЊ</a>
+            <h2 class="fw-bold mb-0">Чат із @Model.OtherDisplayName</h2>
+            <a class="text-decoration-none" asp-controller="Profile" asp-action="Details" asp-route-id="@Model.OtherUserId">Переглянути профіль</a>
         </div>
         <div class="d-flex gap-2">
             @if (Model.IsBlockedByMe)
@@ -16,7 +16,7 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@Model.ConversationId" />
                     <input type="hidden" name="otherUserId" value="@Model.OtherUserId" />
-                    <button type="submit" class="btn btn-outline-warning">Р РѕР·Р±Р»РѕРєСѓРІР°С‚Рё</button>
+                    <button type="submit" class="btn btn-outline-warning">Розблокувати</button>
                 </form>
             }
             else
@@ -25,7 +25,7 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@Model.ConversationId" />
                     <input type="hidden" name="otherUserId" value="@Model.OtherUserId" />
-                    <button type="submit" class="btn btn-outline-danger">Р—Р°Р±Р»РѕРєСѓРІР°С‚Рё</button>
+                    <button type="submit" class="btn btn-outline-danger">Заблокувати</button>
                 </form>
             }
             <form asp-action="ClearHistory" method="post">
@@ -33,7 +33,7 @@
                 <input type="hidden" name="id" value="@Model.ConversationId" />
                 <button type="submit" class="btn btn-outline-secondary">Очистити історію</button>
             </form>
-            <a class="btn btn-outline-secondary" asp-action="Index">Р”Рѕ СЃРїРёСЃРєСѓ С‡Р°С‚С–РІ</a>
+            <a class="btn btn-outline-secondary" asp-action="Index">До списку чатів</a>
         </div>
     </div>
 
@@ -46,7 +46,7 @@
         <div class="card-body" style="max-height: 520px; overflow-y: auto;">
             @if (!Model.Messages.Any())
             {
-                <div class="text-muted">РќР°РїРёС€С–С‚СЊ РїРµСЂС€Рµ РїРѕРІС–РґРѕРјР»РµРЅРЅСЏ.</div>
+                <div class="text-muted">Напишіть перше повідомлення.</div>
             }
             else
             {
@@ -64,7 +64,7 @@
                                     @if (!string.IsNullOrWhiteSpace(message.ImageUrl))
                                     {
                                         <div class="mt-2">
-                                            <img src="@message.ImageUrl" alt="Р¤РѕС‚Рѕ" class="img-fluid rounded" />
+                                            <img src="@message.ImageUrl" alt="Фото" class="img-fluid rounded" />
                                         </div>
                                     }
                                 </div>
@@ -75,8 +75,8 @@
                                         @Html.AntiForgeryToken()
                                         <textarea name="newMessage" class="form-control form-control-sm mb-1 text-dark" rows="2" required>@message.Content</textarea>
                                         <div class="d-flex justify-content-end gap-3 align-items-center">
-                                            <button type="button" class="btn btn-link btn-sm p-0 text-white-50 text-decoration-none" onclick="toggleEdit('@message.MessageId')">РЎРєР°СЃСѓРІР°С‚Рё</button>
-                                            <button type="submit" class="btn btn-light btn-sm px-2 py-0 text-primary fw-bold">Р—Р±РµСЂРµРіС‚Рё</button>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-white-50 text-decoration-none" onclick="toggleEdit('@message.MessageId')">Скасувати</button>
+                                            <button type="submit" class="btn btn-light btn-sm px-2 py-0 text-primary fw-bold">Зберегти</button>
                                         </div>
                                     </form>
                                 }
@@ -87,15 +87,15 @@
                                     @if (message.CanDelete)
                                     {
                                         <div class="d-flex gap-2">
-                                            <a href="javascript:void(0)" onclick="toggleEdit('@message.MessageId')" class="btn btn-link btn-sm p-0 text-decoration-none @(message.IsMine ? "text-white-50" : "text-muted")" title="Р РµРґР°РіСѓРІР°С‚Рё С‚РµРєСЃС‚">
-                                                Р РµРґР°РіСѓРІР°С‚Рё
+                                            <a href="javascript:void(0)" onclick="toggleEdit('@message.MessageId')" class="btn btn-link btn-sm p-0 text-decoration-none @(message.IsMine ? "text-white-50" : "text-muted")" title="Редагувати текст">
+                                                Редагувати
                                             </a>
 
                                             <form asp-action="DeleteMessage" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@Model.ConversationId" />
                                                 <input type="hidden" name="messageId" value="@message.MessageId" />
-                                                <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none @(message.IsMine ? "text-white-50" : "text-muted")">Р’РёРґР°Р»РёС‚Рё</button>
+                                                <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none @(message.IsMine ? "text-white-50" : "text-muted")">Видалити</button>
                                             </form>
                                         </div>
                                     }
@@ -110,21 +110,21 @@
 
     @if (Model.IsBlockedByOther)
     {
-        <div class="alert alert-warning">Р’Рё РЅРµ РјРѕР¶РµС‚Рµ РїРёСЃР°С‚Рё С†СЊРѕРјСѓ РєРѕСЂРёСЃС‚СѓРІР°С‡Сѓ, РѕСЃРєС–Р»СЊРєРё РІС–РЅ Р·Р°Р±Р»РѕРєСѓРІР°РІ С‡Р°С‚.</div>
+        <div class="alert alert-warning">Ви не можете писати цьому користувачу, оскільки він заблокував чат.</div>
     }
     else if (Model.IsBlockedByMe)
     {
-        <div class="alert alert-warning">Р’Рё Р·Р°Р±Р»РѕРєСѓРІР°Р»Рё С†СЊРѕРіРѕ РєРѕСЂРёСЃС‚СѓРІР°С‡Р°. Р РѕР·Р±Р»РѕРєСѓР№С‚Рµ С‡Р°С‚, С‰РѕР± РїРёСЃР°С‚Рё РїРѕРІС–РґРѕРјР»РµРЅРЅСЏ.</div>
+        <div class="alert alert-warning">Ви заблокували цього користувача. Розблокуйте чат, щоб писати повідомлення.</div>
     }
     else
     {
         <form asp-action="Send" asp-route-id="@Model.ConversationId" method="post" enctype="multipart/form-data" class="card shadow-sm">
             @Html.AntiForgeryToken()
             <div class="card-body d-flex flex-column gap-2">
-                <input type="text" name="message" value="@Model.Message" class="form-control" placeholder="РќР°РїРёС€С–С‚СЊ РїРѕРІС–РґРѕРјР»РµРЅРЅСЏ" maxlength="2000" />
+                <input type="text" name="message" value="@Model.Message" class="form-control" placeholder="Напишіть повідомлення" maxlength="2000" />
                 <div class="d-flex gap-2 align-items-center">
                     <input type="file" name="photo" class="form-control" accept="image/*" />
-                    <button type="submit" class="btn btn-primary">РќР°РґС–СЃР»Р°С‚Рё</button>
+                    <button type="submit" class="btn btn-primary">Надіслати</button>
                 </div>
             </div>
         </form>

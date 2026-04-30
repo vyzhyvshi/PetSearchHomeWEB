@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Забагато запитів";
+}
+
+<div class="container text-center py-5">
+    <h1 class="display-4 text-danger">Забагато запитів</h1>
+    <h2 class="text-muted">Ви перевищили дозволену кількість запитів за хвилину.</h2>
+    <p class="mt-3 text-muted">Будь ласка, зачекайте хвилину та спробуйте знову.</p>
+
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Повернутися на головну</a>
+    </div>
+</div>

@@ -6,6 +6,7 @@ using PetSearchHome_WEB.Application.Auth;
 using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
+using PetSearchHome_WEB.Filters;
 using PetSearchHome_WEB.Models.Auth;
 using PetSearchHome_WEB.Security;
 using System.Security.Claims;
@@ -20,6 +21,8 @@ namespace PetSearchHome_WEB.Controllers
         private readonly RegisterShelterUseCase _registerShelterUseCase;
         private readonly UpdateShelterProfileUseCase _updateShelterProfileUseCase;
         private readonly LogoutUseCase _logoutUseCase;
+        private readonly RequestPasswordResetUseCase _requestPasswordResetUseCase;
+        private readonly ResetPasswordUseCase _resetPasswordUseCase;
         private readonly IUserRepository _users;
 
         public AccountController(
@@ -29,6 +32,8 @@ namespace PetSearchHome_WEB.Controllers
             RegisterShelterUseCase registerShelterUseCase,
             UpdateShelterProfileUseCase updateShelterProfileUseCase,
             LogoutUseCase logoutUseCase,
+            RequestPasswordResetUseCase requestPasswordResetUseCase,
+            ResetPasswordUseCase resetPasswordUseCase,
             IUserRepository users)
         {
             _logger = logger;
@@ -37,6 +42,8 @@ namespace PetSearchHome_WEB.Controllers
             _registerShelterUseCase = registerShelterUseCase;
             _updateShelterProfileUseCase = updateShelterProfileUseCase;
             _logoutUseCase = logoutUseCase;
+            _requestPasswordResetUseCase = requestPasswordResetUseCase;
+            _resetPasswordUseCase = resetPasswordUseCase;
             _users = users;
         }
 
@@ -59,6 +66,7 @@ namespace PetSearchHome_WEB.Controllers
         // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
+        [RateLimiting(5)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, CancellationToken cancellationToken)
         {
@@ -207,6 +215,66 @@ namespace PetSearchHome_WEB.Controllers
         public IActionResult Logout()
         {
             return View();
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View(new ForgotPasswordViewModel());
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = await _requestPasswordResetUseCase.ExecuteAsync(new RequestPasswordResetRequest(model.Email), GetGuestContext(), cancellationToken);
+            if (!result.IsSuccess || string.IsNullOrWhiteSpace(result.Value))
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Не вдалося створити посилання для скидання пароля.");
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "Посилання для скидання пароля створено. У dev-режимі воно також записане в лог.";
+            return RedirectToAction(nameof(ResetPassword), new { email = model.Email, token = result.Value });
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string email, string token)
+        {
+            return View(new ResetPasswordViewModel { Email = email, Token = token });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = await _resetPasswordUseCase.ExecuteAsync(
+                new ResetPasswordRequest(model.Email, model.Token, model.NewPassword),
+                GetGuestContext(),
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Не вдалося змінити пароль.");
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "Пароль змінено. Увійдіть з новим паролем.";
+            return RedirectToAction(nameof(Login));
         }
 
         private async Task<PetSearchHome_WEB.Application.Shared.AuthContext?> BuildShelterContextAsync(string email, CancellationToken cancellationToken)

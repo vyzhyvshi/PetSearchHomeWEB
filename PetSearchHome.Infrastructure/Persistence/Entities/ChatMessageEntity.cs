@@ -8,6 +8,7 @@ public class ChatMessageEntity
     public string Content { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ReadAt { get; set; }
 
     public ChatConversationEntity Conversation { get; set; } = null!;
 }

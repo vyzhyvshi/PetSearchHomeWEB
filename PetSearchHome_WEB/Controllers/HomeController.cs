@@ -6,6 +6,7 @@ using PetSearchHome_WEB.Application.Favorites;
 using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Domain.Interfaces;
 using PetSearchHome_WEB.Domain.ValueObjects;
+using PetSearchHome_WEB.Filters;
 using PetSearchHome_WEB.Models;
 using PetSearchHome_WEB.Models.Listing;
 using PetSearchHome_WEB.Security;
@@ -42,6 +43,7 @@ namespace PetSearchHome_WEB.Controllers
         }
 
         [HttpGet]
+        [RateLimiting(20)]
         public async Task<IActionResult> Index(ListingFilterViewModel filter, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
@@ -83,6 +85,7 @@ namespace PetSearchHome_WEB.Controllers
         }
 
         [HttpGet]
+        [RateLimiting(20)]
         public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
@@ -177,6 +180,13 @@ namespace PetSearchHome_WEB.Controllers
             }
 
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [HttpGet]
+        public IActionResult RateLimitExceeded()
+        {
+            Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            return View();
         }
     }
 }

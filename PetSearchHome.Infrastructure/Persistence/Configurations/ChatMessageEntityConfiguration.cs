@@ -29,6 +29,8 @@ public class ChatMessageEntityConfiguration : IEntityTypeConfiguration<ChatMessa
         builder.Property(m => m.SentAt)
             .HasColumnName("sent_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Property(m => m.ReadAt)
+            .HasColumnName("read_at");
 
         builder.HasOne(m => m.Conversation)
             .WithMany(c => c.Messages)

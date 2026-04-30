@@ -1,7 +1,7 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @model PetSearchHome_WEB.Models.Profile.EditProfileViewModel
 @{
-    ViewData["Title"] = "Редагувати профіль";
+    ViewData["Title"] = "Р РµРґР°РіСѓРІР°С‚Рё РїСЂРѕС„С–Р»СЊ";
     var currentUserId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
@@ -10,7 +10,7 @@
         <div class="col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h1 class="h3 mb-3">Редагування профілю</h1>
+                    <h1 class="h3 mb-3">Р РµРґР°РіСѓРІР°РЅРЅСЏ РїСЂРѕС„С–Р»СЋ</h1>
 
                     <form asp-action="Edit" method="post" class="vstack gap-3">
                         @Html.AntiForgeryToken()
@@ -39,10 +39,16 @@
                         }
 
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Зберегти</button>
-                            <a class="btn btn-light" asp-action="Details" asp-route-id="@currentUserId">Скасувати</a>
+                            <button type="submit" class="btn btn-primary">Р—Р±РµСЂРµРіС‚Рё</button>
+                            <a class="btn btn-light" asp-action="Details" asp-route-id="@currentUserId">РЎРєР°СЃСѓРІР°С‚Рё</a>
                         </div>
                     </form>
+
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-primary" asp-action="ChangePassword">Змінити пароль</a>
+                        <a class="btn btn-outline-danger" asp-action="DeleteAccount">Видалити акаунт</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -50,3 +56,5 @@
 </div>
 
 <partial name="_ValidationScriptsPartial" />
+
+

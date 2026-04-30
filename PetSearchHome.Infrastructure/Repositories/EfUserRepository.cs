@@ -23,7 +23,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(u => u.IndividualProfile)
                 .Include(u => u.ShelterProfile)
-                .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+                .FirstOrDefaultAsync(u => u.UserId == userId && u.DeletedAt == null, cancellationToken);
 
             return entity is null ? null : Map(entity);
         }
@@ -34,7 +34,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(u => u.IndividualProfile)
                 .Include(u => u.ShelterProfile)
-                .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+                .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null, cancellationToken);
 
             return entity is null ? null : Map(entity);
         }
@@ -147,6 +147,23 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var userId = FromDomainId(id);
+            var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+            if (entity is null)
+            {
+                return;
+            }
+
+            entity.IsActive = false;
+            entity.DeletedAt = DateTime.UtcNow;
+            entity.Email = $"deleted-{entity.UserId}-{Guid.NewGuid():N}@deleted.local";
+            entity.PasswordHash = string.Empty;
+
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+
         public async Task SetBlockedAsync(Guid id, bool isBlocked, CancellationToken cancellationToken = default)
         {
             var userId = FromDomainId(id);
@@ -172,10 +189,11 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(u => u.IndividualProfile)
                 .Include(u => u.ShelterProfile)
-                .Where(u => EF.Functions.Like(u.Email, pattern)
+                .Where(u => u.DeletedAt == null
+                    && (EF.Functions.Like(u.Email, pattern)
                     || (u.ShelterProfile != null && EF.Functions.Like(u.ShelterProfile.Name, pattern))
                     || (u.IndividualProfile != null && EF.Functions.Like(u.IndividualProfile.FirstName, pattern))
-                    || (u.IndividualProfile != null && EF.Functions.Like(u.IndividualProfile.LastName, pattern)))
+                    || (u.IndividualProfile != null && EF.Functions.Like(u.IndividualProfile.LastName, pattern))))
                 .OrderBy(u => u.Email)
                 .ToListAsync(cancellationToken);
 
@@ -204,7 +222,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 DisplayName = ResolveDisplayName(entity),
                 PasswordHash = entity.PasswordHash,
                 Role = entity.Role,
-                IsBlocked = !entity.IsActive
+                IsBlocked = !entity.IsActive,
+                IsDeleted = entity.DeletedAt is not null
             };
 
         private static string ResolveDisplayName(UserEntity entity)

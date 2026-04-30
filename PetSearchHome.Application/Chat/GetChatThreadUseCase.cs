@@ -35,10 +35,11 @@ namespace PetSearchHome_WEB.Application.Chat
                 return Result.Failure<ChatThread>("Немає доступу до чату.");
             }
 
-            var messages = await _chats.ListMessagesAsync(conversation.Id, cancellationToken);
+            var messages = await _chats.ListMessagesAsync(conversation.Id, authContext.UserId.Value, cancellationToken);
             var otherUserId = conversation.GetOtherParticipant(authContext.UserId.Value);
             var blockedByMe = await _chats.IsBlockedAsync(authContext.UserId.Value, otherUserId, cancellationToken);
             var blockedByOther = await _chats.IsBlockedAsync(otherUserId, authContext.UserId.Value, cancellationToken);
+            await _chats.MarkMessagesReadAsync(conversation.Id, authContext.UserId.Value, cancellationToken);
 
             return Result.Success(new ChatThread(conversation, messages, blockedByMe, blockedByOther));
         }

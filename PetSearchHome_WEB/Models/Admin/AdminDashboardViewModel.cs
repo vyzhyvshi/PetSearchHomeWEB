@@ -7,6 +7,7 @@ namespace PetSearchHome_WEB.Models.Admin
         public IReadOnlyList<PetListing> PendingListings { get; set; } = new List<PetListing>();
 
         public IReadOnlyList<Complaint> OpenComplaints { get; set; } = new List<Complaint>();
+        public IReadOnlyDictionary<Guid, PetListing> ComplaintListings { get; set; } = new Dictionary<Guid, PetListing>();
         public IReadOnlyList<Tag> Tags { get; set; } = new List<Tag>();
         public IReadOnlyList<Category> Categories { get; set; } = new List<Category>();
     }

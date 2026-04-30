@@ -6,7 +6,7 @@ namespace PetSearchHome_WEB.Application.Chat
 {
     public sealed record ListChatConversationsRequest;
 
-    public sealed record ChatConversationSummary(ChatConversation Conversation, ChatMessage? LastMessage);
+    public sealed record ChatConversationSummary(ChatConversation Conversation, ChatMessage? LastMessage, int UnreadCount);
 
     public class ListChatConversationsUseCase : IUseCase<ListChatConversationsRequest, Result<IReadOnlyList<ChatConversationSummary>>>
     {
@@ -29,8 +29,9 @@ namespace PetSearchHome_WEB.Application.Chat
 
             foreach (var conversation in conversations)
             {
-                var lastMessage = await _chats.GetLastMessageAsync(conversation.Id, cancellationToken);
-                summaries.Add(new ChatConversationSummary(conversation, lastMessage));
+                var lastMessage = await _chats.GetLastMessageAsync(conversation.Id, authContext.UserId.Value, cancellationToken);
+                var unreadCount = await _chats.CountUnreadMessagesAsync(conversation.Id, authContext.UserId.Value, cancellationToken);
+                summaries.Add(new ChatConversationSummary(conversation, lastMessage, unreadCount));
             }
 
             return Result.Success<IReadOnlyList<ChatConversationSummary>>(summaries);

@@ -11,5 +11,7 @@ namespace PetSearchHome_WEB.Domain.Entities
         public Role Role { get; init; } = Role.Guest;
         public bool IsBlocked { get; init; }
             = false;
+        public bool IsDeleted { get; init; }
+            = false;
     }
 }

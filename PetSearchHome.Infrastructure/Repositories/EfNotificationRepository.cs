@@ -29,9 +29,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task MarkAsReadAsync(Guid notificationId, CancellationToken cancellationToken = default)
+        public async Task MarkAsReadAsync(int id, CancellationToken cancellationToken = default)
         {
-            var notification = await _db.Notifications.FirstOrDefaultAsync(n => n.Id == notificationId, cancellationToken);
+            var notification = await _db.Notifications.FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
             if (notification != null)
             {
                 notification.IsRead = true;

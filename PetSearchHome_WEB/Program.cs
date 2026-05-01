@@ -79,7 +79,7 @@ builder.Services.AddSingleton<IOrgStatsRepository, InMemoryOrgStatsRepository>()
 builder.Services.AddSingleton<ITagRepository, InMemoryTagRepository>();
 builder.Services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
 builder.Services.AddSingleton<INotificationGateway, InMemoryNotificationGateway>();
-builder.Services.AddSingleton<IPasswordHasher, SimplePasswordHasher>();
+builder.Services.AddSingleton<IPasswordHasher, PetSearchHome.Infrastructure.Security.Pbkdf2PasswordHasher>(); 
 builder.Services.AddSingleton<IAuthTokenService, DummyAuthTokenService>();
 builder.Services.AddScoped<IEmailSender, ConsoleEmailSender>();
 builder.Services.AddSingleton<IModerationQueue, InMemoryModerationQueue>();

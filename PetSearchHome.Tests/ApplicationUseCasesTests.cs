@@ -183,7 +183,7 @@ namespace PetSearchHome_WEB.Tests.Application
 
             var notifications = new List<Notification>
             {
-                new Notification { Id = Guid.NewGuid(), RecipientId = userId, Message = "Test 1", IsRead = false, CreatedAt = DateTimeOffset.UtcNow }
+                new Notification { Id = 1, RecipientId = userId, Message = "Test 1", IsRead = false, CreatedAt = DateTimeOffset.UtcNow }
             };
 
             notifRepoMock.Setup(r => r.GetByRecipientIdAsync(userId, It.IsAny<CancellationToken>()))

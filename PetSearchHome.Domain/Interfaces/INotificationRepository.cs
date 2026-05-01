@@ -7,6 +7,6 @@ namespace PetSearchHome_WEB.Domain.Interfaces
         Task<IReadOnlyList<Notification>> GetByRecipientIdAsync(Guid recipientId, CancellationToken cancellationToken = default);
 
         Task AddAsync(Notification notification, CancellationToken cancellationToken = default);
-        Task MarkAsReadAsync(Guid notificationId, CancellationToken cancellationToken = default);
+        Task MarkAsReadAsync(int id, CancellationToken cancellationToken = default);
     }
 }

@@ -6,10 +6,10 @@ namespace PetSearchHome_WEB.Application.Notifications
     public sealed record GetUserNotificationsRequest;
 
     public sealed record NotificationDto(
-        Guid Id,
-        string Message,
-        bool IsRead,
-        DateTimeOffset CreatedAt);
+    int Id,
+    string Message,
+    bool IsRead,
+    DateTimeOffset CreatedAt);
 
     public class GetUserNotificationsUseCase : IUseCase<GetUserNotificationsRequest, Result<IReadOnlyList<NotificationDto>>>
     {

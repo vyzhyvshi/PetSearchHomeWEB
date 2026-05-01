@@ -63,7 +63,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     PasswordHash = user.PasswordHash,
                     Role = user.Role,
                     DisplayName = user.DisplayName,
-                    IsBlocked = user.IsBlocked
+                    IsBlocked = user.IsBlocked,
+                    IsDeleted = user.IsDeleted
                 }
                 : user;
 
@@ -84,7 +85,8 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                     PasswordHash = oldUser.PasswordHash,
                     Role = oldUser.Role,
                     DisplayName = oldUser.DisplayName,
-                    IsBlocked = isBlocked // Ось тут ми оновлюємо статус
+                    IsBlocked = isBlocked,
+                    IsDeleted = oldUser.IsDeleted
                 };
             }
             return Task.CompletedTask;
@@ -104,7 +106,44 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
         public Task UpdatePasswordAsync(Guid id, string passwordHash, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var index = _users.FindIndex(u => u.Id == id);
+            if (index >= 0)
+            {
+                var oldUser = _users[index];
+                _users[index] = new User
+                {
+                    Id = oldUser.Id,
+                    Email = oldUser.Email,
+                    PasswordHash = passwordHash,
+                    Role = oldUser.Role,
+                    DisplayName = oldUser.DisplayName,
+                    IsBlocked = oldUser.IsBlocked,
+                    IsDeleted = oldUser.IsDeleted
+                };
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var index = _users.FindIndex(u => u.Id == id);
+            if (index >= 0)
+            {
+                var oldUser = _users[index];
+                _users[index] = new User
+                {
+                    Id = oldUser.Id,
+                    Email = $"deleted-{oldUser.Id:N}@deleted.local",
+                    PasswordHash = string.Empty,
+                    Role = oldUser.Role,
+                    DisplayName = oldUser.DisplayName,
+                    IsBlocked = true,
+                    IsDeleted = true
+                };
+            }
+
+            return Task.CompletedTask;
         }
 
         public Task<IReadOnlyList<User>> SearchAsync(string query, CancellationToken cancellationToken = default)

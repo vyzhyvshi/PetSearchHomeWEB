@@ -1,38 +1,53 @@
-﻿using PetSearchHome_WEB.Application.Shared;
+using PetSearchHome_WEB.Application.Shared;
+using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Domain.Interfaces;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace PetSearchHome_WEB.Application.Auth
 {
     public sealed record RequestPasswordResetRequest(string Email);
 
-    public class RequestPasswordResetUseCase : IUseCase<RequestPasswordResetRequest, Result<bool>>
+    public class RequestPasswordResetUseCase : IUseCase<RequestPasswordResetRequest, Result<string>>
     {
         private readonly IUserRepository _users;
-        private readonly IAuthTokenService _tokens;
+        private readonly IPasswordResetTokenRepository _resetTokens;
         private readonly IEmailSender _emailSender;
 
         public RequestPasswordResetUseCase(
             IUserRepository users,
-            IAuthTokenService tokens,
+            IPasswordResetTokenRepository resetTokens,
             IEmailSender emailSender)
         {
             _users = users;
-            _tokens = tokens;
+            _resetTokens = resetTokens;
             _emailSender = emailSender;
         }
 
-        public async Task<Result<bool>> ExecuteAsync(RequestPasswordResetRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<string>> ExecuteAsync(RequestPasswordResetRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             var user = await _users.GetByEmailAsync(request.Email, cancellationToken);
             if (user is null)
             {
-                return Result.Failure<bool>("Користувача не знайдено.");
+                return Result.Failure<string>("Користувача не знайдено.");
             }
 
-            var token = _tokens.IssueToken(user);
-            await _emailSender.SendPasswordResetAsync(user.Email, token, cancellationToken);
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            await _resetTokens.AddAsync(new PasswordResetToken
+            {
+                UserId = user.Id,
+                TokenHash = HashToken(token),
+                ExpiresAt = DateTimeOffset.UtcNow.AddHours(1)
+            }, cancellationToken);
 
-            return true;
+            await _emailSender.SendPasswordResetAsync(user.Email, token, cancellationToken);
+            return Result.Success(token);
+        }
+
+        internal static string HashToken(string token)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            return Convert.ToHexString(bytes);
         }
     }
 }

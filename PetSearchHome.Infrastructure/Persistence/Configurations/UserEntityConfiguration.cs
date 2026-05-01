@@ -32,6 +32,8 @@ public class UserEntityConfiguration : IEntityTypeConfiguration<UserEntity>
         builder.Property(u => u.IsVerified)
             .HasColumnName("is_verified")
             .HasDefaultValue(false);
+        builder.Property(u => u.DeletedAt)
+            .HasColumnName("deleted_at");
 
         builder.HasIndex(u => u.Email)
             .IsUnique();

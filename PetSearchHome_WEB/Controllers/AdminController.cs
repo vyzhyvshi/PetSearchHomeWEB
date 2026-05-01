@@ -21,6 +21,7 @@ namespace PetSearchHome_WEB.Controllers
         private readonly SearchUsersWithListingsUseCase _searchUsersWithListingsUseCase;
         private readonly ITagRepository _tagRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IListingRepository _listingRepository;
 
         public AdminController(
             ILogger<AdminController> logger,
@@ -32,7 +33,8 @@ namespace PetSearchHome_WEB.Controllers
             ManageTagsCategoriesUseCase manageTagsCategoriesUseCase,
             SearchUsersWithListingsUseCase searchUsersWithListingsUseCase,
             ITagRepository tagRepository,
-            ICategoryRepository categoryRepository)
+            ICategoryRepository categoryRepository,
+            IListingRepository listingRepository)
         {
             _logger = logger;
             _moderateListingUseCase = moderateListingUseCase;
@@ -44,6 +46,7 @@ namespace PetSearchHome_WEB.Controllers
             _searchUsersWithListingsUseCase = searchUsersWithListingsUseCase;
             _tagRepository = tagRepository;
             _categoryRepository = categoryRepository;
+            _listingRepository = listingRepository;
         }
 
         // GET: /Admin/Dashboard
@@ -61,10 +64,19 @@ namespace PetSearchHome_WEB.Controllers
                 return Forbid();
             }
 
+            var openComplaints = complaintsResult.Value!;
+            var complaintListingIds = openComplaints
+                .Where(c => c.ReportedType == PetSearchHome_WEB.Domain.ValueObjects.ReportedEntityType.Listing)
+                .Select(c => c.ReportedEntityId)
+                .Distinct()
+                .ToArray();
+            var complaintListings = await _listingRepository.GetByIdsAsync(complaintListingIds, cancellationToken);
+
             var viewModel = new AdminDashboardViewModel
             {
                 PendingListings = pendingResult.Value!,
-                OpenComplaints = complaintsResult.Value!,
+                OpenComplaints = openComplaints,
+                ComplaintListings = complaintListings.ToDictionary(l => l.Id),
                 Tags = await _tagRepository.GetAllAsync(cancellationToken),
                 Categories = await _categoryRepository.GetAllAsync(cancellationToken)
             };

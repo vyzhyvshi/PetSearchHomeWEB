@@ -23,7 +23,7 @@ namespace PetSearchHome_WEB.Application.Auth
         {
             var user = await _users.GetByEmailAsync(request.Email, cancellationToken);
 
-            if (user == null || !_hasher.Verify(request.Password, user.PasswordHash))
+            if (user == null || user.IsDeleted || user.IsBlocked || !_hasher.Verify(request.Password, user.PasswordHash))
             {
                 return Result.Failure<LoginResponse>("Неправильний email або пароль.");
             }

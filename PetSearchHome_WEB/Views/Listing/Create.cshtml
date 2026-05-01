@@ -32,9 +32,10 @@
                                 <input asp-for="AnimalType" class="form-control" placeholder="Собака, кіт, кролик..." />
                                 <span asp-validation-for="AnimalType" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 position-relative">
                                 <label asp-for="Location" class="form-label"></label>
-                                <input asp-for="Location" class="form-control" placeholder="Київ, Оболонь" />
+                                <input asp-for="Location" id="location-input" autocomplete="off" class="form-control" placeholder="Київ, Оболонь" />
+                                <div id="location-suggestions" class="list-group" style="z-index:1050; max-height:240px; overflow:auto; display:none;"></div>
                                 <span asp-validation-for="Location" class="text-danger"></span>
                             </div>
                         </div>
@@ -69,3 +70,44 @@
 </div>
 
 <partial name="_ValidationScriptsPartial" />
+
+@section Scripts {
+<script>
+const input = document.getElementById('location-input');
+const suggestions = document.getElementById('location-suggestions');
+let controller = null;
+input.addEventListener('input', async function () {
+ const q = this.value.trim();
+ if (q.length <2) { suggestions.style.display = 'none'; return; }
+ if (controller) controller.abort();
+ controller = new AbortController();
+ try {
+ const res = await fetch(`/api/geocode/autocomplete?q=${encodeURIComponent(q)}&lang=uk`, { signal: controller.signal });
+ if (!res.ok) throw new Error('Network');
+ const list = await res.json();
+ suggestions.innerHTML = '';
+ if (!list || list.length ===0) { suggestions.style.display = 'none'; return; }
+ for (const item of list) {
+ const el = document.createElement('button');
+ el.type = 'button';
+ el.className = 'list-group-item list-group-item-action';
+ el.textContent = item;
+ el.addEventListener('click', () => {
+ input.value = item;
+ suggestions.style.display = 'none';
+ });
+ suggestions.appendChild(el);
+ }
+ const rect = input.getBoundingClientRect();
+ suggestions.style.position = 'fixed';
+ suggestions.style.left = rect.left + 'px';
+ suggestions.style.top = rect.bottom + 'px';
+ suggestions.style.width = rect.width + 'px';
+ suggestions.style.display = 'block';
+ } catch (e) {
+ suggestions.style.display = 'none';
+ }
+});
+document.addEventListener('click', (e) => { if (!input.contains(e.target) && !suggestions.contains(e.target)) suggestions.style.display = 'none'; });
+</script>
+}

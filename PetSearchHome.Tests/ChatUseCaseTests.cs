@@ -19,6 +19,7 @@ namespace PetSearchHome.Tests
         {
             var chatsMock = new Mock<IChatRepository>();
             var otherUserId = Guid.NewGuid();
+            var notifRepoMock = new Mock<INotificationRepository>();
 
             var conversation = new ChatConversation
             {
@@ -33,7 +34,7 @@ namespace PetSearchHome.Tests
             chatsMock.Setup(r => r.IsBlockedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
 
-            var useCase = new SendChatMessageUseCase(chatsMock.Object);
+            var useCase = new SendChatMessageUseCase(chatsMock.Object, notifRepoMock.Object);
             var result = await useCase.ExecuteAsync(new SendChatMessageRequest(Guid.NewGuid(), "Привіт!", "image_url.jpg"), _validAuth);
 
             Assert.True(result.IsSuccess);
@@ -45,6 +46,7 @@ namespace PetSearchHome.Tests
         {
             var chatsMock = new Mock<IChatRepository>();
             var otherUserId = Guid.NewGuid();
+            var notifRepoMock = new Mock<INotificationRepository>();
 
             var conversation = new ChatConversation
             {
@@ -59,7 +61,7 @@ namespace PetSearchHome.Tests
             chatsMock.Setup(r => r.IsBlockedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
-            var useCase = new SendChatMessageUseCase(chatsMock.Object);
+            var useCase = new SendChatMessageUseCase(chatsMock.Object, notifRepoMock.Object);
             var result = await useCase.ExecuteAsync(new SendChatMessageRequest(Guid.NewGuid(), "Привіт!", null), _validAuth);
 
             Assert.False(result.IsSuccess);

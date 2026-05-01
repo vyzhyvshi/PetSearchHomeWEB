@@ -1,4 +1,4 @@
-@model PetSearchHome_WEB.Models.Chat.ChatThreadViewModel
+﻿@model PetSearchHome_WEB.Models.Chat.ChatThreadViewModel
 @{
     ViewData["Title"] = "Чат";
 }
@@ -28,6 +28,11 @@
                     <button type="submit" class="btn btn-outline-danger">Заблокувати</button>
                 </form>
             }
+            <form asp-action="ClearHistory" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.ConversationId" />
+                <button type="submit" class="btn btn-outline-secondary">Очистити історію</button>
+            </form>
             <a class="btn btn-outline-secondary" asp-action="Index">До списку чатів</a>
         </div>
     </div>
@@ -147,3 +152,4 @@
         }
     </script>
 }
+

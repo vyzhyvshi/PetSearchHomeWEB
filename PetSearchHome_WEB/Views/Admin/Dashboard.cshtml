@@ -88,6 +88,20 @@
                                 <small class="text-muted">@complaint.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
                             </div>
                             <p class="mb-1"><strong>Об'єкт скарги:</strong> <span class="text-muted">@complaint.ReportedType / @complaint.ReportedEntityId</span></p>
+                            @if (complaint.ReportedType == PetSearchHome_WEB.Domain.ValueObjects.ReportedEntityType.Listing
+                                && Model.ComplaintListings.TryGetValue(complaint.ReportedEntityId, out var reportedListing))
+                            {
+                                <div class="mb-3 p-2 border rounded bg-white">
+                                    <div class="fw-semibold">Оголошення: @reportedListing.Title</div>
+                                    <div class="small text-muted">@reportedListing.AnimalType · @reportedListing.Location</div>
+                                    <a class="btn btn-sm btn-outline-primary mt-2"
+                                       asp-controller="Home"
+                                       asp-action="Details"
+                                       asp-route-id="@reportedListing.Id">
+                                        Переглянути оголошення
+                                    </a>
+                                </div>
+                            }
                             <p class="mb-3 p-2 bg-light rounded text-dark"><strong>Суть скарги:</strong> @complaint.Reason</p>
 
                             <form asp-controller="Admin" asp-action="HandleComplaint" method="post" class="d-flex gap-2 align-items-center bg-white p-2 border rounded">

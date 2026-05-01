@@ -8,8 +8,11 @@ namespace PetSearchHome_WEB.Domain.Interfaces
         Task<ChatConversation?> GetConversationByIdAsync(Guid conversationId, CancellationToken cancellationToken = default);
         Task<ChatConversation> CreateConversationAsync(Guid userId, Guid otherUserId, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<ChatConversation>> ListConversationsAsync(Guid userId, CancellationToken cancellationToken = default);
-        Task<IReadOnlyList<ChatMessage>> ListMessagesAsync(Guid conversationId, CancellationToken cancellationToken = default);
-        Task<ChatMessage?> GetLastMessageAsync(Guid conversationId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ChatMessage>> ListMessagesAsync(Guid conversationId, Guid? viewerUserId = null, CancellationToken cancellationToken = default);
+        Task<int> CountUnreadMessagesAsync(Guid conversationId, Guid userId, CancellationToken cancellationToken = default);
+        Task MarkMessagesReadAsync(Guid conversationId, Guid userId, CancellationToken cancellationToken = default);
+        Task ClearHistoryAsync(Guid conversationId, Guid userId, DateTimeOffset clearedAt, CancellationToken cancellationToken = default);
+        Task<ChatMessage?> GetLastMessageAsync(Guid conversationId, Guid? viewerUserId = null, CancellationToken cancellationToken = default);
         Task AddMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
         Task UpdateMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
         Task<ChatMessage?> GetMessageByIdAsync(Guid messageId, CancellationToken cancellationToken = default);

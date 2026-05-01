@@ -8,5 +8,6 @@ namespace PetSearchHome_WEB.Domain.Entities
         public string Content { get; set; } = string.Empty;
         public string? ImageUrl { get; init; }
         public DateTimeOffset SentAt { get; init; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset? ReadAt { get; init; }
     }
 }

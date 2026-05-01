@@ -10,9 +10,11 @@ namespace PetSearchHome_WEB.Application.Chat
     {
         private readonly IChatRepository _chats;
 
-        public SendChatMessageUseCase(IChatRepository chats)
+        private readonly INotificationRepository _notifications;
+        public SendChatMessageUseCase(IChatRepository chats, INotificationRepository notifications)
         {
             _chats = chats;
+            _notifications = notifications; 
         }
 
         public async Task<Result> ExecuteAsync(SendChatMessageRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
@@ -55,6 +57,16 @@ namespace PetSearchHome_WEB.Application.Chat
                 ImageUrl = request.ImageUrl,
                 SentAt = DateTimeOffset.UtcNow
             };
+
+            var notification = new PetSearchHome_WEB.Domain.Entities.Notification
+            {
+                RecipientId = otherUserId,
+
+                Message = "У вас нове повідомлення в чаті!",
+                IsRead = false
+            };
+
+            await _notifications.AddAsync(notification, cancellationToken);
 
             await _chats.AddMessageAsync(message, cancellationToken);
             return Result.Success();

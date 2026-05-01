@@ -6,6 +6,8 @@ public class ChatConversationEntity
     public int UserAId { get; set; }
     public int UserBId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UserAClearedAt { get; set; }
+    public DateTime? UserBClearedAt { get; set; }
 
     public ICollection<ChatMessageEntity> Messages { get; set; } = new List<ChatMessageEntity>();
 }

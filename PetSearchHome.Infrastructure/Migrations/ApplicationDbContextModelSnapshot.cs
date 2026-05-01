@@ -22,6 +22,32 @@ namespace PetSearchHome.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("PetSearchHome_WEB.Domain.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("PetSearchHome_WEB.Infrastructure.Persistence.Entities.ChatBlockEntity", b =>
                 {
                     b.Property<int>("ChatBlockId")
@@ -70,9 +96,17 @@ namespace PetSearchHome.Infrastructure.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<DateTime?>("UserAClearedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("user_a_cleared_at");
+
                     b.Property<int>("UserAId")
                         .HasColumnType("integer")
                         .HasColumnName("user_a_id");
+
+                    b.Property<DateTime?>("UserBClearedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("user_b_cleared_at");
 
                     b.Property<int>("UserBId")
                         .HasColumnType("integer")
@@ -111,6 +145,10 @@ namespace PetSearchHome.Infrastructure.Migrations
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)")
                         .HasColumnName("image_url");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
 
                     b.Property<int>("SenderId")
                         .HasColumnType("integer")
@@ -360,6 +398,46 @@ namespace PetSearchHome.Infrastructure.Migrations
                     b.ToTable("listings", (string)null);
                 });
 
+            modelBuilder.Entity("PetSearchHome_WEB.Infrastructure.Persistence.Entities.PasswordResetTokenEntity", b =>
+                {
+                    b.Property<int>("PasswordResetTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("password_reset_token_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PasswordResetTokenId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("PasswordResetTokenId");
+
+                    b.HasIndex("UserId", "TokenHash");
+
+                    b.ToTable("password_reset_tokens", (string)null);
+                });
+
             modelBuilder.Entity("PetSearchHome_WEB.Infrastructure.Persistence.Entities.PhotoEntity", b =>
                 {
                     b.Property<int>("PhotoId")
@@ -545,6 +623,10 @@ namespace PetSearchHome.Infrastructure.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -673,6 +755,17 @@ namespace PetSearchHome.Infrastructure.Migrations
                 {
                     b.HasOne("PetSearchHome_WEB.Infrastructure.Persistence.Entities.UserEntity", "User")
                         .WithMany("Listings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PetSearchHome_WEB.Infrastructure.Persistence.Entities.PasswordResetTokenEntity", b =>
+                {
+                    b.HasOne("PetSearchHome_WEB.Infrastructure.Persistence.Entities.UserEntity", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

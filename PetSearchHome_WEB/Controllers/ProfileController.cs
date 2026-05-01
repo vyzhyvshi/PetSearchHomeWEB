@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using PetSearchHome_WEB.Application.Auth;
 using PetSearchHome_WEB.Application.Moderation;
 using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Application.Reviews;
@@ -21,6 +24,8 @@ namespace PetSearchHome_WEB.Controllers
         private readonly LeaveReviewUseCase _leaveReviewUseCase;
         private readonly SubmitUserComplaintUseCase _submitUserComplaintUseCase;
         private readonly SearchPublicUsersWithListingsUseCase _searchPublicUsersWithListingsUseCase;
+        private readonly ChangePasswordUseCase _changePasswordUseCase;
+        private readonly DeleteAccountUseCase _deleteAccountUseCase;
 
         public ProfileController(
             ILogger<ProfileController> logger,
@@ -31,7 +36,9 @@ namespace PetSearchHome_WEB.Controllers
             ViewOrgStatsUseCase viewOrgStatsUseCase,
             LeaveReviewUseCase leaveReviewUseCase,
             SubmitUserComplaintUseCase submitUserComplaintUseCase,
-            SearchPublicUsersWithListingsUseCase searchPublicUsersWithListingsUseCase)
+            SearchPublicUsersWithListingsUseCase searchPublicUsersWithListingsUseCase,
+            ChangePasswordUseCase changePasswordUseCase,
+            DeleteAccountUseCase deleteAccountUseCase)
         {
             _logger = logger;
             _viewProfileUseCase = viewProfileUseCase;
@@ -42,6 +49,8 @@ namespace PetSearchHome_WEB.Controllers
             _leaveReviewUseCase = leaveReviewUseCase;
             _submitUserComplaintUseCase = submitUserComplaintUseCase;
             _searchPublicUsersWithListingsUseCase = searchPublicUsersWithListingsUseCase;
+            _changePasswordUseCase = changePasswordUseCase;
+            _deleteAccountUseCase = deleteAccountUseCase;
         }
 
         [HttpGet]
@@ -271,6 +280,71 @@ namespace PetSearchHome_WEB.Controllers
             }
 
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View(new ChangePasswordViewModel());
+        }
+
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = await _changePasswordUseCase.ExecuteAsync(
+                new ChangePasswordRequest(model.CurrentPassword, model.NewPassword),
+                await GetAuthContextAsync(cancellationToken),
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Не вдалося змінити пароль.");
+                return View(model);
+            }
+
+            SetSuccessMessage("Пароль змінено.");
+            return RedirectToAction(nameof(MyProfile));
+        }
+
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
+        [HttpGet]
+        public IActionResult DeleteAccount()
+        {
+            return View(new DeleteAccountViewModel());
+        }
+
+        [Authorize(Roles = RoleNames.AuthenticatedUser)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAccount(DeleteAccountViewModel model, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = await _deleteAccountUseCase.ExecuteAsync(
+                new DeleteAccountRequest(model.CurrentPassword),
+                await GetAuthContextAsync(cancellationToken),
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Не вдалося видалити акаунт.");
+                return View(model);
+            }
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            TempData["SuccessMessage"] = "Акаунт видалено.";
+            return RedirectToAction("Index", "Home");
         }
     }
 }

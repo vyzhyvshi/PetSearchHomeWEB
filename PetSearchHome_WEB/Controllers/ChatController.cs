@@ -17,6 +17,7 @@ namespace PetSearchHome_WEB.Controllers
         private readonly GetChatThreadUseCase _getChatThreadUseCase;
         private readonly SendChatMessageUseCase _sendChatMessageUseCase;
         private readonly DeleteChatMessageUseCase _deleteChatMessageUseCase;
+        private readonly ClearChatHistoryUseCase _clearChatHistoryUseCase;
         private readonly BlockChatUserUseCase _blockChatUserUseCase;
         private readonly UnblockChatUserUseCase _unblockChatUserUseCase;
         private readonly IUserRepository _users;
@@ -29,6 +30,7 @@ namespace PetSearchHome_WEB.Controllers
             GetChatThreadUseCase getChatThreadUseCase,
             SendChatMessageUseCase sendChatMessageUseCase,
             DeleteChatMessageUseCase deleteChatMessageUseCase,
+            ClearChatHistoryUseCase clearChatHistoryUseCase,
             BlockChatUserUseCase blockChatUserUseCase,
             UnblockChatUserUseCase unblockChatUserUseCase,
             IUserRepository users,
@@ -41,6 +43,7 @@ namespace PetSearchHome_WEB.Controllers
             _getChatThreadUseCase = getChatThreadUseCase;
             _sendChatMessageUseCase = sendChatMessageUseCase;
             _deleteChatMessageUseCase = deleteChatMessageUseCase;
+            _clearChatHistoryUseCase = clearChatHistoryUseCase;
             _blockChatUserUseCase = blockChatUserUseCase;
             _unblockChatUserUseCase = unblockChatUserUseCase;
             _users = users;
@@ -73,7 +76,8 @@ namespace PetSearchHome_WEB.Controllers
                     OtherUserId = otherUserId,
                     OtherDisplayName = otherUser?.DisplayName ?? "Користувач",
                     LastMessage = lastMessageText,
-                    LastMessageAt = summary.LastMessage?.SentAt
+                    LastMessageAt = summary.LastMessage?.SentAt,
+                    UnreadCount = summary.UnreadCount
                 });
             }
 
@@ -224,6 +228,21 @@ namespace PetSearchHome_WEB.Controllers
             if (!result.IsSuccess)
             {
                 SetErrorMessage(result.ErrorMessage ?? "Не вдалося відредагувати повідомлення.");
+            }
+
+            return RedirectToAction(nameof(Thread), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClearHistory(Guid id, CancellationToken cancellationToken)
+        {
+            var authContext = await GetAuthContextAsync(cancellationToken);
+            var result = await _clearChatHistoryUseCase.ExecuteAsync(new ClearChatHistoryRequest(id), authContext, cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                SetErrorMessage(result.ErrorMessage ?? "Не вдалося очистити історію чату.");
             }
 
             return RedirectToAction(nameof(Thread), new { id });

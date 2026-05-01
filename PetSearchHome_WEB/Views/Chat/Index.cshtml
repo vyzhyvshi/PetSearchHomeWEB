@@ -1,4 +1,4 @@
-@model PetSearchHome_WEB.Models.Chat.ChatOverviewViewModel
+﻿@model PetSearchHome_WEB.Models.Chat.ChatOverviewViewModel
 @{
     ViewData["Title"] = "Чати";
 }
@@ -33,6 +33,10 @@
                                 ? "Повідомлень ще немає"
                                 : conversation.LastMessage)
                         </div>
+                        @if (conversation.UnreadCount > 0)
+                        {
+                            <span class="badge bg-danger mt-1">@conversation.UnreadCount нових</span>
+                        }
                     </div>
                     <div class="text-muted small">
                         @if (conversation.LastMessageAt.HasValue)
@@ -45,3 +49,5 @@
         </div>
     }
 </div>
+
+

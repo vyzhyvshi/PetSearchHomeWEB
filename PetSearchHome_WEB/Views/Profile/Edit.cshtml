@@ -1,4 +1,4 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @model PetSearchHome_WEB.Models.Profile.EditProfileViewModel
 @{
     ViewData["Title"] = "Редагувати профіль";
@@ -43,6 +43,12 @@
                             <a class="btn btn-light" asp-action="Details" asp-route-id="@currentUserId">Скасувати</a>
                         </div>
                     </form>
+
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-primary" asp-action="ChangePassword">Змінити пароль</a>
+                        <a class="btn btn-outline-danger" asp-action="DeleteAccount">Видалити акаунт</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -50,3 +56,5 @@
 </div>
 
 <partial name="_ValidationScriptsPartial" />
+
+

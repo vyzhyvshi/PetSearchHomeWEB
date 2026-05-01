@@ -22,6 +22,10 @@ public class ChatConversationEntityConfiguration : IEntityTypeConfiguration<Chat
         builder.Property(c => c.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Property(c => c.UserAClearedAt)
+            .HasColumnName("user_a_cleared_at");
+        builder.Property(c => c.UserBClearedAt)
+            .HasColumnName("user_b_cleared_at");
 
         builder.HasIndex(c => new { c.UserAId, c.UserBId })
             .IsUnique();

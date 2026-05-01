@@ -1,0 +1,49 @@
+﻿@model IReadOnlyList<PetSearchHome_WEB.Application.Notifications.NotificationDto>
+@{
+    ViewData["Title"] = "Мої сповіщення";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-bell me-2"></i>@ViewData["Title"]
+        </h2>
+    </div>
+
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-light border text-center py-5 shadow-sm">
+            <h5 class="text-muted mb-0">У вас поки немає нових сповіщень 🐾</h5>
+        </div>
+    }
+    else
+    {
+        <div class="list-group shadow-sm">
+            @foreach (var notification in Model.OrderByDescending(n => n.CreatedAt))
+            {
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 @(notification.IsRead ? "bg-light text-muted" : "bg-white")">
+                    <div class="d-flex flex-column gap-1">
+                        <div class="@(notification.IsRead ? "" : "fw-bold text-dark")">
+                            @notification.Message
+                        </div>
+                        <small class="text-muted">
+                            @notification.CreatedAt.ToLocalTime().ToString("f")
+                        </small>
+                    </div>
+
+                    <div>
+                        @if (!notification.IsRead)
+                        {
+                            <span class="badge bg-primary rounded-pill px-3 py-2">Нове</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

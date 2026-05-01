@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PetSearchHome_WEB.Domain.Entities;
 using PetSearchHome_WEB.Infrastructure.Persistence.Entities;
 
 namespace PetSearchHome_WEB.Infrastructure.Persistence;
@@ -18,7 +19,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ReviewEntity> Reviews => Set<ReviewEntity>();
     public DbSet<ReportEntity> Reports => Set<ReportEntity>();
     public DbSet<PasswordResetTokenEntity> PasswordResetTokens => Set<PasswordResetTokenEntity>();
-
+    public DbSet<Notification> Notifications { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

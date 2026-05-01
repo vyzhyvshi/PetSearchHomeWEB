@@ -132,6 +132,9 @@ builder.Services.AddScoped<ClearChatHistoryUseCase>();
 builder.Services.AddScoped<BlockChatUserUseCase>();
 builder.Services.AddScoped<UnblockChatUserUseCase>();
 
+builder.Services.Configure<GeocodingOptions>(builder.Configuration.GetSection("Geocoding"));
+builder.Services.AddHttpClient<ExternalGeocodingClient>();
+builder.Services.AddScoped<PetSearchHome.Infrastructure.Gateways.IGeocodingService, GeocodingServiceAdapter>();
 
 var app = builder.Build();
 

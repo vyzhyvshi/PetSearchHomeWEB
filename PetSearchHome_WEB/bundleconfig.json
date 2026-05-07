@@ -1,0 +1,21 @@
+[
+  {
+    "outputFileName": "wwwroot/css/app.bundle.min.css",
+    "inputFiles": [
+      "wwwroot/css/base.css",
+      "wwwroot/css/layout.css",
+      "wwwroot/css/components.css",
+      "wwwroot/css/pages.css"
+    ],
+    "type": "css"
+  },
+  {
+    "outputFileName": "wwwroot/js/app.bundle.min.js",
+    "inputFiles": [
+      "wwwroot/js/site.js",
+      "wwwroot/js/location-autocomplete.js",
+      "wwwroot/js/chat-thread.js"
+    ],
+    "type": "js"
+  }
+]

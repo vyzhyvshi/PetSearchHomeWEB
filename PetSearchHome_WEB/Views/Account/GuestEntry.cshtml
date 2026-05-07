@@ -2,43 +2,46 @@
     ViewData["Title"] = "Вхід як гість";
 }
 
-@await Html.PartialAsync("_AuthStyles")
-
-<div class="auth-theme">
-    <div class="container auth-viewport">
-        <div class="auth-grid">
-            <section class="auth-hero-card">
+<div class="auth-panel rounded-5 p-4 p-lg-5">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-lg-7">
+            <div class="h-100">
                 <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="auth-chip">Гість</span>
-                    <span class="auth-chip auth-chip--accent">Ознайомчий режим</span>
+                    <span class="badge rounded-pill text-bg-light">Гість</span>
+                    <span class="badge rounded-pill text-bg-info">Ознайомчий режим</span>
                 </div>
-                <h1 class="h3 mb-2">Перегляд каталогу без реєстрації</h1>
-                <p class="auth-small mb-3">
-                    Дивіться оголошення, відгуки та статистику. Щоб створювати або редагувати оголошення, додайте аккаунт.
-                </p>
-                <ul class="auth-list">
-                    <li><span class="badge bg-info-subtle text-info-emphasis">Перегляд</span> Каталог тварин, фільтри, профілі притулків.</li>
-                    <li><span class="badge bg-warning-subtle text-warning-emphasis">Обмеження</span> Без публікації оголошень та взаємодії до авторизації.</li>
-                </ul>
-            </section>
-
-            <section class="auth-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div>
-                            <p class="text-uppercase small text-secondary mb-1">Use-case</p>
-                            <h2 class="h4 auth-section-title mb-0">Вхід як гість</h2>
+                <h1 class="display-6 fw-semibold mb-3">Перегляд каталогу без реєстрації</h1>
+                <p class="mb-4">Дивіться оголошення, профілі користувачів та інформацію про тварин. Для створення оголошень, чатів і збереження улюблених потрібен акаунт.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="surface-card section-card h-100">
+                            <h2 class="h5 mb-2">Що доступно</h2>
+                            <p class="mb-0">Каталог тварин, фільтри пошуку, перегляд профілів та деталі оголошень.</p>
                         </div>
-                        <span class="badge text-bg-primary">Guest</span>
                     </div>
-
-                    <div class="d-flex flex-wrap gap-2">
-                        <a asp-controller="Home" asp-action="Index" class="btn btn-success px-4">Перейти на головну</a>
-                        <a asp-action="Login" class="btn btn-outline-light">Авторизація</a>
-                        <a asp-action="RegisterIndividual" class="btn btn-outline-info">Реєстрація</a>
+                    <div class="col-md-6">
+                        <div class="surface-card section-card h-100">
+                            <h2 class="h5 mb-2">Що обмежено</h2>
+                            <p class="mb-0">Публікація оголошень, чати, скарги та списки улюблених доступні після авторизації.</p>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="surface-card section-card h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <p class="text-uppercase small text-secondary mb-1">Use-case</p>
+                    <h2 class="h4 mb-3">Вхід як гість</h2>
+                    <p class="mb-4">Швидкий вхід без створення профілю для ознайомлення з функціональністю сервісу.</p>
+                </div>
+                <div class="d-grid gap-2">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-success">Перейти на головну</a>
+                    <a asp-action="Login" class="btn btn-outline-light">Авторизація</a>
+                    <a asp-action="RegisterIndividual" class="btn btn-outline-info">Реєстрація</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

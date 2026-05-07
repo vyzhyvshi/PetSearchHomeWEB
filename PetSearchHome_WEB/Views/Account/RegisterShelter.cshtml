@@ -3,10 +3,13 @@
     ViewData["Title"] = "Реєстрація притулку";
 }
 
-<div class="container py-5" style="max-width: 520px;">
-    <h1 class="h3 mb-4 text-center">Реєстрація притулку</h1>
+<div class="form-shell form-shell--wide py-5">
+    <div class="form-shell__header">
+        <h1 class="h3 mb-2">Реєстрація притулку</h1>
+        <p class="text-muted">Створіть профіль організації, щоб розміщувати тварин і взаємодіяти з майбутніми власниками.</p>
+    </div>
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm surface-card">
         <div class="card-body">
             <form asp-action="RegisterShelter" method="post" class="vstack gap-3">
                 @Html.AntiForgeryToken()
@@ -60,7 +63,7 @@
         </div>
     </div>
 
-    <div class="text-center mt-3 d-grid gap-2">
+    <div class="form-shell__footer text-center d-grid gap-2">
         <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary">Повернутися до входу</a>
         <a asp-controller="Home" asp-action="Index" class="btn btn-link">Перейти як гість</a>
     </div>

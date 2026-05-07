@@ -1,0 +1,133 @@
+:root {
+    --app-bg: #f4f7fb;
+    --app-surface: #ffffff;
+    --app-surface-muted: #f8fafc;
+    --app-border: #d7e0ea;
+    --app-border-strong: #bfd0df;
+    --app-text: #17324d;
+    --app-text-soft: #61758a;
+    --app-primary: #146c94;
+    --app-primary-strong: #0f5678;
+    --app-primary-soft: #e1f1f8;
+    --app-accent: #ef8354;
+    --app-success: #2f855a;
+    --app-warning: #b7791f;
+    --app-danger: #c53030;
+    --app-shadow-sm: 0 10px 30px rgba(17, 37, 57, 0.08);
+    --app-shadow-md: 0 18px 50px rgba(17, 37, 57, 0.12);
+    --app-radius-sm: 0.85rem;
+    --app-radius-md: 1.2rem;
+    --app-radius-lg: 1.5rem;
+}
+
+html {
+    font-size: 15px;
+    position: relative;
+    min-height: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(20, 108, 148, 0.08), transparent 28%),
+        linear-gradient(180deg, #f8fbfd 0%, var(--app-bg) 35%, #eef3f8 100%);
+    color: var(--app-text);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+a {
+    color: var(--app-primary);
+}
+
+a:hover {
+    color: var(--app-primary-strong);
+}
+
+main {
+    display: block;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 0.15rem rgba(255, 255, 255, 0.9), 0 0 0 0.35rem rgba(20, 108, 148, 0.28);
+}
+
+.btn-primary {
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--app-primary-strong);
+    border-color: var(--app-primary-strong);
+}
+
+.btn-light {
+    background-color: var(--app-surface-muted);
+    border-color: var(--app-border);
+}
+
+.form-control,
+.form-select {
+    min-height: 3rem;
+    border-radius: var(--app-radius-sm);
+    border-color: var(--app-border);
+}
+
+.form-control::placeholder,
+.form-select::placeholder {
+    color: #8a9aae;
+}
+
+.form-label {
+    margin-bottom: 0.45rem;
+    font-weight: 600;
+    color: var(--app-text);
+}
+
+.card,
+.alert,
+.list-group-item,
+.table {
+    border-color: var(--app-border);
+}
+
+.card {
+    border-radius: var(--app-radius-md);
+}
+
+.shadow-sm {
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+.text-muted,
+.text-secondary {
+    color: var(--app-text-soft) !important;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.visually-hidden-focusable:not(:focus):not(:focus-within) {
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}

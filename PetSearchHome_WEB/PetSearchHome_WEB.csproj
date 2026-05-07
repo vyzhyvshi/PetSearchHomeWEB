@@ -23,6 +23,10 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<UserSecretsId>b97093b5-7365-470b-849a-1a92f99bd016</UserSecretsId>
   </PropertyGroup>
+
+  <Target Name="BuildAppBundles" BeforeTargets="Build">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\tools\build-bundles.ps1&quot; -ProjectDir &quot;$(MSBuildProjectDirectory)&quot;" />
+  </Target>
   <ItemGroup>
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="7.0.0" />

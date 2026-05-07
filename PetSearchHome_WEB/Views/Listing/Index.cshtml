@@ -4,10 +4,10 @@
     ViewData["Title"] = "Мої оголошення";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="py-4">
+    <div class="page-header">
         <div>
-            <h1 class="h3 mb-1">Мої оголошення</h1>
+            <h1 class="h3 page-header__title">Мої оголошення</h1>
             <p class="text-muted mb-0">Усі ваші оголошення: активні, на модерації та відхилені.</p>
         </div>
         <a class="btn btn-primary" asp-action="Create">Створити оголошення</a>
@@ -15,9 +15,7 @@
 
     @if (Model.Count == 0)
     {
-        <div class="alert alert-light border">
-            У вас ще немає оголошень.
-        </div>
+        <div class="empty-state">У вас ще немає оголошень.</div>
     }
     else
     {
@@ -33,23 +31,23 @@
                     _ => "bg-secondary"
                 };
 
-                <div class="card shadow-sm">
+                <div class="card shadow-sm surface-card">
                     <div class="card-body">
                         <div class="row g-3 align-items-center">
                             <div class="col-md-3">
-                                @if (!string.IsNullOrWhiteSpace(listing.PrimaryPhotoUrl))
-                                {
-                                    <img src="@listing.PrimaryPhotoUrl" alt="@listing.Title" class="img-fluid rounded" style="height: 160px; width: 100%; object-fit: cover;" />
-                                }
-                                else
-                                {
-                                    <div class="rounded bg-light border d-flex align-items-center justify-content-center text-muted" style="height: 160px;">
-                                        Без фото
-                                    </div>
-                                }
+                                <div class="listing-photo-frame listing-photo-frame--card">
+                                    @if (!string.IsNullOrWhiteSpace(listing.PrimaryPhotoUrl))
+                                    {
+                                        <img src="@listing.PrimaryPhotoUrl" alt="@listing.Title" class="listing-photo" loading="lazy" />
+                                    }
+                                    else
+                                    {
+                                        <div class="listing-photo-placeholder">Без фото</div>
+                                    }
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="col-md-6 listing-card__summary">
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                                     <h2 class="h5 mb-0">@listing.Title</h2>
                                     <span class="badge @badgeClass">@listing.Status</span>
                                     @if (listing.IsUrgent)
@@ -64,7 +62,7 @@
                                 <div class="d-grid gap-2">
                                     <a class="btn btn-outline-primary" asp-controller="Home" asp-action="Details" asp-route-id="@listing.Id">Переглянути</a>
                                     <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@listing.Id">Редагувати</a>
-                                    <form asp-action="Delete" asp-route-id="@listing.Id" method="post">
+                                    <form asp-action="Delete" asp-route-id="@listing.Id" method="post" data-confirm="Видалити це оголошення?">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-outline-danger w-100">Видалити</button>
                                     </form>

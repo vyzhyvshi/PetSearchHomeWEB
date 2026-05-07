@@ -2,48 +2,38 @@
     ViewData["Title"] = "Вихід із системи";
 }
 
-@await Html.PartialAsync("_AuthStyles")
-
-<div class="auth-theme">
-    <div class="container auth-viewport">
-        <div class="auth-grid">
-            <section class="auth-hero-card">
+<div class="auth-panel rounded-5 p-4 p-lg-5">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-lg-7">
+            <div class="h-100">
                 <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="auth-chip">Приватна особа</span>
-                    <span class="auth-chip">Притулок</span>
-                    <span class="auth-chip">Адміністратор</span>
-                    <span class="auth-chip auth-chip--accent">Завершення сесії</span>
+                    <span class="badge rounded-pill text-bg-light">Приватна особа</span>
+                    <span class="badge rounded-pill text-bg-light">Притулок</span>
+                    <span class="badge rounded-pill text-bg-warning">Завершення сесії</span>
                 </div>
-                <h1 class="h3 mb-2">Вихід із PetSearch Home</h1>
-                <p class="auth-small mb-3">
-                    Підтвердьте вихід, щоб закрити сесію й очистити cookie авторизації. Повернутися можна в будь-який момент через форму входу.
-                </p>
-                <ul class="auth-list">
-                    <li><span class="badge bg-warning-subtle text-warning-emphasis">Безпека</span> Сесія завершується, токен очищується.</li>
-                    <li><span class="badge bg-success-subtle text-success-emphasis">Гнучкість</span> Після виходу можна увійти під іншою роллю або як гість.</li>
-                </ul>
-            </section>
-
-            <section class="auth-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div>
-                            <p class="text-uppercase small text-secondary mb-1">Use-case</p>
-                            <h2 class="h4 auth-section-title mb-0">Вихід із системи</h2>
-                        </div>
-                        <span class="badge text-bg-primary">Person · Shelter · Admin</span>
-                    </div>
-
-                    <form asp-action="Logout" method="post">
-                        @Html.AntiForgeryToken()
-                        <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <button type="submit" class="btn btn-danger px-4">Вийти</button>
-                            <a asp-action="Login" class="btn btn-outline-light">Увійти знову</a>
-                            <a asp-action="GuestEntry" class="auth-link ms-auto">Перегляд як гість</a>
-                        </div>
-                    </form>
+                <h1 class="display-6 fw-semibold mb-3">Вихід із PetSearchHome</h1>
+                <p class="mb-4">Підтвердіть вихід, щоб завершити поточну сесію та очистити cookie авторизації. Повернутися можна в будь-який момент через форму входу.</p>
+                <div class="surface-card section-card">
+                    <h2 class="h5 mb-2">Що станеться після виходу</h2>
+                    <p class="mb-0">Активну сесію буде закрито, доступ до приватних дій зникне до повторної авторизації.</p>
                 </div>
-            </section>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="surface-card section-card h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <p class="text-uppercase small text-secondary mb-1">Use-case</p>
+                    <h2 class="h4 mb-3">Вихід із системи</h2>
+                    <p class="mb-4">Закрийте сесію безпечно або поверніться до перегляду в режимі гостя.</p>
+                </div>
+                <form asp-action="Logout" method="post" class="d-grid gap-2" data-confirm="Підтвердити вихід із системи?">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Вийти</button>
+                    <a asp-action="Login" class="btn btn-outline-light">Увійти знову</a>
+                    <a asp-action="GuestEntry" class="btn btn-link">Перегляд як гість</a>
+                </form>
+            </div>
         </div>
     </div>
 </div>

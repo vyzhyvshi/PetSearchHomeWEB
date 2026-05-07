@@ -4,7 +4,7 @@
     var photoCount = Model.Listing.PhotoUrls.Count;
 }
 
-<div class="container py-4">
+<div class="py-4">
     <a class="btn btn-link ps-0 mb-3" asp-controller="Home" asp-action="Index">← До каталогу</a>
 
     @if (TempData["SuccessMessage"] is string successMessage)
@@ -18,22 +18,18 @@
 
     @if (photoCount > 0)
     {
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm surface-card mb-4">
             <div class="card-body">
-                <div class="row g-2">
+                <div class="row g-3">
                     <div class="col-12">
-                        <img src="@Model.Listing.PhotoUrls[0]"
-                             alt="Фото @Model.Listing.Title"
-                             class="img-fluid rounded w-100"
-                             style="max-height: 420px; object-fit: cover;" />
+                        <div class="listing-photo-frame listing-photo-frame--hero">
+                            <img src="@Model.Listing.PhotoUrls[0]" alt="Фото @Model.Listing.Title" class="listing-photo" />
+                        </div>
                     </div>
                     @for (var i = 1; i < photoCount; i++)
                     {
                         <div class="col-6 col-md-4 col-lg-3">
-                            <img src="@Model.Listing.PhotoUrls[i]"
-                                 alt="Фото @Model.Listing.Title"
-                                 class="img-fluid rounded"
-                                 style="height: 140px; object-fit: cover; width: 100%;" />
+                            <img src="@Model.Listing.PhotoUrls[i]" alt="Фото @Model.Listing.Title" class="gallery-thumb" loading="lazy" />
                         </div>
                     }
                 </div>
@@ -42,14 +38,12 @@
     }
     else
     {
-        <div class="alert alert-light border mb-4">
-            Фото для цього оголошення ще не додані.
-        </div>
+        <div class="empty-state mb-4">Фото для цього оголошення ще не додані.</div>
     }
 
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm surface-card mb-4">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                 <div>
                     <h1 class="h3 mb-1">@Model.Listing.Title</h1>
                     <div class="text-muted">@Model.Listing.AnimalType • @Model.Listing.Location</div>
@@ -62,7 +56,7 @@
 
             <div class="mb-3">
                 <strong>Опис:</strong>
-                <p class="mb-0">@Model.Listing.Description</p>
+                <p class="mb-0 mt-2">@Model.Listing.Description</p>
             </div>
 
             <div class="text-secondary">
@@ -71,7 +65,7 @@
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm surface-card mb-4">
         <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
                 <div class="text-muted small">Власник оголошення</div>
@@ -85,11 +79,11 @@
     {
         <div class="row g-3">
             <div class="col-12 col-lg-6">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm surface-card h-100">
                     <div class="card-body">
                         <h2 class="h5">Улюблені</h2>
                         <p class="text-muted">
-                            @(Model.IsFavorite ? "Це оголошення вже в улюблених." : "Додайте оголошення до улюблених.")
+                            @(Model.IsFavorite ? "Це оголошення вже у ваших улюблених." : "Додайте оголошення, щоб швидко повернутися до нього пізніше.")
                         </p>
                         <form asp-controller="Home" asp-action="ToggleFavorite" method="post">
                             @Html.AntiForgeryToken()
@@ -103,15 +97,14 @@
             </div>
 
             <div class="col-12 col-lg-6">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm surface-card h-100">
                     <div class="card-body">
                         <h2 class="h5">Поскаржитися</h2>
                         <form asp-controller="Home" asp-action="ReportListing" method="post" class="vstack gap-2">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.Listing.Id" />
                             <label class="form-label" for="reason">Причина скарги</label>
-                            <textarea id="reason" name="reason" class="form-control" rows="3" maxlength="500" required
-                                      placeholder="Опишіть причину..."></textarea>
+                            <textarea id="reason" name="reason" class="form-control" rows="3" maxlength="500" required placeholder="Опишіть причину..."></textarea>
                             <button type="submit" class="btn btn-warning">Надіслати скаргу</button>
                         </form>
                     </div>

@@ -15,19 +15,20 @@
             @foreach (var listing in Model.Items)
             {
                 <div class="col-12">
-                    <div class="card shadow-sm">
+                    <div class="card shadow-sm surface-card">
                         <div class="row g-0 align-items-stretch">
                             <div class="col-5 col-md-3">
-                                <div class="ratio ratio-4x3">
+                                <div class="listing-photo-frame listing-photo-frame--card rounded-start">
                                     @if (!string.IsNullOrWhiteSpace(listing.PhotoUrl))
                                     {
                                         <img src="@listing.PhotoUrl"
                                              alt="Фото @listing.Title"
-                                             class="w-100 h-100 object-fit-cover rounded-start" />
+                                             class="listing-photo rounded-start"
+                                             loading="lazy" />
                                     }
                                     else
                                     {
-                                        <div class="bg-light d-flex flex-column justify-content-center align-items-center text-muted rounded-start">
+                                        <div class="listing-photo-placeholder rounded-start">
                                             <span class="small">Без фото</span>
                                         </div>
                                     }

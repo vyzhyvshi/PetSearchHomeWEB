@@ -3,18 +3,18 @@
     ViewData["Title"] = "Створити оголошення";
 }
 
-<div class="container py-4">
+<div class="listing-editor py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="col-lg-9">
+            <div class="page-header">
                 <div>
-                    <h1 class="h3 mb-1">Нове оголошення</h1>
+                    <h1 class="h3 page-header__title">Нове оголошення</h1>
                     <p class="text-muted mb-0">Заповніть дані про тварину та надішліть оголошення на модерацію.</p>
                 </div>
                 <a class="btn btn-outline-secondary" asp-action="MyListings">Мої оголошення</a>
             </div>
 
-            <div class="card shadow-sm">
+            <div class="card shadow-sm surface-card">
                 <div class="card-body">
                     <form asp-action="Create" method="post" class="vstack gap-3">
                         @Html.AntiForgeryToken()
@@ -32,10 +32,10 @@
                                 <input asp-for="AnimalType" class="form-control" placeholder="Собака, кіт, кролик..." />
                                 <span asp-validation-for="AnimalType" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6 position-relative">
+                            <div class="col-md-6 location-autocomplete" data-location-autocomplete data-autocomplete-url="/api/geocode/autocomplete?q=&lang=uk">
                                 <label asp-for="Location" class="form-label"></label>
-                                <input asp-for="Location" id="location-input" autocomplete="off" class="form-control" placeholder="Київ, Оболонь" />
-                                <div id="location-suggestions" class="list-group" style="z-index:1050; max-height:240px; overflow:auto; display:none;"></div>
+                                <input asp-for="Location" data-location-input autocomplete="off" class="form-control" placeholder="Київ, Оболонь" />
+                                <div data-location-suggestions class="list-group location-autocomplete__suggestions"></div>
                                 <span asp-validation-for="Location" class="text-danger"></span>
                             </div>
                         </div>
@@ -49,7 +49,7 @@
                         <div>
                             <label asp-for="PhotoUrlsText" class="form-label"></label>
                             <textarea asp-for="PhotoUrlsText" class="form-control" rows="4" placeholder="https://..."></textarea>
-                            <div class="form-text">Поки що підтримуються прямі URL-адреси фото, по одному на рядок.</div>
+                            <div class="form-text">Наразі підтримуються прямі URL-адреси фото, по одному посиланню на рядок.</div>
                             <span asp-validation-for="PhotoUrlsText" class="text-danger"></span>
                         </div>
 
@@ -58,7 +58,7 @@
                             <label asp-for="IsUrgent" class="form-check-label"></label>
                         </div>
 
-                        <div class="d-flex gap-2">
+                        <div class="stack-actions">
                             <button type="submit" class="btn btn-primary">Створити оголошення</button>
                             <a class="btn btn-light" asp-action="MyListings">Скасувати</a>
                         </div>
@@ -70,44 +70,3 @@
 </div>
 
 <partial name="_ValidationScriptsPartial" />
-
-@section Scripts {
-<script>
-const input = document.getElementById('location-input');
-const suggestions = document.getElementById('location-suggestions');
-let controller = null;
-input.addEventListener('input', async function () {
- const q = this.value.trim();
- if (q.length <2) { suggestions.style.display = 'none'; return; }
- if (controller) controller.abort();
- controller = new AbortController();
- try {
- const res = await fetch(`/api/geocode/autocomplete?q=${encodeURIComponent(q)}&lang=uk`, { signal: controller.signal });
- if (!res.ok) throw new Error('Network');
- const list = await res.json();
- suggestions.innerHTML = '';
- if (!list || list.length ===0) { suggestions.style.display = 'none'; return; }
- for (const item of list) {
- const el = document.createElement('button');
- el.type = 'button';
- el.className = 'list-group-item list-group-item-action';
- el.textContent = item;
- el.addEventListener('click', () => {
- input.value = item;
- suggestions.style.display = 'none';
- });
- suggestions.appendChild(el);
- }
- const rect = input.getBoundingClientRect();
- suggestions.style.position = 'fixed';
- suggestions.style.left = rect.left + 'px';
- suggestions.style.top = rect.bottom + 'px';
- suggestions.style.width = rect.width + 'px';
- suggestions.style.display = 'block';
- } catch (e) {
- suggestions.style.display = 'none';
- }
-});
-document.addEventListener('click', (e) => { if (!input.contains(e.target) && !suggestions.contains(e.target)) suggestions.style.display = 'none'; });
-</script>
-}

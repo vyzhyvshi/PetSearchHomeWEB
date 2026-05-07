@@ -1,15 +1,15 @@
-﻿@model PetSearchHome_WEB.Models.Chat.ChatThreadViewModel
+@model PetSearchHome_WEB.Models.Chat.ChatThreadViewModel
 @{
     ViewData["Title"] = "Чат";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="chat-layout py-4" data-chat-thread>
+    <div class="page-header">
         <div>
-            <h2 class="fw-bold mb-0">Чат із @Model.OtherDisplayName</h2>
+            <h1 class="h3 page-header__title">Чат із @Model.OtherDisplayName</h1>
             <a class="text-decoration-none" asp-controller="Profile" asp-action="Details" asp-route-id="@Model.OtherUserId">Переглянути профіль</a>
         </div>
-        <div class="d-flex gap-2">
+        <div class="stack-actions">
             @if (Model.IsBlockedByMe)
             {
                 <form asp-action="Unblock" method="post">
@@ -21,14 +21,14 @@
             }
             else
             {
-                <form asp-action="Block" method="post">
+                <form asp-action="Block" method="post" data-confirm="Заблокувати цього користувача в чаті?">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@Model.ConversationId" />
                     <input type="hidden" name="otherUserId" value="@Model.OtherUserId" />
                     <button type="submit" class="btn btn-outline-danger">Заблокувати</button>
                 </form>
             }
-            <form asp-action="ClearHistory" method="post">
+            <form asp-action="ClearHistory" method="post" data-confirm="Очистити історію цього чату?">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@Model.ConversationId" />
                 <button type="submit" class="btn btn-outline-secondary">Очистити історію</button>
@@ -42,21 +42,23 @@
         <div class="alert alert-danger">@errorMessage</div>
     }
 
-    <div class="card shadow-sm mb-3">
-        <div class="card-body" style="max-height: 520px; overflow-y: auto;">
+    <div class="card shadow-sm surface-card mb-3">
+        <div class="card-body chat-thread" data-chat-messages>
             @if (!Model.Messages.Any())
             {
-                <div class="text-muted">Напишіть перше повідомлення.</div>
+                <div class="empty-state">Напишіть перше повідомлення.</div>
             }
             else
             {
                 <div class="vstack gap-3">
                     @foreach (var message in Model.Messages)
                     {
-                        <div class="d-flex @(message.IsMine ? "justify-content-end" : "justify-content-start")">
-                            <div class="border rounded p-2 @(message.IsMine ? "bg-primary text-white" : "bg-light")" style="max-width: 70%;">
+                        var bubbleClass = message.IsMine ? "chat-bubble chat-bubble--mine" : "chat-bubble";
+                        var metaClass = message.IsMine ? "text-white-50" : "text-muted";
 
-                                <div id="view-mode-@message.MessageId">
+                        <div class="chat-message-row @(message.IsMine ? "chat-message-row--mine" : string.Empty)">
+                            <div class="@bubbleClass">
+                                <div data-message-view="@message.MessageId">
                                     @if (!string.IsNullOrWhiteSpace(message.Content))
                                     {
                                         <div>@message.Content</div>
@@ -71,31 +73,32 @@
 
                                 @if (message.IsMine)
                                 {
-                                    <form id="edit-form-@message.MessageId" action="@Url.Action("Edit", "Chat", new { id = Model.ConversationId, messageId = message.MessageId })" method="post" style="display: none;" class="mt-1">
+                                    <form data-message-edit="@message.MessageId"
+                                          action="@Url.Action("Edit", "Chat", new { id = Model.ConversationId, messageId = message.MessageId })"
+                                          method="post"
+                                          class="mt-2"
+                                          hidden>
                                         @Html.AntiForgeryToken()
-                                        <textarea name="newMessage" class="form-control form-control-sm mb-1 text-dark" rows="2" required>@message.Content</textarea>
+                                        <textarea name="newMessage" class="form-control form-control-sm mb-2 text-dark" rows="2" required>@message.Content</textarea>
                                         <div class="d-flex justify-content-end gap-3 align-items-center">
-                                            <button type="button" class="btn btn-link btn-sm p-0 text-white-50 text-decoration-none" onclick="toggleEdit('@message.MessageId')">Скасувати</button>
-                                            <button type="submit" class="btn btn-light btn-sm px-2 py-0 text-primary fw-bold">Зберегти</button>
+                                            <button type="button" class="chat-bubble__link @metaClass" data-chat-edit-toggle="@message.MessageId">Скасувати</button>
+                                            <button type="submit" class="btn btn-light btn-sm px-3">Зберегти</button>
                                         </div>
                                     </form>
                                 }
 
-                                <div class="d-flex justify-content-between align-items-center gap-3 mt-1 small @(message.IsMine ? "text-white-50" : "text-muted")">
+                                <div class="chat-bubble__meta @metaClass">
                                     <span>@message.SentAt.ToLocalTime().ToString("g")</span>
 
                                     @if (message.CanDelete)
                                     {
-                                        <div class="d-flex gap-2">
-                                            <a href="javascript:void(0)" onclick="toggleEdit('@message.MessageId')" class="btn btn-link btn-sm p-0 text-decoration-none @(message.IsMine ? "text-white-50" : "text-muted")" title="Редагувати текст">
-                                                Редагувати
-                                            </a>
-
-                                            <form asp-action="DeleteMessage" method="post" class="d-inline">
+                                        <div class="chat-bubble__actions">
+                                            <button type="button" class="chat-bubble__link @metaClass" data-chat-edit-toggle="@message.MessageId">Редагувати</button>
+                                            <form asp-action="DeleteMessage" method="post" data-confirm="Видалити повідомлення?">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@Model.ConversationId" />
                                                 <input type="hidden" name="messageId" value="@message.MessageId" />
-                                                <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none @(message.IsMine ? "text-white-50" : "text-muted")">Видалити</button>
+                                                <button type="submit" class="chat-bubble__link @metaClass">Видалити</button>
                                             </form>
                                         </div>
                                     }
@@ -118,38 +121,19 @@
     }
     else
     {
-        <form asp-action="Send" asp-route-id="@Model.ConversationId" method="post" enctype="multipart/form-data" class="card shadow-sm">
+        <form asp-action="Send" asp-route-id="@Model.ConversationId" method="post" enctype="multipart/form-data" class="card shadow-sm surface-card">
             @Html.AntiForgeryToken()
-            <div class="card-body d-flex flex-column gap-2">
+            <div class="card-body d-flex flex-column gap-3">
                 <input type="text" name="message" value="@Model.Message" class="form-control" placeholder="Напишіть повідомлення" maxlength="2000" />
-                <div class="d-flex gap-2 align-items-center">
-                    <input type="file" name="photo" class="form-control" accept="image/*" />
-                    <button type="submit" class="btn btn-primary">Надіслати</button>
+                <div class="row g-2 align-items-center">
+                    <div class="col-md">
+                        <input type="file" name="photo" class="form-control" accept="image/*" />
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" class="btn btn-primary w-100">Надіслати</button>
+                    </div>
                 </div>
             </div>
         </form>
     }
 </div>
-
-
-@section Scripts {
-    <script>
-        function toggleEdit(messageId) {
-            const viewMode = document.getElementById(`view-mode-${messageId}`);
-            const editForm = document.getElementById(`edit-form-${messageId}`);
-
-            if (viewMode.style.display === "none") {
-                viewMode.style.display = "block";
-                editForm.style.display = "none";
-            } else {
-                viewMode.style.display = "none";
-                editForm.style.display = "block";
-
-                const textarea = editForm.querySelector('textarea');
-                textarea.focus();
-                textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-            }
-        }
-    </script>
-}
-

@@ -1,0 +1,41 @@
+.catalog-layout .card-header,
+.listing-editor .card-body,
+.profile-layout .card-body,
+.chat-layout .card-body {
+    background: transparent;
+}
+
+.catalog-sidebar .card-header,
+.catalog-sidebar .card-body,
+.listing-editor .card-body,
+.profile-layout .card-body,
+.chat-layout .card-body,
+.form-shell .card-body {
+    padding: 1.5rem;
+}
+
+.listing-card__media {
+    height: 10rem;
+}
+
+.listing-card__summary {
+    min-width: 0;
+}
+
+.profile-listing {
+    border: 1px solid rgba(191, 208, 223, 0.7);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: var(--app-surface-muted);
+}
+
+.profile-listing__thumb {
+    width: 5.5rem;
+    height: 5.5rem;
+    flex-shrink: 0;
+}
+
+.danger-zone {
+    border: 1px solid rgba(197, 48, 48, 0.24);
+    background: rgba(197, 48, 48, 0.06);
+}

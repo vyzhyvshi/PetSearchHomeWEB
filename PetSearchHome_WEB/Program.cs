@@ -12,10 +12,13 @@ using PetSearchHome_WEB.Application.Profiles;
 using PetSearchHome_WEB.Application.Reviews;
 using PetSearchHome_WEB.Application.Services;
 using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Hubs;
 using PetSearchHome_WEB.Infrastructure.Logging;
+using PetSearchHome_WEB.Infrastructure.Notifications;
 using PetSearchHome_WEB.Infrastructure.Persistence;
 using PetSearchHome_WEB.Infrastructure.Repositories;
 using PetSearchHome_WEB.Middleware;
+using PetSearchHome_WEB.Services;
 using Serilog;
 using System.Reflection;
 
@@ -31,6 +34,7 @@ if (builder.Environment.IsDevelopment())
 }
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 builder.Services
  .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -78,7 +82,7 @@ builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
 builder.Services.AddSingleton<IOrgStatsRepository, InMemoryOrgStatsRepository>();
 builder.Services.AddSingleton<ITagRepository, InMemoryTagRepository>();
 builder.Services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
-builder.Services.AddSingleton<INotificationGateway, InMemoryNotificationGateway>();
+builder.Services.AddScoped<INotificationGateway, SignalRNotificationGateway>();
 builder.Services.AddSingleton<IPasswordHasher, PetSearchHome.Infrastructure.Security.Pbkdf2PasswordHasher>(); 
 builder.Services.AddSingleton<IAuthTokenService, DummyAuthTokenService>();
 builder.Services.AddScoped<IEmailSender, ConsoleEmailSender>();
@@ -131,6 +135,7 @@ builder.Services.AddScoped<DeleteChatMessageUseCase>();
 builder.Services.AddScoped<ClearChatHistoryUseCase>();
 builder.Services.AddScoped<BlockChatUserUseCase>();
 builder.Services.AddScoped<UnblockChatUserUseCase>();
+builder.Services.AddHostedService<DatabaseNotificationBackgroundService>();
 
 builder.Services.Configure<GeocodingOptions>(builder.Configuration.GetSection("Geocoding"));
 builder.Services.AddHttpClient<ExternalGeocodingClient>();
@@ -170,5 +175,7 @@ app.MapControllerRoute(
  name: "default",
  pattern: "{controller=Home}/{action=Index}/{id?}")
  .WithStaticAssets();
+
+app.MapHub<NotificationsHub>("/notificationsHub");
 
 await app.RunAsync();

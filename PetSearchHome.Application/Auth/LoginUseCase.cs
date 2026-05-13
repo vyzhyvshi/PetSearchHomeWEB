@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 namespace PetSearchHome_WEB.Application.Auth
 {
     public sealed record LoginRequest(string Email, string Password);
-    public sealed record LoginResponse(string Token, Guid UserId, Domain.ValueObjects.Role Role);
+    public sealed record LoginResponse(string Token, int UserId, Domain.ValueObjects.Role Role);
 
     public class LoginUseCase : IUseCase<LoginRequest, Result<LoginResponse>>
     {

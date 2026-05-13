@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Chat
 {
-    public sealed record StartChatRequest(Guid OtherUserId);
+    public sealed record StartChatRequest(int OtherUserId);
 
     public class StartChatUseCase : IUseCase<StartChatRequest, Result<ChatConversation>>
     {

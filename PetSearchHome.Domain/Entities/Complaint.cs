@@ -4,13 +4,13 @@ namespace PetSearchHome_WEB.Domain.Entities
 {
     public class Complaint
     {
-        public Guid Id { get; init; } = Guid.NewGuid();
+        public int Id { get; init; } 
         public ReportedEntityType ReportedType { get; init; }
             = ReportedEntityType.Listing;
-        public Guid ReportedEntityId { get; init; }
-            = Guid.Empty;
-        public Guid ReporterId { get; init; }
-            = Guid.Empty;
+        public int ReportedEntityId { get; init; }
+         
+        public int ReporterId { get; init; }
+            
         public string Reason { get; init; }
             = string.Empty;
         public string? Status { get; init; }

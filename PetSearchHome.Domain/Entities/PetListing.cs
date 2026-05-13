@@ -4,8 +4,8 @@ namespace PetSearchHome_WEB.Domain.Entities
 {
     public record PetListing
     {
-        public Guid Id { get; init; } = Guid.NewGuid();
-        public Guid OwnerId { get; init; } = Guid.Empty;
+        public int Id { get; init; }
+        public int OwnerId { get; init; } 
         public ValueObjects.Role OwnerRole { get; init; } = ValueObjects.Role.Guest;
         public string Title { get; init; } = string.Empty;
         public string AnimalType { get; init; } = string.Empty;

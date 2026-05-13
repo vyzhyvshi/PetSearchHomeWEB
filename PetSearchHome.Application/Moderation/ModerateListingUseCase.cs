@@ -5,7 +5,7 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Application.Moderation
 {
-    public sealed record ModerateListingRequest(Guid ListingId, bool Approve, string? Reason);
+    public sealed record ModerateListingRequest(int ListingId, bool Approve, string? Reason);
 
     public class ModerateListingUseCase : IUseCase<ModerateListingRequest, Result<bool>>
     {
@@ -38,7 +38,7 @@ namespace PetSearchHome_WEB.Application.Moderation
 
             await _listings.UpdateAsync(updated, cancellationToken);
             await _notifications.NotifyAsync(listing.OwnerId, $"Ваше оголошення '{listing.Title}' було {(request.Approve ? "схвалено" : "відхилено")}.", cancellationToken);
-            await _audit.RecordAsync("moderate_listing", authContext.UserId ?? Guid.Empty, listing.Id.ToString(), cancellationToken);
+            await _audit.RecordAsync("moderate_listing", 0, listing.Id.ToString(System.Globalization.CultureInfo.InvariantCulture), cancellationToken);
 
             return Result.Success(true);
         }

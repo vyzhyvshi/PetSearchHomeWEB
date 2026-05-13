@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Chat
 {
-    public sealed record SendChatMessageRequest(Guid ConversationId, string Message, string? ImageUrl);
+    public sealed record SendChatMessageRequest(int ConversationId, string Message, string? ImageUrl);
 
     public class SendChatMessageUseCase : IUseCase<SendChatMessageRequest, Result>
     {

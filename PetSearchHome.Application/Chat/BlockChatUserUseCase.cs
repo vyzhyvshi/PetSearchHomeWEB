@@ -3,7 +3,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Chat
 {
-    public sealed record BlockChatUserRequest(Guid OtherUserId);
+    public sealed record BlockChatUserRequest(int OtherUserId);
 
     public class BlockChatUserUseCase : IUseCase<BlockChatUserRequest, Result>
     {

@@ -18,7 +18,7 @@ namespace PetSearchHome.Tests
                 .ReturnsAsync(new List<PetListing> { new PetListing(), new PetListing() });
 
             var useCase = new GetPendingListingsUseCase(mockRepo.Object);
-            var auth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Admin };
+            var auth = new AuthContext { UserId = new int(), Role = Role.Admin };
 
             var result = await useCase.ExecuteAsync(new GetPendingListingsRequest(), auth);
 
@@ -41,13 +41,13 @@ namespace PetSearchHome.Tests
         public async Task ModerateListing_WhenAdmin_ApprovesSuccessfully()
         {
             var mockListings = new Mock<IListingRepository>();
-            mockListings.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PetListing { Id = Guid.NewGuid(), Status = ListingStatus.PendingModeration });
+            mockListings.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PetListing { Id = new int(), Status = ListingStatus.PendingModeration });
 
             var useCase = new ModerateListingUseCase(mockListings.Object, new Mock<INotificationGateway>().Object, new Mock<IAuditLogGateway>().Object);
-            var auth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Admin };
+            var auth = new AuthContext { UserId = new int(), Role = Role.Admin };
 
-            var result = await useCase.ExecuteAsync(new ModerateListingRequest(Guid.NewGuid(), true, "Ок"), auth);
+            var result = await useCase.ExecuteAsync(new ModerateListingRequest(new int(), true, "Ок"), auth);
 
             Assert.True(result.IsSuccess);
             mockListings.Verify(r => r.UpdateAsync(It.Is<PetListing>(l => l.Status == ListingStatus.Published), It.IsAny<CancellationToken>()), Times.Once);
@@ -57,9 +57,9 @@ namespace PetSearchHome.Tests
         public async Task ModerateListing_WhenPerson_ReturnsFailure()
         {
             var useCase = new ModerateListingUseCase(new Mock<IListingRepository>().Object, new Mock<INotificationGateway>().Object, new Mock<IAuditLogGateway>().Object);
-            var auth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Person };
+            var auth = new AuthContext { UserId = new int(), Role = Role.Person };
 
-            var result = await useCase.ExecuteAsync(new ModerateListingRequest(Guid.NewGuid(), true, null), auth);
+            var result = await useCase.ExecuteAsync(new ModerateListingRequest(new int(), true, null), auth);
 
             Assert.False(result.IsSuccess);
         }
@@ -69,12 +69,12 @@ namespace PetSearchHome.Tests
         {
             var mockComplaints = new Mock<IComplaintRepository>();
             var useCase = new HandleComplaintUseCase(mockComplaints.Object, new Mock<IAuditLogGateway>().Object);
-            var auth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Admin };
+            var auth = new AuthContext { UserId = new int(), Role = Role.Admin };
 
-            var result = await useCase.ExecuteAsync(new HandleComplaintRequest(Guid.NewGuid(), "Видалено"), auth);
+            var result = await useCase.ExecuteAsync(new HandleComplaintRequest(new int(), "Видалено"), auth);
 
             Assert.True(result.IsSuccess);
-            mockComplaints.Verify(r => r.UpdateStatusAsync(It.IsAny<Guid>(), "Видалено", It.IsAny<CancellationToken>()), Times.Once);
+            mockComplaints.Verify(r => r.UpdateStatusAsync(It.IsAny<int>(), "Видалено", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace PetSearchHome.Tests
             var useCase = new HandleComplaintUseCase(new Mock<IComplaintRepository>().Object, new Mock<IAuditLogGateway>().Object);
             var auth = new AuthContext { UserId = null, Role = Role.Guest };
 
-            var result = await useCase.ExecuteAsync(new HandleComplaintRequest(Guid.NewGuid(), "Видалено"), auth);
+            var result = await useCase.ExecuteAsync(new HandleComplaintRequest(new int(), "Видалено"), auth);
 
             Assert.False(result.IsSuccess);
         }
@@ -96,11 +96,11 @@ namespace PetSearchHome.Tests
                 .ReturnsAsync(new List<User> { new User() });
 
             var mockListings = new Mock<IListingRepository>();
-            mockListings.Setup(r => r.ListByOwnerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            mockListings.Setup(r => r.ListByOwnerAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<PetListing> { new PetListing() });
 
             var useCase = new SearchUsersWithListingsUseCase(mockUsers.Object, mockListings.Object);
-            var auth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Admin };
+            var auth = new AuthContext { UserId = new int(), Role = Role.Admin };
 
             var result = await useCase.ExecuteAsync(new SearchUsersWithListingsRequest("Іван"), auth);
 
@@ -111,7 +111,7 @@ namespace PetSearchHome.Tests
         public async Task SearchUsers_WhenPerson_ReturnsFailure()
         {
             var useCase = new SearchUsersWithListingsUseCase(new Mock<IUserRepository>().Object, new Mock<IListingRepository>().Object);
-            var auth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Person };
+            var auth = new AuthContext { UserId = new int(), Role = Role.Person };
 
             var result = await useCase.ExecuteAsync(new SearchUsersWithListingsRequest("Іван"), auth);
 
@@ -123,12 +123,12 @@ namespace PetSearchHome.Tests
         {
             var mockUsers = new Mock<IUserRepository>();
             var useCase = new BlockUserUseCase(mockUsers.Object, new Mock<IAuditLogGateway>().Object);
-            var auth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Admin };
+            var auth = new AuthContext { UserId = new int(), Role = Role.Admin };
 
-            var result = await useCase.ExecuteAsync(new BlockUserRequest(Guid.NewGuid(), true), auth);
+            var result = await useCase.ExecuteAsync(new BlockUserRequest(new int(), true), auth);
 
             Assert.True(result.IsSuccess);
-            mockUsers.Verify(r => r.SetBlockedAsync(It.IsAny<Guid>(), true, It.IsAny<CancellationToken>()), Times.Once);
+            mockUsers.Verify(r => r.SetBlockedAsync(It.IsAny<int>(), true, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -137,7 +137,7 @@ namespace PetSearchHome.Tests
             var useCase = new BlockUserUseCase(new Mock<IUserRepository>().Object, new Mock<IAuditLogGateway>().Object);
             var auth = new AuthContext { UserId = null, Role = Role.Guest };
 
-            var result = await useCase.ExecuteAsync(new BlockUserRequest(Guid.NewGuid(), true), auth);
+            var result = await useCase.ExecuteAsync(new BlockUserRequest(new int(), true), auth);
 
             Assert.False(result.IsSuccess);
         }

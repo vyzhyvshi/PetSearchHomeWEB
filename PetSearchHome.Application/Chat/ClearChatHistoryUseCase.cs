@@ -3,7 +3,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Chat
 {
-    public sealed record ClearChatHistoryRequest(Guid ConversationId);
+    public sealed record ClearChatHistoryRequest(int ConversationId);
 
     public class ClearChatHistoryUseCase : IUseCase<ClearChatHistoryRequest, Result>
     {

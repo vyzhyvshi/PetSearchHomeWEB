@@ -19,8 +19,8 @@ public class EfReviewRepository : IReviewRepository
     {
         var entity = new ReviewEntity
         {
-            ReviewerId = FromDomainId(review.AuthorId),
-            ReviewedId = FromDomainId(review.ReviewedUserId),
+            ReviewerId = review.AuthorId,
+            ReviewedId = review.ReviewedUserId,
             Rating = review.Rating,
             Comment = review.Comment,
             CreatedAt = review.CreatedAt.UtcDateTime
@@ -30,9 +30,9 @@ public class EfReviewRepository : IReviewRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Review>> ListByReviewedUserAsync(Guid reviewedUserId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Review>> ListByReviewedUserAsync(int reviewedUserId, CancellationToken cancellationToken = default)
     {
-        var reviewedId = FromDomainId(reviewedUserId);
+        var reviewedId = reviewedUserId;
 
         var reviews = await _db.Reviews
             .AsNoTracking()
@@ -40,9 +40,9 @@ public class EfReviewRepository : IReviewRepository
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new Review
             {
-                Id = ToDomainId(r.ReviewId),
-                AuthorId = ToDomainId(r.ReviewerId),
-                ReviewedUserId = ToDomainId(r.ReviewedId),
+                Id = r.ReviewId,
+                AuthorId = r.ReviewerId,
+                ReviewedUserId = r.ReviewedId,
                 Rating = (byte)r.Rating,
                 Comment = r.Comment,
                 CreatedAt = new DateTimeOffset(DateTime.SpecifyKind(r.CreatedAt, DateTimeKind.Utc))
@@ -52,22 +52,4 @@ public class EfReviewRepository : IReviewRepository
         return reviews;
     }
 
-    private static Guid ToDomainId(int value)
-    {
-        Span<byte> bytes = stackalloc byte[16];
-        bytes.Clear();
-        BitConverter.TryWriteBytes(bytes, value);
-        return new Guid(bytes);
-    }
-
-    private static int FromDomainId(Guid id)
-    {
-        if (id == Guid.Empty)
-        {
-            throw new InvalidOperationException("Identifier is not set.");
-        }
-
-        var bytes = id.ToByteArray();
-        return BitConverter.ToInt32(bytes, 0);
-    }
 }

@@ -90,7 +90,7 @@ namespace PetSearchHome_WEB.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Start(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Start(int id, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _startChatUseCase.ExecuteAsync(new StartChatRequest(id), authContext, cancellationToken);
@@ -105,7 +105,7 @@ namespace PetSearchHome_WEB.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Thread(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Thread(int id, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _getChatThreadUseCase.ExecuteAsync(new GetChatThreadRequest(id), authContext, cancellationToken);
@@ -143,7 +143,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Send(Guid id, string message, IFormFile? photo, CancellationToken cancellationToken)
+        public async Task<IActionResult> Send(int id, string message, IFormFile? photo, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             string? imageUrl = null;
@@ -165,7 +165,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteMessage(Guid id, Guid messageId, CancellationToken cancellationToken)
+        public async Task<IActionResult> DeleteMessage(int id, int messageId, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _deleteChatMessageUseCase.ExecuteAsync(new DeleteChatMessageRequest(messageId), authContext, cancellationToken);
@@ -186,7 +186,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Block(Guid id, Guid otherUserId, CancellationToken cancellationToken)
+        public async Task<IActionResult> Block(int id, int otherUserId, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _blockChatUserUseCase.ExecuteAsync(new BlockChatUserRequest(otherUserId), authContext, cancellationToken);
@@ -201,7 +201,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Unblock(Guid id, Guid otherUserId, CancellationToken cancellationToken)
+        public async Task<IActionResult> Unblock(int id, int otherUserId, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _unblockChatUserUseCase.ExecuteAsync(new UnblockChatUserRequest(otherUserId), authContext, cancellationToken);
@@ -216,7 +216,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Guid messageId, string newMessage, CancellationToken cancellationToken)
+        public async Task<IActionResult> Edit(int id, int messageId, string newMessage, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
 
@@ -235,7 +235,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ClearHistory(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> ClearHistory(int id, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _clearChatHistoryUseCase.ExecuteAsync(new ClearChatHistoryRequest(id), authContext, cancellationToken);

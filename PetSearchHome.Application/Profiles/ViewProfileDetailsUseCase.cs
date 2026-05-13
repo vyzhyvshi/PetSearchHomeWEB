@@ -5,7 +5,7 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Application.Profiles
 {
-    public sealed record ViewProfileDetailsRequest(Guid UserId);
+    public sealed record ViewProfileDetailsRequest(int UserId);
 
     public sealed record ProfileDetailsResult(
         User User,

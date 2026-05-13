@@ -32,7 +32,7 @@ namespace PetSearchHome.Tests
         {
             var email = "test@example.com";
             var password = "password123";
-            User user = new() { Id = Guid.NewGuid(), Email = email, PasswordHash = "hashed_pass", Role = Role.Person };
+            User user = new() { Id = new int(), Email = email, PasswordHash = "hashed_pass", Role = Role.Person };
 
             LoginRequest request = new(email, password);
             AuthContext authContext = new() { UserId = null, Role = Role.Guest };
@@ -54,7 +54,7 @@ namespace PetSearchHome.Tests
         {
             var email = "test@example.com";
             var password = "wrong_password";
-            User user = new() { Id = Guid.NewGuid(), Email = email, PasswordHash = "hashed_pass", Role = Role.Person };
+            User user = new() { Id = new int(), Email = email, PasswordHash = "hashed_pass", Role = Role.Person };
 
             LoginRequest request = new(email, password);
             AuthContext authContext = new() { UserId = null, Role = Role.Guest };

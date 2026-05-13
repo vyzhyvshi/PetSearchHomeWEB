@@ -37,14 +37,20 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenValidRequest_AddsListingAndReturnsSuccess()
         {
-            
             var request = new CreateListingRequest("Мурка", "Cat", "Львів", "Дуже лагідна", true, Array.Empty<string>());
-            var authContext = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Person };
+            var authContext = new AuthContext { UserId = 1, Role = Role.Person };
+
+            _listingsMock.Setup(repo => repo.AddAsync(It.IsAny<PetListing>(), It.IsAny<CancellationToken>()))
+                .Callback<PetListing, CancellationToken>((l, ct) =>
+                {
+                    typeof(PetListing).GetProperty("Id")?.SetValue(l, 77);
+                })
+                .Returns(Task.CompletedTask);
 
             var result = await _useCase.ExecuteAsync(request, authContext);
 
             Assert.True(result.IsSuccess);
-            Assert.NotEqual(Guid.Empty, result.Value);
+            Assert.NotEqual(0, result.Value); 
 
             _listingsMock.Verify(repo => repo.AddAsync(It.IsAny<PetListing>(), It.IsAny<CancellationToken>()), Times.Once);
         }

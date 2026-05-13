@@ -15,7 +15,7 @@ public class EfChatRepository : IChatRepository
         _db = db;
     }
 
-    public async Task<ChatConversation?> GetConversationAsync(Guid userId, Guid otherUserId, CancellationToken cancellationToken = default)
+    public async Task<ChatConversation?> GetConversationAsync(int userId, int otherUserId, CancellationToken cancellationToken = default)
     {
         var (userAId, userBId) = NormalizePair(userId, otherUserId);
         var entity = await _db.ChatConversations
@@ -25,7 +25,7 @@ public class EfChatRepository : IChatRepository
         return entity is null ? null : Map(entity);
     }
 
-    public async Task<ChatConversation?> GetConversationByIdAsync(Guid conversationId, CancellationToken cancellationToken = default)
+    public async Task<ChatConversation?> GetConversationByIdAsync(int conversationId, CancellationToken cancellationToken = default)
     {
         var id = FromDomainId(conversationId);
         var entity = await _db.ChatConversations
@@ -35,7 +35,7 @@ public class EfChatRepository : IChatRepository
         return entity is null ? null : Map(entity);
     }
 
-    public async Task<ChatConversation> CreateConversationAsync(Guid userId, Guid otherUserId, CancellationToken cancellationToken = default)
+    public async Task<ChatConversation> CreateConversationAsync(int userId, int otherUserId, CancellationToken cancellationToken = default)
     {
         var (userAId, userBId) = NormalizePair(userId, otherUserId);
         var entity = new ChatConversationEntity
@@ -51,7 +51,7 @@ public class EfChatRepository : IChatRepository
         return Map(entity);
     }
 
-    public async Task<IReadOnlyList<ChatConversation>> ListConversationsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ChatConversation>> ListConversationsAsync(int userId, CancellationToken cancellationToken = default)
     {
         var id = FromDomainId(userId);
         var entities = await _db.ChatConversations
@@ -63,7 +63,7 @@ public class EfChatRepository : IChatRepository
         return entities.Select(Map).ToList();
     }
 
-    public async Task<IReadOnlyList<ChatMessage>> ListMessagesAsync(Guid conversationId, Guid? viewerUserId = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ChatMessage>> ListMessagesAsync(int conversationId, int? viewerUserId = null, CancellationToken cancellationToken = default)
     {
         var id = FromDomainId(conversationId);
         var conversation = await _db.ChatConversations
@@ -91,7 +91,7 @@ public class EfChatRepository : IChatRepository
         return entities.Select(Map).ToList();
     }
 
-    public async Task<int> CountUnreadMessagesAsync(Guid conversationId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<int> CountUnreadMessagesAsync(int conversationId, int userId, CancellationToken cancellationToken = default)
     {
         var conversationKey = FromDomainId(conversationId);
         var userKey = FromDomainId(userId);
@@ -100,7 +100,7 @@ public class EfChatRepository : IChatRepository
             .CountAsync(m => m.ConversationId == conversationKey && m.SenderId != userKey && m.ReadAt == null, cancellationToken);
     }
 
-    public async Task MarkMessagesReadAsync(Guid conversationId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task MarkMessagesReadAsync(int conversationId, int userId, CancellationToken cancellationToken = default)
     {
         var conversationKey = FromDomainId(conversationId);
         var userKey = FromDomainId(userId);
@@ -117,7 +117,7 @@ public class EfChatRepository : IChatRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ClearHistoryAsync(Guid conversationId, Guid userId, DateTimeOffset clearedAt, CancellationToken cancellationToken = default)
+    public async Task ClearHistoryAsync(int conversationId, int userId, DateTimeOffset clearedAt, CancellationToken cancellationToken = default)
     {
         var conversationKey = FromDomainId(conversationId);
         var userKey = FromDomainId(userId);
@@ -141,7 +141,7 @@ public class EfChatRepository : IChatRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<ChatMessage?> GetLastMessageAsync(Guid conversationId, Guid? viewerUserId = null, CancellationToken cancellationToken = default)
+    public async Task<ChatMessage?> GetLastMessageAsync(int conversationId, int? viewerUserId = null, CancellationToken cancellationToken = default)
     {
         var id = FromDomainId(conversationId);
         var conversation = await _db.ChatConversations
@@ -185,7 +185,7 @@ public class EfChatRepository : IChatRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<ChatMessage?> GetMessageByIdAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task<ChatMessage?> GetMessageByIdAsync(int messageId, CancellationToken cancellationToken = default)
     {
         var id = FromDomainId(messageId);
         var entity = await _db.ChatMessages
@@ -195,7 +195,7 @@ public class EfChatRepository : IChatRepository
         return entity is null ? null : Map(entity);
     }
 
-    public async Task DeleteMessageAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task DeleteMessageAsync(int messageId, CancellationToken cancellationToken = default)
     {
         var id = FromDomainId(messageId);
         var entity = await _db.ChatMessages.FirstOrDefaultAsync(m => m.MessageId == id, cancellationToken);
@@ -208,7 +208,7 @@ public class EfChatRepository : IChatRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> IsBlockedAsync(Guid blockerId, Guid blockedId, CancellationToken cancellationToken = default)
+    public async Task<bool> IsBlockedAsync(int blockerId, int blockedId, CancellationToken cancellationToken = default)
     {
         var blocker = FromDomainId(blockerId);
         var blocked = FromDomainId(blockedId);
@@ -217,7 +217,7 @@ public class EfChatRepository : IChatRepository
             .AnyAsync(b => b.BlockerId == blocker && b.BlockedId == blocked, cancellationToken);
     }
 
-    public async Task SetBlockedAsync(Guid blockerId, Guid blockedId, bool isBlocked, CancellationToken cancellationToken = default)
+    public async Task SetBlockedAsync(int blockerId, int blockedId, bool isBlocked, CancellationToken cancellationToken = default)
     {
         var blocker = FromDomainId(blockerId);
         var blocked = FromDomainId(blockedId);
@@ -245,7 +245,7 @@ public class EfChatRepository : IChatRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    private static (int UserAId, int UserBId) NormalizePair(Guid userId, Guid otherUserId)
+    private static (int UserAId, int UserBId) NormalizePair(int userId, int otherUserId)
     {
         var userAId = FromDomainId(userId);
         var userBId = FromDomainId(otherUserId);
@@ -273,23 +273,14 @@ public class EfChatRepository : IChatRepository
             : null
     };
 
-    private static Guid ToDomainId(int value)
+    private static int ToDomainId(int value)
     {
-        Span<byte> bytes = stackalloc byte[16];
-        bytes.Clear();
-        BitConverter.TryWriteBytes(bytes, value);
-        return new Guid(bytes);
+        return value;
     }
 
-    private static int FromDomainId(Guid id)
+    private static int FromDomainId(int id)
     {
-        if (id == Guid.Empty)
-        {
-            throw new InvalidOperationException("Identifier is not set.");
-        }
-
-        var bytes = id.ToByteArray();
-        return BitConverter.ToInt32(bytes, 0);
+        return id;
     }
 
     public async Task UpdateMessageAsync(ChatMessage message, CancellationToken cancellationToken = default)

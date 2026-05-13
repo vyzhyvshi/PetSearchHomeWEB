@@ -43,8 +43,7 @@ public class EfListingRepository : IListingRepository, ISearchGateway
 
         var result = entities.Select(MapToDomain).ToList();
 
-        // read cache duration from configuration (seconds)
-        var seconds =300; // default
+        var seconds =300; 
         var configured = _configuration["CacheSettings:FeaturedSeconds"];
         if (!string.IsNullOrWhiteSpace(configured) && int.TryParse(configured, out var parsed))
         {
@@ -61,7 +60,7 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         return result;
     }
 
-    public async Task<PetListing?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<PetListing?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         var entity = await QueryBase()
             .FirstOrDefaultAsync(l => l.DomainId == id, cancellationToken);
@@ -69,9 +68,9 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         return entity is null ? null : MapToDomain(entity);
     }
 
-    public async Task<IReadOnlyList<PetListing>> ListByOwnerAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PetListing>> ListByOwnerAsync(int ownerId, CancellationToken cancellationToken = default)
     {
-        var userId = FromDomainGuid(ownerId);
+        var userId = ownerId;
         var entities = await QueryBase()
             .Where(l => l.UserId == userId)
             .OrderByDescending(l => l.CreatedAt)
@@ -95,8 +94,8 @@ public class EfListingRepository : IListingRepository, ISearchGateway
 
         var entity = new ListingEntity
         {
-            DomainId = listing.Id == Guid.Empty ? Guid.NewGuid() : listing.Id,
-            UserId = FromDomainGuid(listing.OwnerId),
+            DomainId = listing.Id,
+            UserId = listing.OwnerId,
             Title = string.IsNullOrWhiteSpace(listing.Title) ? listing.AnimalType : listing.Title,
             AnimalType = listing.AnimalType,
             Location = string.IsNullOrWhiteSpace(listing.Location) ? city : listing.Location,
@@ -128,9 +127,7 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         await _db.Listings.AddAsync(entity, cancellationToken);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // invalidate featured cache because new listing may affect it
         var cacheKeyPrefix = "featured:";
-        // naive approach: remove keys for small takes
         for (int t =1; t <=12; t++)
         {
             _cache.Remove($"{cacheKeyPrefix}{t}");
@@ -183,14 +180,13 @@ public class EfListingRepository : IListingRepository, ISearchGateway
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        // invalidate featured cache
         for (int t =1; t <=12; t++)
         {
             _cache.Remove($"featured:{t}");
         }
     }
 
-    public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task RemoveAsync(int id, CancellationToken cancellationToken = default)
     {
         var entity = await _db.Listings.FirstOrDefaultAsync(l => l.DomainId == id, cancellationToken);
         if (entity is null)
@@ -201,7 +197,6 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         _db.Listings.Remove(entity);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // invalidate featured cache
         for (int t =1; t <=12; t++)
         {
             _cache.Remove($"featured:{t}");
@@ -218,7 +213,7 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         return entities.Select(MapToDomain).ToList();
     }
 
-    public async Task<IReadOnlyList<PetListing>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PetListing>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
     {
         var list = ids.Distinct().ToArray();
         if (list.Length ==0)
@@ -285,7 +280,7 @@ public class EfListingRepository : IListingRepository, ISearchGateway
         return new PetListing
         {
             Id = entity.DomainId,
-            OwnerId = ToDomainGuid(entity.UserId),
+            OwnerId = entity.UserId,
             OwnerRole = entity.User?.Role ?? Role.Person,
             Title = entity.Title,
             AnimalType = entity.AnimalType,
@@ -314,22 +309,5 @@ public class EfListingRepository : IListingRepository, ISearchGateway
  };
  }
 
-    private static Guid ToDomainGuid(int value)
-    {
-        Span<byte> buffer = stackalloc byte[16];
-        buffer.Clear();
-        BitConverter.TryWriteBytes(buffer, value);
-        return new Guid(buffer);
-    }
-
-    private static int FromDomainGuid(Guid id)
-    {
-        if (id == Guid.Empty)
-        {
-            throw new InvalidOperationException("Owner identifier is not set.");
-        }
-
-        var bytes = id.ToByteArray();
-        return BitConverter.ToInt32(bytes,0);
-    }
+    
 }

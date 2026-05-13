@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Reviews
 {
-    public sealed record ListReviewsRequest(Guid ReviewedUserId);
+    public sealed record ListReviewsRequest(int ReviewedUserId);
 
     public class ListReviewsUseCase : IUseCase<ListReviewsRequest, IReadOnlyList<Review>>
     {

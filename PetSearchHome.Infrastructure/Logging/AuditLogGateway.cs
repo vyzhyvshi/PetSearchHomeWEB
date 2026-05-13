@@ -12,7 +12,7 @@ namespace PetSearchHome_WEB.Infrastructure.Logging
             _logger = logger;
         }
 
-        public Task RecordAsync(string action, Guid actorId, string context, CancellationToken cancellationToken = default)
+        public Task RecordAsync(string action, int actorId, string context, CancellationToken cancellationToken = default)
         {
             // Форматуємо повідомлення аудиту. 
             // В майбутньому тут можна додати код для збереження події в таблицю БД (наприклад, AuditLogs)

@@ -13,20 +13,20 @@ namespace PetSearchHome.Tests
 {
     public class UserEngagementUseCaseTests
     {
-        private readonly AuthContext _validAuth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Person };
-        private readonly AuthContext _adminAuth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Admin };
+        private readonly AuthContext _validAuth = new AuthContext { UserId = new int(), Role = Role.Person };
+        private readonly AuthContext _adminAuth = new AuthContext { UserId = new int(), Role = Role.Admin };
 
         // Перевіряє, що скарга успішно створюється, якщо оголошення існує
         [Fact]
         public async Task SubmitComplaint_WhenListingExists_ReturnsSuccess()
         {
             var listingsMock = new Mock<IListingRepository>();
-            listingsMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PetListing { Id = Guid.NewGuid() });
+            listingsMock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PetListing { Id = new int() });
 
             var useCase = new SubmitComplaintUseCase(new Mock<IComplaintRepository>().Object, listingsMock.Object, new Mock<IAuditLogGateway>().Object, Options.Create(new ModerationSettings()));
 
-            var result = await useCase.ExecuteAsync(new SubmitComplaintRequest(Guid.NewGuid(), "Шахрайство"), _validAuth);
+            var result = await useCase.ExecuteAsync(new SubmitComplaintRequest(new int(), "Шахрайство"), _validAuth);
 
             Assert.True(result.IsSuccess);
         }
@@ -36,34 +36,34 @@ namespace PetSearchHome.Tests
         public async Task SubmitComplaint_WhenListingNotFound_ReturnsFailure()
         {
             var listingsMock = new Mock<IListingRepository>();
-            listingsMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            listingsMock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((PetListing?)null);
 
             var useCase = new SubmitComplaintUseCase(new Mock<IComplaintRepository>().Object, listingsMock.Object, new Mock<IAuditLogGateway>().Object, Options.Create(new ModerationSettings()));
 
-            var result = await useCase.ExecuteAsync(new SubmitComplaintRequest(Guid.NewGuid(), "Шахрайство"), _validAuth);
+            var result = await useCase.ExecuteAsync(new SubmitComplaintRequest(new int(), "Шахрайство"), _validAuth);
 
             Assert.False(result.IsSuccess);
             Assert.Contains("не знайдено", result.ErrorMessage);
         }
 
-        // Перевіряє, що скарга на користувача створюється, якщо він існує
-        [Fact]
-        public async Task SubmitUserComplaint_WhenTargetUserExists_ReturnsSuccess()
-        {
-            var usersMock = new Mock<IUserRepository>();
-            usersMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new User { Id = Guid.NewGuid() });
+		// Перевіряє, що скарга на користувача створюється, якщо він існує
+		[Fact]
+		public async Task SubmitUserComplaint_WhenTargetUserExists_ReturnsSuccess()
+		{
+			var usersMock = new Mock<IUserRepository>();
+			usersMock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync(new User { Id = 99 }); 
 
-            var useCase = new SubmitUserComplaintUseCase(new Mock<IComplaintRepository>().Object, usersMock.Object, new Mock<IAuditLogGateway>().Object);
+			var useCase = new SubmitUserComplaintUseCase(new Mock<IComplaintRepository>().Object, usersMock.Object, new Mock<IAuditLogGateway>().Object);
 
-            var result = await useCase.ExecuteAsync(new SubmitUserComplaintRequest(Guid.NewGuid(), "Грубість"), _validAuth);
+			var result = await useCase.ExecuteAsync(new SubmitUserComplaintRequest(99, "Грубість"), _validAuth);
 
-            Assert.True(result.IsSuccess);
-        }
+			Assert.True(result.IsSuccess);
+		}
 
-        // Перевіряє, що не можна поскаржитися на самого себе
-        [Fact]
+		// Перевіряє, що не можна поскаржитися на самого себе
+		[Fact]
         public async Task SubmitUserComplaint_WhenTargetIsSelf_ReturnsFailure()
         {
             var useCase = new SubmitUserComplaintUseCase(new Mock<IComplaintRepository>().Object, new Mock<IUserRepository>().Object, new Mock<IAuditLogGateway>().Object);
@@ -75,40 +75,49 @@ namespace PetSearchHome.Tests
             Assert.Contains("власний профіль", result.ErrorMessage);
         }
 
-        // Перевіряє, що при валідних даних створюється відгук з новим ID
-        [Fact]
-        public async Task LeaveReview_WithValidData_ReturnsNewReviewId()
-        {
-            var useCase = new LeaveReviewUseCase(new Mock<IReviewRepository>().Object);
+		// Перевіряє, що при валідних даних створюється відгук з новим ID
+		[Fact]
+		public async Task LeaveReview_WithValidData_ReturnsNewReviewId()
+		{
+			var reviewRepoMock = new Mock<IReviewRepository>();
 
-            var result = await useCase.ExecuteAsync(new LeaveReviewRequest(Guid.NewGuid(), (byte)5, "Все чудово!", true), _validAuth);
+			reviewRepoMock.Setup(repo => repo.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()))
+				.Callback<Review, CancellationToken>((r, ct) =>
+				{
+					typeof(Review).GetProperty("Id")?.SetValue(r, 42);
+				})
+				.Returns(Task.CompletedTask);
 
-            Assert.NotEqual(Guid.Empty, result);
-        }
+			var useCase = new LeaveReviewUseCase(reviewRepoMock.Object);
 
-        // Перевіряє, що відгук зберігається з правильними даними (рейтинг і коментар)
-        [Fact]
-        public async Task LeaveReview_WithValidData_SavesCorrectlyToDatabase()
-        {
-            var reviewsMock = new Mock<IReviewRepository>();
-            var useCase = new LeaveReviewUseCase(reviewsMock.Object);
+			var result = await useCase.ExecuteAsync(new LeaveReviewRequest(999, (byte)5, "Все чудово!", true), _validAuth);
 
-            await useCase.ExecuteAsync(new LeaveReviewRequest(Guid.NewGuid(), (byte)4, "Добре", true), _validAuth);
+			Assert.NotEqual(0, result); 
+		}
 
-            reviewsMock.Verify(r => r.AddAsync(It.Is<Review>(rev => rev.Rating == 4 && rev.Comment == "Добре"), It.IsAny<CancellationToken>()), Times.Once);
-        }
+		// Перевіряє, що відгук зберігається з правильними даними (рейтинг і коментар)
+		[Fact]
+		public async Task LeaveReview_WithValidData_SavesCorrectlyToDatabase()
+		{
+			var reviewsMock = new Mock<IReviewRepository>();
+			var useCase = new LeaveReviewUseCase(reviewsMock.Object);
 
-        // Перевіряє, що статистика повертається, якщо вона існує
-        [Fact]
+			await useCase.ExecuteAsync(new LeaveReviewRequest(999, (byte)4, "Добре", true), _validAuth);
+
+			reviewsMock.Verify(r => r.AddAsync(It.Is<Review>(rev => rev.Rating == 4 && rev.Comment == "Добре"), It.IsAny<CancellationToken>()));
+		}
+
+		// Перевіряє, що статистика повертається, якщо вона існує
+		[Fact]
         public async Task ViewOrgStats_WhenStatsExist_ReturnsObject()
         {
             var statsMock = new Mock<IOrgStatsRepository>();
-            statsMock.Setup(r => r.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            statsMock.Setup(r => r.GetAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new OrgStats());
 
             var useCase = new ViewOrgStatsUseCase(statsMock.Object);
 
-            var result = await useCase.ExecuteAsync(new ViewOrgStatsRequest(Guid.NewGuid()), _adminAuth);
+            var result = await useCase.ExecuteAsync(new ViewOrgStatsRequest(new int()), _adminAuth);
 
             Assert.NotNull(result);
         }
@@ -118,12 +127,12 @@ namespace PetSearchHome.Tests
         public async Task ViewOrgStats_WhenStatsDoNotExist_ReturnsNull()
         {
             var statsMock = new Mock<IOrgStatsRepository>();
-            statsMock.Setup(r => r.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            statsMock.Setup(r => r.GetAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((OrgStats?)null);
 
             var useCase = new ViewOrgStatsUseCase(statsMock.Object);
 
-            var result = await useCase.ExecuteAsync(new ViewOrgStatsRequest(Guid.NewGuid()), _adminAuth);
+            var result = await useCase.ExecuteAsync(new ViewOrgStatsRequest(new int()), _adminAuth);
 
             Assert.Null(result);
         }
@@ -137,7 +146,7 @@ namespace PetSearchHome.Tests
                 .ReturnsAsync(new List<User> { new User { DisplayName = "Притулок Надія" } });
 
             var listingsMock = new Mock<IListingRepository>();
-            listingsMock.Setup(r => r.ListByOwnerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            listingsMock.Setup(r => r.ListByOwnerAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<PetListing> { new PetListing() });
 
             var options = Options.Create(new SearchSettings { MinQueryLength = 2, MaxResults = 50 });

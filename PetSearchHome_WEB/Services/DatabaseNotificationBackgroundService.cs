@@ -93,7 +93,7 @@ public sealed class DatabaseNotificationBackgroundService : BackgroundService, I
         {
             foreach (var adminUserId in adminUserIds)
             {
-                var recipientId = ToDomainId(adminUserId);
+                var recipientId = adminUserId;
                 var message = $"Нове оголошення очікує модерації: {listing.Title} (#{listing.ListingId}).";
                 await NotifyIfMissingAsync(db, notificationGateway, recipientId, message, cancellationToken);
             }
@@ -123,7 +123,7 @@ public sealed class DatabaseNotificationBackgroundService : BackgroundService, I
         foreach (var favorite in favorites)
         {
             var message = $"Ваше оголошення додали в обране: {favorite.Title} (подія #{favorite.FavoriteId}).";
-            await NotifyIfMissingAsync(db, notificationGateway, ToDomainId(favorite.OwnerId), message, cancellationToken);
+            await NotifyIfMissingAsync(db, notificationGateway, favorite.OwnerId, message, cancellationToken);
         }
     }
 
@@ -153,14 +153,14 @@ public sealed class DatabaseNotificationBackgroundService : BackgroundService, I
                 ? chatMessage.UserBId
                 : chatMessage.UserAId;
             var message = $"У вас нове повідомлення в чаті (#{chatMessage.MessageId}).";
-            await NotifyIfMissingAsync(db, notificationGateway, ToDomainId(recipientUserId), message, cancellationToken);
+            await NotifyIfMissingAsync(db, notificationGateway, recipientUserId, message, cancellationToken);
         }
     }
 
     private static async Task NotifyIfMissingAsync(
         ApplicationDbContext db,
         INotificationGateway notificationGateway,
-        Guid recipientId,
+        int recipientId,
         string message,
         CancellationToken cancellationToken)
     {
@@ -176,11 +176,5 @@ public sealed class DatabaseNotificationBackgroundService : BackgroundService, I
         await notificationGateway.NotifyAsync(recipientId, message, cancellationToken);
     }
 
-    private static Guid ToDomainId(int value)
-    {
-        Span<byte> bytes = stackalloc byte[16];
-        bytes.Clear();
-        BitConverter.TryWriteBytes(bytes, value);
-        return new Guid(bytes);
-    }
+    
 }

@@ -90,7 +90,7 @@ namespace PetSearchHome_WEB.Controllers
 
             List<Claim> claims = new()
             {
-                new Claim(ClaimTypes.NameIdentifier, response.UserId.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, response.UserId.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.Email, model.Email),
                 new Claim(ClaimTypes.Role, response.Role.ToString())
             };

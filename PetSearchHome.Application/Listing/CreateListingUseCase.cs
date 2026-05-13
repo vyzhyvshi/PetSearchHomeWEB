@@ -14,7 +14,7 @@ namespace PetSearchHome_WEB.Application.Listing
         bool IsUrgent,
         IReadOnlyList<string> PhotoUrls);
 
-    public class CreateListingUseCase : IUseCase<CreateListingRequest, Result<Guid>>
+    public class CreateListingUseCase : IUseCase<CreateListingRequest, Result<int>>
     {
         private readonly IListingRepository _listings;
         private readonly IModerationQueue _moderationQueue;
@@ -25,16 +25,16 @@ namespace PetSearchHome_WEB.Application.Listing
             _moderationQueue = moderationQueue;
         }
 
-        public async Task<Result<Guid>> ExecuteAsync(CreateListingRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<int>> ExecuteAsync(CreateListingRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (authContext.UserId is null)
             {
-                return Result.Failure<Guid>("Необхідна авторизація.");
+                return Result.Failure<int>("Необхідна авторизація.");
             }
 
             if (!ListingAccessPolicy.CanCreate(authContext.Role))
             {
-                return Result.Failure<Guid>("Ваша роль не дозволяє створювати оголошення.");
+                return Result.Failure<int>("Ваша роль не дозволяє створювати оголошення.");
             }
 
             var status = ModerationPolicy.RequiresModeration(authContext.Role)

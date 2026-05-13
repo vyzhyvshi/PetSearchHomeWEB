@@ -6,9 +6,9 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Application.Moderation
 {
-    public sealed record SubmitComplaintRequest(Guid ListingId, string Reason);
+    public sealed record SubmitComplaintRequest(int ListingId, string Reason);
 
-    public class SubmitComplaintUseCase : IUseCase<SubmitComplaintRequest, Result<Guid>>
+    public class SubmitComplaintUseCase : IUseCase<SubmitComplaintRequest, Result<int>>
     {
         private readonly IComplaintRepository _complaints;
         private readonly IListingRepository _listings;
@@ -27,22 +27,22 @@ namespace PetSearchHome_WEB.Application.Moderation
             _settings = options.Value;
         }
 
-        public async Task<Result<Guid>> ExecuteAsync(SubmitComplaintRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<int>> ExecuteAsync(SubmitComplaintRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (authContext.UserId is null)
             {
-                return Result.Failure<Guid>("Необхідна авторизація.");
+                return Result.Failure<int>("Необхідна авторизація.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Reason))
             {
-                return Result.Failure<Guid>("Причина скарги є обов'язковою.");
+                return Result.Failure<int>("Причина скарги є обов'язковою.");
             }
 
             var listing = await _listings.GetByIdAsync(request.ListingId, cancellationToken);
             if (listing is null)
             {
-                return Result.Failure<Guid>("Оголошення не знайдено.");
+                return Result.Failure<int>("Оголошення не знайдено.");
             }
 
             Complaint complaint = new()
@@ -58,16 +58,17 @@ namespace PetSearchHome_WEB.Application.Moderation
             var pendingComplaints = await _complaints.CountPendingComplaintsForEntityAsync(request.ListingId, cancellationToken);
 
             await _complaints.AddAsync(complaint, cancellationToken);
-            await _audit.RecordAsync("submit_complaint", authContext.UserId.Value, complaint.Id.ToString(), cancellationToken);
+            await _audit.RecordAsync("submit_complaint", authContext.UserId.Value, complaint.Id.ToString(System.Globalization.CultureInfo.InvariantCulture), cancellationToken);
 
             if (pendingComplaints + 1 >= _settings.ComplaintsThresholdForAutoHide && listing.Status != ListingStatus.PendingModeration)
             {
                 var updatedListing = listing with { Status = ListingStatus.PendingModeration };
                 await _listings.UpdateAsync(updatedListing, cancellationToken);
-                await _audit.RecordAsync("auto_hide_by_reports", Guid.Empty, listing.Id.ToString(), cancellationToken);
+                await _audit.RecordAsync("auto_hide_by_reports", 0, listing.Id.ToString(System.Globalization.CultureInfo.InvariantCulture), cancellationToken);
             }
 
             return complaint.Id;
+            
         }
     }
 }

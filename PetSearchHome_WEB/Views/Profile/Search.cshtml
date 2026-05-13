@@ -4,7 +4,7 @@
     ViewData["Title"] = "Пошук користувачів";
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
-    var hasCurrentUserId = Guid.TryParse(currentUserId, out var parsedUserId);
+    var hasCurrentUserId = int.TryParse(currentUserId, out var parsedUserId);
 }
 
 <div class="container mt-4">

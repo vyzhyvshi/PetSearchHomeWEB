@@ -14,21 +14,21 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             {
                 new PetListing
                 {
-                    Id = Guid.Parse("dd284e4c-4f2f-4a0c-8986-1a78a2bf0000"),
+                    Id = 1,
                     Title = "Rocky (Лабрадор)",
                     AnimalType = "Dog",
                     Location = "Kyiv"
                 },
                 new PetListing
                 {
-                    Id = Guid.Parse("a3e42b80-7aba-44a4-9d1f-ede2a2900000"),
+                    Id = 2,
                     Title = "Mira (Британська короткошерста)",
                     AnimalType = "Cat",
                     Location = "Lviv"
                 },
                 new PetListing
                 {
-                    Id = Guid.Parse("0fdff0e9-5d8a-45fa-87bc-ded9c7d34300"),
+                    Id = 3,
                     Title = "Nora",
                     AnimalType = "Dog",
                     Location = "Odesa"
@@ -38,7 +38,6 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
         public Task<IReadOnlyList<PetListing>> SearchAsync(SearchFilters filters, CancellationToken cancellationToken = default)
         {
-            // Повертаємо наш список. Поки що без фільтрації, просто віддаємо всіх.
             return Task.FromResult<IReadOnlyList<PetListing>>(_listings);
         }
     }
@@ -50,15 +49,15 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
             => Task.FromResult(_users.FirstOrDefault(u => u.Email == email));
 
-        public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
             => Task.FromResult(_users.FirstOrDefault(u => u.Id == id));
 
         public Task AddAsync(User user, CancellationToken cancellationToken = default)
         {
-            var newUser = user.Id == Guid.Empty
+            var newUser = user.Id == 0
                 ? new User
                 {
-                    Id = Guid.NewGuid(),
+                    Id = 1,
                     Email = user.Email,
                     PasswordHash = user.PasswordHash,
                     Role = user.Role,
@@ -72,7 +71,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task SetBlockedAsync(Guid id, bool isBlocked, CancellationToken cancellationToken = default)
+        public Task SetBlockedAsync(int id, bool isBlocked, CancellationToken cancellationToken = default)
         {
             var index = _users.FindIndex(u => u.Id == id);
             if (index >= 0)
@@ -99,12 +98,12 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task UpdateRoleAsync(Guid id, Role role, CancellationToken cancellationToken = default)
+        public Task UpdateRoleAsync(int id, Role role, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task UpdatePasswordAsync(Guid id, string passwordHash, CancellationToken cancellationToken = default)
+        public Task UpdatePasswordAsync(int id, string passwordHash, CancellationToken cancellationToken = default)
         {
             var index = _users.FindIndex(u => u.Id == id);
             if (index >= 0)
@@ -125,7 +124,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
             var index = _users.FindIndex(u => u.Id == id);
             if (index >= 0)
@@ -167,7 +166,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
     {
         private readonly List<ShelterProfile> _profiles = new();
 
-        public Task<ShelterProfile?> GetProfileAsync(Guid shelterId, CancellationToken cancellationToken = default)
+        public Task<ShelterProfile?> GetProfileAsync(int shelterId, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(_profiles.FirstOrDefault(p => p.ShelterId == shelterId));
         }
@@ -185,11 +184,11 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
     {
         private readonly List<Complaint> _complaints = new();
 
-        public Task<int> CountPendingComplaintsForEntityAsync(Guid entityId, CancellationToken cancellationToken = default)
+        public Task<int> CountPendingComplaintsForEntityAsync(int entityId, CancellationToken cancellationToken = default)
             => Task.FromResult(_complaints.Count(c => c.ReportedEntityId == entityId &&
                                                       string.Equals(c.Status, "pending", StringComparison.OrdinalIgnoreCase)));
 
-        public Task UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken = default)
+        public Task UpdateStatusAsync(int id, string status, CancellationToken cancellationToken = default)
         {
             var index = _complaints.FindIndex(c => c.Id == id);
             if (index >= 0)
@@ -238,7 +237,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task RemoveAsync(int id, CancellationToken cancellationToken = default)
         {
             _tags.RemoveAll(tag => tag.Id == id);
             return Task.CompletedTask;
@@ -259,7 +258,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task RemoveAsync(int id, CancellationToken cancellationToken = default)
         {
             _categories.RemoveAll(category => category.Id == id);
             return Task.CompletedTask;
@@ -270,10 +269,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
     {
         private readonly List<Favorite> _favorites = new();
 
-        public Task<Favorite?> GetAsync(Guid userId, Guid listingId, CancellationToken cancellationToken = default)
-            => Task.FromResult(_favorites.FirstOrDefault(f => f.UserId == userId && f.ListingId == listingId));
+        public Task<Favorite?> GetAsync(int userId, int listingId, CancellationToken cancellationToken = default) => Task.FromResult(_favorites.FirstOrDefault(f => f.UserId == userId && f.ListingId == listingId));
 
-        public Task RemoveAsync(Guid userId, Guid listingId, CancellationToken cancellationToken = default)
+        public Task RemoveAsync(int userId, int listingId, CancellationToken cancellationToken = default)
         {
             _favorites.RemoveAll(f => f.UserId == userId && f.ListingId == listingId);
             return Task.CompletedTask;
@@ -285,10 +283,10 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<Guid>> ListIdsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
-            => Task.FromResult<IReadOnlyList<Guid>>(_favorites.Where(f => f.UserId == userId).Select(f => f.ListingId).ToList());
+        public Task<IReadOnlyList<int>> ListIdsByUserAsync(int userId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<int>>(_favorites.Where(f => f.UserId == userId).Select(f => f.ListingId).ToList());
 
-        public Task<IReadOnlyList<Favorite>> ListByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<Favorite>> ListByUserAsync(int userId, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
@@ -304,7 +302,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<Review>> ListByReviewedUserAsync(Guid reviewedUserId, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<Review>> ListByReviewedUserAsync(int reviewedUserId, CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IReadOnlyList<Review>>(
                 _reviews
@@ -316,7 +314,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
     public class InMemoryOrgStatsRepository : IOrgStatsRepository
     {
-        public Task<OrgStats?> GetAsync(Guid shelterId, CancellationToken cancellationToken = default) => Task.FromResult<OrgStats?>(null);
+        public Task<OrgStats?> GetAsync(int shelterId, CancellationToken cancellationToken = default) => Task.FromResult<OrgStats?>(null);
 
         public Task UpsertAsync(OrgStats stats, CancellationToken cancellationToken = default)
         {
@@ -326,7 +324,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
     public class InMemoryNotificationGateway : INotificationGateway
     {
-        public Task NotifyAsync(Guid recipientId, string message, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task NotifyAsync(int recipientId, string message, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     public class SimplePasswordHasher : IPasswordHasher
@@ -342,7 +340,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
     public class InMemoryModerationQueue : IModerationQueue
     {
-        private readonly List<Guid> _queue = new();
+        private readonly List<int> _queue = new();
 
         public Task EnqueueAsync(PetListing listing, CancellationToken cancellationToken = default)
         {

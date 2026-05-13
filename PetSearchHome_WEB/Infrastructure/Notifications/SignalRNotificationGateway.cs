@@ -18,7 +18,7 @@ public sealed class SignalRNotificationGateway : INotificationGateway
         _hubContext = hubContext;
     }
 
-    public async Task NotifyAsync(Guid recipientId, string message, CancellationToken cancellationToken = default)
+    public async Task NotifyAsync(int recipientId, string message, CancellationToken cancellationToken = default)
     {
         var notification = new Notification
         {
@@ -31,8 +31,8 @@ public sealed class SignalRNotificationGateway : INotificationGateway
         await _notifications.AddAsync(notification, cancellationToken);
 
         await _hubContext.Clients
-            .User(recipientId.ToString())
-            .SendAsync("ReceiveNotification", new
+                .User(recipientId.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                .SendAsync("ReceiveNotification", new
             {
                 notification.Id,
                 notification.Message,

@@ -23,12 +23,12 @@ namespace PetSearchHome.Tests
         public async Task ExecuteAsync_WhenListingNotFound_ReturnsFailure()
         {
 
-            _listingsMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            _listingsMock.Setup(repo => repo.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((PetListing?)null);
 
             
-            var request = new EditListingRequest(Guid.NewGuid(), "Нова назва", "Dog", "Київ", "Опис", false, Array.Empty<string>());
-            var authContext = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Person };
+            var request = new EditListingRequest(new int(), "Нова назва", "Dog", "Київ", "Опис", false, Array.Empty<string>());
+            var authContext = new AuthContext { UserId = new int(), Role = Role.Person };
 
            
             var result = await _useCase.ExecuteAsync(request, authContext);
@@ -41,16 +41,14 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenUserIsNotOwner_ReturnsFailure()
         {
-     
-            var ownerId = Guid.NewGuid();
-            var hackerId = Guid.NewGuid();
-            var listingId = Guid.NewGuid();
+            var ownerId = 1;    
+            var hackerId = 2;  
+            var listingId = 10;
             var listing = new PetListing { Id = listingId, OwnerId = ownerId };
 
             _listingsMock.Setup(repo => repo.GetByIdAsync(listingId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(listing);
 
-            
             var request = new EditListingRequest(listingId, "Нова назва", "Dog", "Київ", "Опис", false, Array.Empty<string>());
             var authContext = new AuthContext { UserId = hackerId, Role = Role.Person };
 
@@ -65,8 +63,8 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenValidRequest_UpdatesListingAndSetsToModeration()
         {
-            var ownerId = Guid.NewGuid();
-            var listingId = Guid.NewGuid();
+            var ownerId = new int();
+            var listingId = new int();
 
             var listing = new PetListing { Id = listingId, OwnerId = ownerId, Status = ListingStatus.Published };
 

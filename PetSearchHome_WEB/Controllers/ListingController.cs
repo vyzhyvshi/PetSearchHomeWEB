@@ -98,7 +98,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _deleteListingUseCase.ExecuteAsync(new DeleteListingRequest(id), authContext, cancellationToken);
@@ -114,7 +114,7 @@ namespace PetSearchHome_WEB.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _viewListingDetailUseCase.ExecuteAsync(new ViewListingDetailRequest(id), authContext, cancellationToken);
@@ -147,7 +147,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, EditListingViewModel model, CancellationToken cancellationToken)
+        public async Task<IActionResult> Edit(int id, EditListingViewModel model, CancellationToken cancellationToken)
         {
             if (id != model.Id)
             {
@@ -183,7 +183,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitForModeration(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> SubmitForModeration(int id, CancellationToken cancellationToken)
         {
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _submitListingForModerationUseCase.ExecuteAsync(new SubmitListingForModerationRequest(id), authContext, cancellationToken);

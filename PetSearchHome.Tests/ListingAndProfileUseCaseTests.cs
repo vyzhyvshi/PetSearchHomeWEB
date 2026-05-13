@@ -17,7 +17,7 @@ namespace PetSearchHome.Tests
             var listings = new Mock<IListingRepository>();
             var moderation = new Mock<IModerationQueue>();
             var useCase = new CreateListingUseCase(listings.Object, moderation.Object);
-            var auth = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Person };
+            var auth = new AuthContext { UserId = new int(), Role = Role.Person };
             var request = new CreateListingRequest(
                 "Знайдено собаку",
                 "Собака",
@@ -43,8 +43,8 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task EditListing_WhenOwnerEdits_ResetsStatusToPendingModeration()
         {
-            var listingId = Guid.NewGuid();
-            var ownerId = Guid.NewGuid();
+            var listingId = new int();
+            var ownerId = new int();
             var stored = new PetListing
             {
                 Id = listingId,
@@ -86,9 +86,9 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ViewProfileDetails_ForGuest_ShowsOnlyPublishedListingsAndAverageRating()
         {
-            var userId = Guid.NewGuid();
-            var publishedId = Guid.NewGuid();
-            var pendingId = Guid.NewGuid();
+            var userId = new int();
+            var publishedId = new int();
+            var pendingId = new int();
 
             var users = new Mock<IUserRepository>();
             users.Setup(repo => repo.GetByIdAsync(userId, It.IsAny<CancellationToken>()))

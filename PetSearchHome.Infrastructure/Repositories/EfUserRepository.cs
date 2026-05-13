@@ -16,9 +16,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             _db = db;
         }
 
-        public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            var userId = FromDomainId(id);
+            var userId = id;
             var entity = await _db.Users
                 .AsNoTracking()
                 .Include(u => u.IndividualProfile)
@@ -77,9 +77,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task UpdateRoleAsync(Guid id, Role role, CancellationToken cancellationToken = default)
+        public async Task UpdateRoleAsync(int id, Role role, CancellationToken cancellationToken = default)
         {
-            var userId = FromDomainId(id);
+            var userId = id;
             var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
             if (entity is null)
             {
@@ -90,9 +90,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task UpdatePasswordAsync(Guid id, string passwordHash, CancellationToken cancellationToken = default)
+        public async Task UpdatePasswordAsync(int id, string passwordHash, CancellationToken cancellationToken = default)
         {
-            var userId = FromDomainId(id);
+            var userId = id;
             var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
             if (entity is null)
             {
@@ -105,7 +105,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
         public async Task UpdateProfileAsync(User user, CancellationToken cancellationToken = default)
         {
-            var userId = FromDomainId(user.Id);
+            var userId = user.Id;
             var entity = await _db.Users
                 .Include(u => u.IndividualProfile)
                 .Include(u => u.ShelterProfile)
@@ -147,9 +147,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            var userId = FromDomainId(id);
+            var userId = id;
             var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
             if (entity is null)
             {
@@ -164,9 +164,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task SetBlockedAsync(Guid id, bool isBlocked, CancellationToken cancellationToken = default)
+        public async Task SetBlockedAsync(int id, bool isBlocked, CancellationToken cancellationToken = default)
         {
-            var userId = FromDomainId(id);
+            var userId = id;
             var entity = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
             if (entity is null)
             {
@@ -200,24 +200,12 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return entities.Select(Map).ToList();
         }
 
-        private static Guid ToDomainId(int userId)
-        {
-            Span<byte> bytes = stackalloc byte[16];
-            bytes.Clear();
-            BitConverter.TryWriteBytes(bytes, userId);
-            return new Guid(bytes);
-        }
-
-        private static int FromDomainId(Guid id)
-        {
-            var bytes = id.ToByteArray();
-            return BitConverter.ToInt32(bytes, 0);
-        }
+        
 
         private static User Map(UserEntity entity) =>
             new()
             {
-                Id = ToDomainId(entity.UserId),
+                Id = entity.UserId,
                 Email = entity.Email,
                 DisplayName = ResolveDisplayName(entity),
                 PasswordHash = entity.PasswordHash,

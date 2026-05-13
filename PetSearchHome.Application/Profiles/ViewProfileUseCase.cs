@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Profiles
 {
-    public sealed record ViewProfileRequest(Guid UserId);
+    public sealed record ViewProfileRequest(int UserId);
 
     public class ViewProfileUseCase : IUseCase<ViewProfileRequest, Result<User>>
     {

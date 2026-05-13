@@ -7,7 +7,7 @@ namespace PetSearchHome_WEB.Application.Auth
 {
     public sealed record RegisterUserRequest(string Email, string DisplayName, string Password);
 
-    public class RegisterUserUseCase : IUseCase<RegisterUserRequest, Result<Guid>>
+    public class RegisterUserUseCase : IUseCase<RegisterUserRequest, Result<int>>
     {
         private readonly IUserRepository _users;
         private readonly IPasswordHasher _hasher;
@@ -18,14 +18,14 @@ namespace PetSearchHome_WEB.Application.Auth
             _hasher = hasher;
         }
 
-        public async Task<Result<Guid>> ExecuteAsync(RegisterUserRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<int>> ExecuteAsync(RegisterUserRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (authContext.Role == Role.Guest || authContext.Role == Role.Admin || authContext.Role == Role.Person || authContext.Role == Role.Shelter)
             {
                 var existingUser = await _users.GetByEmailAsync(request.Email, cancellationToken);
                 if (existingUser != null)
                 {
-                    return Result.Failure<Guid>("Користувач з таким email вже існує.");
+                    return Result.Failure<int>("Користувач з таким email вже існує.");
                 }
 
                 User user = new()
@@ -42,7 +42,7 @@ namespace PetSearchHome_WEB.Application.Auth
                 return persisted?.Id ?? user.Id;
             }
 
-            return Result.Failure<Guid>("У вас немає прав для реєстрації.");
+            return Result.Failure<int>("У вас немає прав для реєстрації.");
         }
     }
 }

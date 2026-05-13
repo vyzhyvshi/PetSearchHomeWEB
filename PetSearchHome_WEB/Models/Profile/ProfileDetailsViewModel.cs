@@ -5,7 +5,7 @@ namespace PetSearchHome_WEB.Models.Profile
 {
     public class ProfileDetailsViewModel
     {
-        public Guid UserId { get; init; }
+        public int UserId { get; init; }
         public string DisplayName { get; init; } = string.Empty;
         public string Email { get; init; } = string.Empty;
         public Role Role { get; init; }

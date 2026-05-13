@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Chat
 {
-    public sealed record EditChatMessageRequest(Guid MessageId, string NewContent);
+    public sealed record EditChatMessageRequest(int MessageId, string NewContent);
 
     public class EditChatMessageUseCase : IUseCase<EditChatMessageRequest, Result>
     {

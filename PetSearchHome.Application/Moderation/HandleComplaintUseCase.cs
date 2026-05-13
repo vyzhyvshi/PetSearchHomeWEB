@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Policies;
 
 namespace PetSearchHome_WEB.Application.Moderation
 {
-    public sealed record HandleComplaintRequest(Guid ComplaintId, string Resolution);
+    public sealed record HandleComplaintRequest(int ComplaintId, string Resolution);
 
     public class HandleComplaintUseCase : IUseCase<HandleComplaintRequest, Result<bool>>
     {
@@ -25,8 +25,7 @@ namespace PetSearchHome_WEB.Application.Moderation
             }
 
             await _complaints.UpdateStatusAsync(request.ComplaintId, request.Resolution, cancellationToken);
-            await _audit.RecordAsync("resolve_complaint", authContext.UserId ?? Guid.Empty, request.ComplaintId.ToString(), cancellationToken);
-            return Result.Success(true);
+            await _audit.RecordAsync("resolve_complaint", authContext.UserId ?? 0, request.ComplaintId.ToString(System.Globalization.CultureInfo.InvariantCulture), cancellationToken); return Result.Success(true);
         }
     }
 }

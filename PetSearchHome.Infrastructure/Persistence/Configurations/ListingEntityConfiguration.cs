@@ -15,7 +15,6 @@ public class ListingEntityConfiguration : IEntityTypeConfiguration<ListingEntity
 
         builder.Property(l => l.DomainId)
             .HasColumnName("domain_id")
-            .HasDefaultValueSql("gen_random_uuid()")
             .IsRequired();
 
         builder.Property(l => l.UserId)

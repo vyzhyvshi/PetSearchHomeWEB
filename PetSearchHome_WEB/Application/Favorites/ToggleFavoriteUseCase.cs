@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Favorites
 {
-    public sealed record ToggleFavoriteRequest(Guid ListingId);
+    public sealed record ToggleFavoriteRequest(int ListingId);
 
     public class ToggleFavoriteUseCase : IUseCase<ToggleFavoriteRequest, Result<bool>>
     {

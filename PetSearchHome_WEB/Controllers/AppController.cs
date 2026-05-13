@@ -73,10 +73,10 @@ namespace PetSearchHome_WEB.Controllers
             TempData[ErrorMessageKey] = message;
         }
 
-        private Guid? TryGetUserId()
+        private int? TryGetUserId()
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Guid.TryParse(userIdString, out var userId) && userId != Guid.Empty
+            return int.TryParse(userIdString, out var userId) && userId != 0
                 ? userId
                 : null;
         }

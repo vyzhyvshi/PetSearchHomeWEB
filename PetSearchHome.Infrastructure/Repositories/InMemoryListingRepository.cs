@@ -27,13 +27,13 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.FromResult<IReadOnlyList<PetListing>>(featured);
         }
 
-        public Task<PetListing?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task<PetListing?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             var listing = _listings.SingleOrDefault(x => x.Id == id);
             return Task.FromResult(listing);
         }
 
-        public Task<IReadOnlyList<PetListing>> ListByOwnerAsync(Guid ownerId, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<PetListing>> ListByOwnerAsync(int ownerId, CancellationToken cancellationToken = default)
         {
             var results = _listings
                 .Where(x => x.OwnerId == ownerId)
@@ -58,9 +58,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
         {
             _listings.Add(new PetListing
             {
-                Id = listing.Id == Guid.Empty ? Guid.NewGuid() : listing.Id,
-                OwnerId = listing.OwnerId == Guid.Empty ? Guid.NewGuid() : listing.OwnerId,
-                OwnerRole = listing.OwnerRole,
+				Id = listing.Id == 0 ? _listings.Count + 1 : listing.Id,
+				OwnerId = listing.OwnerId == 0 ? 1 : listing.OwnerId,
+				OwnerRole = listing.OwnerRole,
                 Title = listing.Title,
                 AnimalType = listing.AnimalType,
                 Location = listing.Location,
@@ -74,7 +74,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<PetListing>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<PetListing>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
         {
             var results = _listings
                 .Where(x => ids.Contains(x.Id))
@@ -95,7 +95,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task RemoveAsync(int id, CancellationToken cancellationToken = default)
         {
             _listings.RemoveAll(x => x.Id == id);
             return Task.CompletedTask;
@@ -143,7 +143,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             {
                 new()
                 {
-                    OwnerId = Guid.NewGuid(),
+                    OwnerId = 1,
                     OwnerRole = Domain.ValueObjects.Role.Person,
                     Title = "Labrador Rocky",
                     AnimalType = "Dog",
@@ -156,7 +156,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 },
                 new()
                 {
-                    OwnerId = Guid.NewGuid(),
+                    OwnerId = 2,
                     OwnerRole = Domain.ValueObjects.Role.Person,
                     Title = "Cat Mira",
                     AnimalType = "Cat",
@@ -169,7 +169,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 },
                 new()
                 {
-                    OwnerId = Guid.NewGuid(),
+                    OwnerId = 3,
                     OwnerRole = Domain.ValueObjects.Role.Shelter,
                     Title = "Puppy Max",
                     AnimalType = "Dog",
@@ -182,7 +182,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 },
                 new()
                 {
-                    OwnerId = Guid.NewGuid(),
+                    OwnerId = 4,
                     OwnerRole = Domain.ValueObjects.Role.Person,
                     Title = "Cat Bonnie",
                     AnimalType = "Cat",
@@ -195,7 +195,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 },
                 new()
                 {
-                    OwnerId = Guid.NewGuid(),
+                    OwnerId = 5,
                     OwnerRole = Domain.ValueObjects.Role.Person,
                     Title = "Dog Rudy",
                     AnimalType = "Dog",
@@ -208,7 +208,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
                 },
                 new()
                 {
-                    OwnerId = Guid.NewGuid(),
+                    OwnerId = 6,
                     OwnerRole = Domain.ValueObjects.Role.Shelter,
                     Title = "Cat Lola",
                     AnimalType = "Cat",

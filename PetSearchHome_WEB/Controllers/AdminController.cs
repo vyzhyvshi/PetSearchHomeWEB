@@ -87,7 +87,7 @@ namespace PetSearchHome_WEB.Controllers
         // POST: /Admin/ModerateListing
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ModerateListing(Guid listingId, bool approve, string? reason, CancellationToken cancellationToken)
+        public async Task<IActionResult> ModerateListing(int listingId, bool approve, string? reason, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
             var request = new ModerateListingRequest(listingId, approve, reason);
@@ -108,7 +108,7 @@ namespace PetSearchHome_WEB.Controllers
         // POST: /Admin/BlockUser
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BlockUser(Guid targetUserId, bool block, CancellationToken cancellationToken)
+        public async Task<IActionResult> BlockUser(int targetUserId, bool block, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
             var request = new BlockUserRequest(targetUserId, block);
@@ -128,7 +128,7 @@ namespace PetSearchHome_WEB.Controllers
         // POST: /Admin/HandleComplaint
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> HandleComplaint(Guid complaintId, string resolution, CancellationToken cancellationToken)
+        public async Task<IActionResult> HandleComplaint(int complaintId, string resolution, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(resolution))
             {
@@ -153,7 +153,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ManageCatalogMeta(string name, bool isCategory, bool remove, Guid? id, CancellationToken cancellationToken)
+        public async Task<IActionResult> ManageCatalogMeta(string name, bool isCategory, bool remove, int? id, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
             var result = await _manageTagsCategoriesUseCase.ExecuteAsync(

@@ -53,7 +53,7 @@ namespace PetSearchHome.Tests
             AuthContext authContext = new() { UserId = null, Role = Role.Guest };
 
             _userRepoMock.Setup(repo => repo.GetByEmailAsync(request.Email, It.IsAny<CancellationToken>()))
-                         .ReturnsAsync(new User { Id = Guid.NewGuid(), Email = request.Email });
+                         .ReturnsAsync(new User { Id = new int(), Email = request.Email });
 
             var result = await _useCase.ExecuteAsync(request, authContext, CancellationToken.None);
 

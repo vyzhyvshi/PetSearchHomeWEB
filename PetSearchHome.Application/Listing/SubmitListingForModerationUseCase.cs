@@ -5,7 +5,7 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Application.Listing
 {
-    public sealed record SubmitListingForModerationRequest(Guid ListingId);
+    public sealed record SubmitListingForModerationRequest(int ListingId);
 
     public class SubmitListingForModerationUseCase : IUseCase<SubmitListingForModerationRequest, Result<bool>>
     {

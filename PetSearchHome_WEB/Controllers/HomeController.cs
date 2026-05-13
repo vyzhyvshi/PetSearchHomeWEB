@@ -86,7 +86,7 @@ namespace PetSearchHome_WEB.Controllers
 
         [HttpGet]
         [RateLimiting(20)]
-        public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
 
@@ -122,7 +122,7 @@ namespace PetSearchHome_WEB.Controllers
         [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleFavorite(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> ToggleFavorite(int id, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
 
@@ -147,7 +147,7 @@ namespace PetSearchHome_WEB.Controllers
         [Authorize(Roles = RoleNames.AuthenticatedUser)]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReportListing(Guid id, string reason, CancellationToken cancellationToken)
+        public async Task<IActionResult> ReportListing(int id, string reason, CancellationToken cancellationToken)
         {
             var authContext = GetAuthContext();
 

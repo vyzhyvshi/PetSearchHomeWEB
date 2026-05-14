@@ -100,6 +100,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _deleteListingUseCase.ExecuteAsync(new DeleteListingRequest(id), authContext, cancellationToken);
 
@@ -185,6 +189,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitForModeration(int id, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _submitListingForModerationUseCase.ExecuteAsync(new SubmitListingForModerationRequest(id), authContext, cancellationToken);
 

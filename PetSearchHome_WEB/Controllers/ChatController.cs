@@ -145,6 +145,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Send(int id, string message, IFormFile? photo, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             string? imageUrl = null;
             if (photo is not null && photo.Length > 0)
@@ -167,6 +171,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteMessage(int id, int messageId, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _deleteChatMessageUseCase.ExecuteAsync(new DeleteChatMessageRequest(messageId), authContext, cancellationToken);
 
@@ -188,6 +196,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Block(int id, int otherUserId, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _blockChatUserUseCase.ExecuteAsync(new BlockChatUserRequest(otherUserId), authContext, cancellationToken);
 
@@ -203,6 +215,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Unblock(int id, int otherUserId, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _unblockChatUserUseCase.ExecuteAsync(new UnblockChatUserRequest(otherUserId), authContext, cancellationToken);
 
@@ -218,6 +234,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, int messageId, string newMessage, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
 
             var result = await _editChatMessageUseCase.ExecuteAsync(
@@ -237,6 +257,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ClearHistory(int id, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _clearChatHistoryUseCase.ExecuteAsync(new ClearChatHistoryRequest(id), authContext, cancellationToken);
 

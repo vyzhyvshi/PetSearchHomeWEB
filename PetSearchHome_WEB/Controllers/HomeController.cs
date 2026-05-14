@@ -124,6 +124,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleFavorite(int id, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = GetAuthContext();
 
             ToggleFavoriteRequest request = new(id);
@@ -149,6 +153,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReportListing(int id, string reason, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = GetAuthContext();
 
             SubmitComplaintRequest request = new(id, reason);

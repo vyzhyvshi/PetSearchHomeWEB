@@ -243,6 +243,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LeaveReview(int id, byte rating, string comment, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             try
             {
@@ -267,6 +271,10 @@ namespace PetSearchHome_WEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReportUser(int id, string reason, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _submitUserComplaintUseCase.ExecuteAsync(new SubmitUserComplaintRequest(id, reason), authContext, cancellationToken);
 

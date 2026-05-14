@@ -75,6 +75,10 @@ namespace PetSearchHome_WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var profile = await _viewProfileDetailsUseCase.ExecuteAsync(new ViewProfileDetailsRequest(id), authContext, cancellationToken);
 

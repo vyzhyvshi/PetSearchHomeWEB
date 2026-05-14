@@ -120,6 +120,10 @@ namespace PetSearchHome_WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _viewListingDetailUseCase.ExecuteAsync(new ViewListingDetailRequest(id), authContext, cancellationToken);
 

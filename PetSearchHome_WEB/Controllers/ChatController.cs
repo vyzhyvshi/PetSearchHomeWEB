@@ -92,7 +92,10 @@ namespace PetSearchHome_WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> Start(int id, CancellationToken cancellationToken)
         {
-
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _startChatUseCase.ExecuteAsync(new StartChatRequest(id), authContext, cancellationToken);
 
@@ -108,6 +111,10 @@ namespace PetSearchHome_WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> Thread(int id, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _getChatThreadUseCase.ExecuteAsync(new GetChatThreadRequest(id), authContext, cancellationToken);
 

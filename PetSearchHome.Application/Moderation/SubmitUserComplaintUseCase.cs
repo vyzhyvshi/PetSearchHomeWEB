@@ -57,7 +57,6 @@ namespace PetSearchHome_WEB.Application.Moderation
 
             await _complaints.AddAsync(complaint, cancellationToken);
             await _audit.RecordAsync("submit_user_complaint", authContext.UserId.Value, complaint.Id.ToString(System.Globalization.CultureInfo.InvariantCulture), cancellationToken);
-            complaint.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
             return complaint.Id;
         }

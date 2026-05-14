@@ -1,0 +1,36 @@
+name: SonarCloud
+
+on:
+  pull_request:
+    branches: [ "upgrade-ui" ]
+  push:
+    branches: [ "upgrade-ui" ]
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: .
+          args: >-
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.cs.opencover.reportsPaths=**/TestResults/**/coverage.opencover.xml
+
+      - name: Test with coverage
+        run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults

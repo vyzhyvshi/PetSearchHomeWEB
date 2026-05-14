@@ -1,4 +1,6 @@
-﻿using PetSearchHome.Infrastructure.Gateways;
+﻿using Azure.Identity;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using PetSearchHome.Infrastructure.Gateways;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -31,6 +33,12 @@ builder.Host.UseSerilog((context, configuration) =>
 if (builder.Environment.IsDevelopment())
 {
  builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true);
+}
+
+var keyVaultUri = builder.Configuration["KeyVault:Uri"];
+if (!string.IsNullOrWhiteSpace(keyVaultUri))
+{
+    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
 }
 
 builder.Services.AddControllersWithViews();

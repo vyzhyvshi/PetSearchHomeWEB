@@ -4,6 +4,7 @@ namespace PetSearchHome_WEB.Models.Listing
 {
     public class EditListingViewModel
     {
+        [Required]
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Введіть заголовок оголошення")]

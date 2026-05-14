@@ -92,6 +92,7 @@ namespace PetSearchHome_WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> Start(int id, CancellationToken cancellationToken)
         {
+
             var authContext = await GetAuthContextAsync(cancellationToken);
             var result = await _startChatUseCase.ExecuteAsync(new StartChatRequest(id), authContext, cancellationToken);
 

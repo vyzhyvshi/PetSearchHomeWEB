@@ -7,11 +7,27 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace PetSearchHome.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialSetup : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RecipientId = table.Column<int>(type: "integer", nullable: false),
+                    Message = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    IsRead = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
@@ -23,11 +39,68 @@ namespace PetSearchHome.Infrastructure.Migrations
                     role = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    is_verified = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                    is_verified = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_users", x => x.user_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "chat_blocks",
+                columns: table => new
+                {
+                    chat_block_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    blocker_id = table.Column<int>(type: "integer", nullable: false),
+                    blocked_id = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_chat_blocks", x => x.chat_block_id);
+                    table.ForeignKey(
+                        name: "FK_chat_blocks_users_blocked_id",
+                        column: x => x.blocked_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_chat_blocks_users_blocker_id",
+                        column: x => x.blocker_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "chat_conversations",
+                columns: table => new
+                {
+                    conversation_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_a_id = table.Column<int>(type: "integer", nullable: false),
+                    user_b_id = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    user_a_cleared_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    user_b_cleared_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_chat_conversations", x => x.conversation_id);
+                    table.ForeignKey(
+                        name: "FK_chat_conversations_users_user_a_id",
+                        column: x => x.user_a_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_chat_conversations_users_user_b_id",
+                        column: x => x.user_b_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -61,8 +134,12 @@ namespace PetSearchHome.Infrastructure.Migrations
                 {
                     listing_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    domain_id = table.Column<int>(type: "integer", nullable: false),
                     user_id = table.Column<int>(type: "integer", nullable: false),
+                    title = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     animal_type = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    location = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    is_urgent = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     breed = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     age_months = table.Column<int>(type: "integer", nullable: false),
                     sex = table.Column<int>(type: "integer", nullable: false),
@@ -86,6 +163,29 @@ namespace PetSearchHome.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "password_reset_tokens",
+                columns: table => new
+                {
+                    password_reset_token_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    token_hash = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    used_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_password_reset_tokens", x => x.password_reset_token_id);
+                    table.ForeignKey(
+                        name: "FK_password_reset_tokens_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "reports",
                 columns: table => new
                 {
@@ -95,7 +195,8 @@ namespace PetSearchHome.Infrastructure.Migrations
                     reported_type = table.Column<int>(type: "integer", nullable: false),
                     reported_id = table.Column<int>(type: "integer", nullable: false),
                     status = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    text = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -160,6 +261,36 @@ namespace PetSearchHome.Infrastructure.Migrations
                         principalTable: "users",
                         principalColumn: "user_id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "chat_messages",
+                columns: table => new
+                {
+                    message_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    conversation_id = table.Column<int>(type: "integer", nullable: false),
+                    sender_id = table.Column<int>(type: "integer", nullable: false),
+                    content = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    image_url = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
+                    sent_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    read_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_chat_messages", x => x.message_id);
+                    table.ForeignKey(
+                        name: "FK_chat_messages_chat_conversations_conversation_id",
+                        column: x => x.conversation_id,
+                        principalTable: "chat_conversations",
+                        principalColumn: "conversation_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_chat_messages_users_sender_id",
+                        column: x => x.sender_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -233,6 +364,38 @@ namespace PetSearchHome.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_chat_blocks_blocked_id",
+                table: "chat_blocks",
+                column: "blocked_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_chat_blocks_blocker_id_blocked_id",
+                table: "chat_blocks",
+                columns: new[] { "blocker_id", "blocked_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_chat_conversations_user_a_id_user_b_id",
+                table: "chat_conversations",
+                columns: new[] { "user_a_id", "user_b_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_chat_conversations_user_b_id",
+                table: "chat_conversations",
+                column: "user_b_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_chat_messages_conversation_id",
+                table: "chat_messages",
+                column: "conversation_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_chat_messages_sender_id",
+                table: "chat_messages",
+                column: "sender_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_favorites_listing_id",
                 table: "favorites",
                 column: "listing_id");
@@ -261,6 +424,12 @@ namespace PetSearchHome.Infrastructure.Migrations
                 column: "city");
 
             migrationBuilder.CreateIndex(
+                name: "IX_listings_domain_id",
+                table: "listings",
+                column: "domain_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_listings_status",
                 table: "listings",
                 column: "status");
@@ -269,6 +438,11 @@ namespace PetSearchHome.Infrastructure.Migrations
                 name: "IX_listings_user_id",
                 table: "listings",
                 column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_password_reset_tokens_user_id_token_hash",
+                table: "password_reset_tokens",
+                columns: new[] { "user_id", "token_hash" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_photos_listing_id",
@@ -307,6 +481,12 @@ namespace PetSearchHome.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "chat_blocks");
+
+            migrationBuilder.DropTable(
+                name: "chat_messages");
+
+            migrationBuilder.DropTable(
                 name: "favorites");
 
             migrationBuilder.DropTable(
@@ -314,6 +494,12 @@ namespace PetSearchHome.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "individual_profiles");
+
+            migrationBuilder.DropTable(
+                name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "password_reset_tokens");
 
             migrationBuilder.DropTable(
                 name: "photos");
@@ -326,6 +512,9 @@ namespace PetSearchHome.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "shelter_profiles");
+
+            migrationBuilder.DropTable(
+                name: "chat_conversations");
 
             migrationBuilder.DropTable(
                 name: "listings");

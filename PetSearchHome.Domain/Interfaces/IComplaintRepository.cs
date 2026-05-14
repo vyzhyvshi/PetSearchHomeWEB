@@ -6,7 +6,7 @@ namespace PetSearchHome_WEB.Domain.Interfaces
     {
         Task AddAsync(Complaint complaint, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<Complaint>> ListOpenAsync(CancellationToken cancellationToken = default);
-        Task UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken = default);
-        Task<int> CountPendingComplaintsForEntityAsync(Guid entityId, CancellationToken cancellationToken = default);
+        Task UpdateStatusAsync(int id, string status, CancellationToken cancellationToken = default);
+        public Task<int> CountPendingComplaintsForEntityAsync(int entityId, CancellationToken cancellationToken = default);
     }
 }

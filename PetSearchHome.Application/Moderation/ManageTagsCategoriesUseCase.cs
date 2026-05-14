@@ -5,9 +5,8 @@ using PetSearchHome_WEB.Domain.Policies;
 
 namespace PetSearchHome_WEB.Application.Moderation
 {
-    public sealed record ManageTagsCategoriesRequest(string Name, bool IsCategory, bool Remove, Guid? Id);
+    public sealed record ManageTagsCategoriesRequest(string Name, bool IsCategory, bool Remove, int? Id);
 
-    // ЗМІНЕНО: тепер повертає Result<bool>
     public class ManageTagsCategoriesUseCase : IUseCase<ManageTagsCategoriesRequest, Result<bool>>
     {
         private readonly ITagRepository _tags;
@@ -21,7 +20,6 @@ namespace PetSearchHome_WEB.Application.Moderation
 
         public async Task<Result<bool>> ExecuteAsync(ManageTagsCategoriesRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
-            // ЗМІНЕНО: замість throw тепер безпечний Result.Failure
             if (!AdminPolicy.IsAdmin(authContext.Role))
             {
                 return Result.Failure<bool>("Немає прав доступу. Потрібна роль Адміністратора.");

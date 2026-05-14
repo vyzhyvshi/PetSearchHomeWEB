@@ -20,7 +20,7 @@ namespace PetSearchHome_WEB.Controllers
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdString, out var userId))
+            if (!int.TryParse(userIdString, out var userId))
             {
                 return RedirectToAction("Login", "Auth"); 
             }

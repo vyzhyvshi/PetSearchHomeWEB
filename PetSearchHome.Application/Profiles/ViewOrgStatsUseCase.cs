@@ -5,7 +5,7 @@ using PetSearchHome_WEB.Domain.Policies;
 
 namespace PetSearchHome_WEB.Application.Profiles
 {
-    public sealed record ViewOrgStatsRequest(Guid ShelterId);
+    public sealed record ViewOrgStatsRequest(int ShelterId);
 
     public class ViewOrgStatsUseCase : IUseCase<ViewOrgStatsRequest, OrgStats?>
     {

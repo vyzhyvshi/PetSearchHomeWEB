@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Policies;
 
 namespace PetSearchHome_WEB.Application.Moderation
 {
-    public sealed record BlockUserRequest(Guid UserId, bool Block);
+    public sealed record BlockUserRequest(int UserId, bool Block);
 
     public class BlockUserUseCase : IUseCase<BlockUserRequest, Result<bool>>
     {
@@ -25,8 +25,7 @@ namespace PetSearchHome_WEB.Application.Moderation
             }
 
             await _users.SetBlockedAsync(request.UserId, request.Block, cancellationToken);
-            await _audit.RecordAsync(request.Block ? "block_user" : "unblock_user", authContext.UserId ?? Guid.Empty, request.UserId.ToString(), cancellationToken);
-            return Result.Success(true);
+            await _audit.RecordAsync(request.Block ? "block_user" : "unblock_user", authContext.UserId ?? 0, request.UserId.ToString(System.Globalization.CultureInfo.InvariantCulture), cancellationToken); return Result.Success(true);
         }
     }
 }

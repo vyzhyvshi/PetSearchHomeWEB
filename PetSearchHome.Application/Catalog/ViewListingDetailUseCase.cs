@@ -5,7 +5,7 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Application.Catalog
 {
-    public sealed record ViewListingDetailRequest(Guid ListingId);
+    public sealed record ViewListingDetailRequest(int ListingId);
 
     public class ViewListingDetailUseCase : IUseCase<ViewListingDetailRequest, Result<PetListing>>
     {

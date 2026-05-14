@@ -56,8 +56,12 @@ namespace PetSearchHome_WEB.Controllers
         // POST: /Favorite/Toggle/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Toggle(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Toggle(int id, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var authContext = GetAuthContext();
 
             ToggleFavoriteRequest request = new(id);

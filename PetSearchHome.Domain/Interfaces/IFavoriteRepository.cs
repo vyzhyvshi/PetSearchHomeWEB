@@ -5,9 +5,9 @@ namespace PetSearchHome_WEB.Domain.Interfaces
     public interface IFavoriteRepository
     {
         Task AddAsync(Favorite favorite, CancellationToken cancellationToken = default);
-        Task RemoveAsync(Guid userId, Guid listingId, CancellationToken cancellationToken = default);
-        Task<IReadOnlyList<Favorite>> ListByUserAsync(Guid userId, CancellationToken cancellationToken = default);
-        Task<Favorite?> GetAsync(Guid userId, Guid listingId, CancellationToken cancellationToken = default);
-        Task<IReadOnlyList<Guid>> ListIdsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task RemoveAsync(int userId, int listingId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<Favorite>> ListByUserAsync(int userId, CancellationToken cancellationToken = default);
+        Task<Favorite?> GetAsync(int userId, int listingId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<int>> ListIdsByUserAsync(int userId, CancellationToken cancellationToken = default);
     }
 }

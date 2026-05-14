@@ -36,9 +36,9 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenReasonIsEmpty_ReturnsFailure()
         {
-            var userId = Guid.NewGuid();
+            var userId = new int();
             var authContext = new AuthContext { UserId = userId, Role = Role.Person };
-            var request = new SubmitComplaintRequest(Guid.NewGuid(), string.Empty);
+            var request = new SubmitComplaintRequest(new int(), string.Empty);
 
             var result = await _useCase.ExecuteAsync(request, authContext);
 
@@ -49,8 +49,8 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenValidRequest_ReturnsSuccessWithComplaintId()
         {
-            var userId = Guid.NewGuid();
-            var listingId = Guid.NewGuid();
+            var userId = 1; 
+            var listingId = 2;
             var authContext = new AuthContext { UserId = userId, Role = Role.Person };
             var request = new SubmitComplaintRequest(listingId, "Спам");
 
@@ -62,25 +62,33 @@ namespace PetSearchHome.Tests
                 .Setup(repo => repo.CountPendingComplaintsForEntityAsync(listingId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
+            _complaintsMock
+                .Setup(repo => repo.AddAsync(It.IsAny<Complaint>(), It.IsAny<CancellationToken>()))
+                .Callback<Complaint, CancellationToken>((c, ct) =>
+                {
+                    typeof(Complaint).GetProperty("Id")?.SetValue(c, 42);
+                })
+                .Returns(Task.CompletedTask);
+
             var result = await _useCase.ExecuteAsync(request, authContext);
 
             Assert.True(result.IsSuccess);
-            Assert.NotEqual(Guid.Empty, result.Value);
+            Assert.NotEqual(0, result.Value); 
 
             _complaintsMock.Verify(repo => repo.AddAsync(
                 It.Is<Complaint>(complaint =>
                     complaint.ReportedType == ReportedEntityType.Listing &&
                     complaint.ReportedEntityId == listingId),
                 It.IsAny<CancellationToken>()), Times.Once);
-                
+
             _listingsMock.Verify(repo => repo.UpdateAsync(It.IsAny<PetListing>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
         public async Task ExecuteAsync_WhenThresholdReached_ChangesListingStatusToPendingModeration()
         {
-            var userId = Guid.NewGuid();
-            var listingId = Guid.NewGuid();
+            var userId = new int();
+            var listingId = new int();
             var authContext = new AuthContext { UserId = userId, Role = Role.Person };
             var request = new SubmitComplaintRequest(listingId, "Жорстоке поводження");
 
@@ -104,8 +112,8 @@ namespace PetSearchHome.Tests
                 
             _auditMock.Verify(audit => audit.RecordAsync(
                 "auto_hide_by_reports", 
-                Guid.Empty, 
-                listingId.ToString(), 
+                0,
+                listingId.ToString(System.Globalization.CultureInfo.InvariantCulture), 
                 It.IsAny<CancellationToken>()), Times.Once);
         }
     }

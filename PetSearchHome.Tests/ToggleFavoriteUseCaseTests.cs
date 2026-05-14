@@ -22,7 +22,7 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenNotAuthorized_ReturnsFailure()
         {
-            var request = new ToggleFavoriteRequest(Guid.NewGuid());
+            var request = new ToggleFavoriteRequest(new int());
             var authContext = new AuthContext { UserId = null, Role = Role.Guest };
 
             var result = await _useCase.ExecuteAsync(request, authContext);
@@ -34,8 +34,8 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenAlreadyFavorited_RemovesAndReturnsFalse()
         {
-            var userId = Guid.NewGuid();
-            var listingId = Guid.NewGuid();
+            var userId = new int();
+            var listingId = new int();
             var authContext = new AuthContext { UserId = userId, Role = Role.Person };
             var request = new ToggleFavoriteRequest(listingId);
 

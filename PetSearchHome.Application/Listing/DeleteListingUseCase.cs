@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Policies;
 
 namespace PetSearchHome_WEB.Application.Listing
 {
-    public sealed record DeleteListingRequest(Guid ListingId);
+    public sealed record DeleteListingRequest(int ListingId);
 
     public class DeleteListingUseCase : IUseCase<DeleteListingRequest, Result<bool>>
     {

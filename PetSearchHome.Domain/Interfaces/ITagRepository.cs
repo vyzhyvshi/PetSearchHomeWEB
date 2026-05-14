@@ -6,6 +6,6 @@ namespace PetSearchHome_WEB.Domain.Interfaces
     {
         Task<IReadOnlyList<Tag>> GetAllAsync(CancellationToken cancellationToken = default);
         Task AddAsync(Tag tag, CancellationToken cancellationToken = default);
-        Task RemoveAsync(Guid id, CancellationToken cancellationToken = default);
+        Task RemoveAsync(int id, CancellationToken cancellationToken = default);
     }
 }

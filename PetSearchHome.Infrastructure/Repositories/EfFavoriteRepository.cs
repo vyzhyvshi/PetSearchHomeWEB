@@ -17,20 +17,16 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
 
         public async Task AddAsync(Favorite favorite, CancellationToken cancellationToken = default)
         {
-            var uId = FromDomainId(favorite.UserId);
+            var uId = favorite.UserId;
 
-            // 1. Знаходимо реальне оголошення в базі за його Guid
             var listingEntity = await _db.Listings
                 .FirstOrDefaultAsync(l => l.DomainId == favorite.ListingId, cancellationToken);
 
-            if (listingEntity == null) return; // Якщо оголошення не існує - виходимо
+            if (listingEntity == null) return; 
 
-            // 2. Створюємо запис, використовуючи справжній int ID з бази!
             var entity = new FavoriteEntity
             {
                 UserId = uId,
-                // УВАГА: Якщо в твоєму класі ListingEntity айдішник називається Id, а не ListingId, 
-                // просто зміни listingEntity.ListingId на listingEntity.Id
                 ListingId = listingEntity.ListingId
             };
 
@@ -38,9 +34,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task RemoveAsync(Guid userId, Guid listingId, CancellationToken cancellationToken = default)
+        public async Task RemoveAsync(int userId, int listingId, CancellationToken cancellationToken = default)
         {
-            var uId = FromDomainId(userId);
+            var uId = userId;
 
             var listingEntity = await _db.Listings
                 .FirstOrDefaultAsync(l => l.DomainId == listingId, cancellationToken);
@@ -57,9 +53,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             }
         }
 
-        public async Task<Favorite?> GetAsync(Guid userId, Guid listingId, CancellationToken cancellationToken = default)
+        public async Task<Favorite?> GetAsync(int userId, int listingId, CancellationToken cancellationToken = default)
         {
-            var uId = FromDomainId(userId);
+            var uId = userId;
 
             var listingEntity = await _db.Listings
                 .FirstOrDefaultAsync(l => l.DomainId == listingId, cancellationToken);
@@ -79,9 +75,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             };
         }
 
-        public async Task<IReadOnlyList<Guid>> ListIdsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<int>> ListIdsByUserAsync(int userId, CancellationToken cancellationToken = default)
         {
-            var uId = FromDomainId(userId);
+            var uId = userId;
 
             var query = from f in _db.Favorites
                         join l in _db.Listings on f.ListingId equals l.ListingId
@@ -91,9 +87,9 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return await query.ToListAsync(cancellationToken);
         }
 
-        public async Task<IReadOnlyList<Favorite>> ListByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<Favorite>> ListByUserAsync(int userId, CancellationToken cancellationToken = default)
         {
-            var uId = FromDomainId(userId);
+            var uId = userId;
 
             var query = from f in _db.Favorites
                         join l in _db.Listings on f.ListingId equals l.ListingId
@@ -107,10 +103,6 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             return await query.ToListAsync(cancellationToken);
         }
 
-        private static int FromDomainId(Guid id)
-        {
-            var bytes = id.ToByteArray();
-            return BitConverter.ToInt32(bytes, 0);
-        }
+        
     }
 }

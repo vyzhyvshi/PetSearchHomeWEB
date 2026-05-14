@@ -1,16 +1,17 @@
 ﻿using Moq;
-using Xunit;
-using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Application.Auth;
 using PetSearchHome_WEB.Application.Chat;
 using PetSearchHome_WEB.Application.Notifications;
-using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Application.Shared;
 using PetSearchHome_WEB.Domain.Entities;
+using PetSearchHome_WEB.Domain.Interfaces;
+using PetSearchHome_WEB.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
+using Xunit;
 
 namespace PetSearchHome_WEB.Tests.Application
 {
@@ -21,11 +22,11 @@ namespace PetSearchHome_WEB.Tests.Application
         public async Task ClearChatHistory_WhenAuthorizedAndParticipant_ReturnsSuccess()
         {
             var chatRepoMock = new Mock<IChatRepository>();
-            var userId = Guid.NewGuid();
-            var conversationId = Guid.NewGuid();
+            var userId = new int();
+            var conversationId = new int();
             var authContext = new AuthContext { UserId = userId };
 
-            var conversation = new ChatConversation { Id = conversationId, UserAId = userId, UserBId = Guid.NewGuid() };
+            var conversation = new ChatConversation { Id = conversationId, UserAId = userId, UserBId = new int() };
             chatRepoMock.Setup(r => r.GetConversationByIdAsync(conversationId, It.IsAny<CancellationToken>()))
                         .ReturnsAsync(conversation);
 
@@ -36,32 +37,38 @@ namespace PetSearchHome_WEB.Tests.Application
             chatRepoMock.Verify(r => r.ClearHistoryAsync(conversationId, userId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
-        public async Task ClearChatHistory_WhenNotParticipant_ReturnsFailure()
-        {
-            var chatRepoMock = new Mock<IChatRepository>();
-            var userId = Guid.NewGuid();
-            var conversationId = Guid.NewGuid();
-            var authContext = new AuthContext { UserId = userId };
+		[Fact]
+		public async Task ClearChatHistory_WhenNotParticipant_ReturnsFailure()
+		{
+			var chatRepoMock = new Mock<IChatRepository>();
+			var userId = 99; 
+			var conversationId = 1;
+			var authContext = new AuthContext { UserId = userId, Role = Role.Person };
 
-            var conversation = new ChatConversation { Id = conversationId, UserAId = Guid.NewGuid(), UserBId = Guid.NewGuid() };
-            chatRepoMock.Setup(r => r.GetConversationByIdAsync(conversationId, It.IsAny<CancellationToken>()))
-                        .ReturnsAsync(conversation);
+			var conversation = new ChatConversation
+			{
+				Id = conversationId,
+				UserAId = 1, 
+				UserBId = 2 
+			};
 
-            var useCase = new ClearChatHistoryUseCase(chatRepoMock.Object);
-            var result = await useCase.ExecuteAsync(new ClearChatHistoryRequest(conversationId), authContext);
+			chatRepoMock.Setup(r => r.GetConversationByIdAsync(conversationId, It.IsAny<CancellationToken>()))
+				.ReturnsAsync(conversation);
 
-            Assert.False(result.IsSuccess);
-            Assert.Equal("Немає доступу до чату.", result.ErrorMessage);
-        }
+			var useCase = new ClearChatHistoryUseCase(chatRepoMock.Object);
+			var result = await useCase.ExecuteAsync(new ClearChatHistoryRequest(conversationId), authContext);
 
-        // 2. ТЕСТИ: DeleteAccountUseCase
-        [Fact]
+			Assert.False(result.IsSuccess);
+			Assert.Equal("Немає доступу до чату.", result.ErrorMessage);
+		}
+
+		// 2. ТЕСТИ: DeleteAccountUseCase
+		[Fact]
         public async Task DeleteAccount_WithCorrectPassword_ReturnsSuccess()
         {
             var userRepoMock = new Mock<IUserRepository>();
             var hasherMock = new Mock<IPasswordHasher>();
-            var userId = Guid.NewGuid();
+            var userId = new int();
             var authContext = new AuthContext { UserId = userId };
             var currentPassword = "myPassword123";
 
@@ -82,7 +89,7 @@ namespace PetSearchHome_WEB.Tests.Application
         {
             var userRepoMock = new Mock<IUserRepository>();
             var hasherMock = new Mock<IPasswordHasher>();
-            var userId = Guid.NewGuid();
+            var userId = new int();
             var authContext = new AuthContext { UserId = userId };
 
             var user = new User { Id = userId, PasswordHash = "hashedPassword" };
@@ -102,7 +109,7 @@ namespace PetSearchHome_WEB.Tests.Application
         {
             var userRepoMock = new Mock<IUserRepository>();
             var hasherMock = new Mock<IPasswordHasher>();
-            var userId = Guid.NewGuid();
+            var userId = new int();
             var authContext = new AuthContext { UserId = userId };
 
             var user = new User { Id = userId, PasswordHash = "oldHash" };
@@ -140,10 +147,10 @@ namespace PetSearchHome_WEB.Tests.Application
             var hasherMock = new Mock<IPasswordHasher>();
             var tokenRepoMock = new Mock<IPasswordResetTokenRepository>();
             var email = "test@domain.com";
-            var userId = Guid.NewGuid();
+            var userId = new int();
 
             var user = new User { Id = userId, Email = email };
-            var resetToken = new PasswordResetToken { Id = Guid.NewGuid(), UserId = userId };
+            var resetToken = new PasswordResetToken { Id = new int(), UserId = userId };
 
             userRepoMock.Setup(r => r.GetByEmailAsync(email, It.IsAny<CancellationToken>())).ReturnsAsync(user);
             tokenRepoMock.Setup(r => r.GetUsableAsync(userId, It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(resetToken);
@@ -178,7 +185,7 @@ namespace PetSearchHome_WEB.Tests.Application
         public async Task GetUserNotifications_WhenAuthorized_ReturnsNotificationList()
         {
             var notifRepoMock = new Mock<INotificationRepository>();
-            var userId = Guid.NewGuid();
+            var userId = new int();
             var authContext = new AuthContext { UserId = userId };
 
             var notifications = new List<Notification>

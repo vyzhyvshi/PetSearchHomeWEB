@@ -40,8 +40,8 @@ namespace PetSearchHome.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("RecipientId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("RecipientId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -344,11 +344,9 @@ namespace PetSearchHome.Infrastructure.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("district");
 
-                    b.Property<Guid>("DomainId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("domain_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                    b.Property<int>("DomainId")
+                        .HasColumnType("integer")
+                        .HasColumnName("domain_id");
 
                     b.Property<bool>("IsUrgent")
                         .ValueGeneratedOnAdd()

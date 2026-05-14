@@ -6,9 +6,9 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Application.Reviews
 {
-    public sealed record LeaveReviewRequest(Guid ReviewedUserId, byte Rating, string Comment, bool HasInteraction);
+    public sealed record LeaveReviewRequest(int ReviewedUserId, byte Rating, string Comment, bool HasInteraction);
 
-    public class LeaveReviewUseCase : IUseCase<LeaveReviewRequest, Guid>
+    public class LeaveReviewUseCase : IUseCase<LeaveReviewRequest, int>
     {
         private readonly IReviewRepository _reviews;
 
@@ -17,7 +17,7 @@ namespace PetSearchHome_WEB.Application.Reviews
             _reviews = reviews;
         }
 
-        public async Task<Guid> ExecuteAsync(LeaveReviewRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<int> ExecuteAsync(LeaveReviewRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (authContext.UserId is null || !ReviewPolicy.CanLeaveReview(authContext.Role, request.HasInteraction))
             {

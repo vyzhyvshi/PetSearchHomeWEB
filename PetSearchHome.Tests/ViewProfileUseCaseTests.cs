@@ -22,11 +22,11 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenUserNotFound_ReturnsFailure()
         {
-            _usersMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            _usersMock.Setup(repo => repo.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((User?)null);
 
-            var request = new ViewProfileRequest(Guid.NewGuid());
-            var authContext = new AuthContext { UserId = Guid.NewGuid(), Role = Role.Person };
+            var request = new ViewProfileRequest(new int());
+            var authContext = new AuthContext { UserId = new int(), Role = Role.Person };
 
             var result = await _useCase.ExecuteAsync(request, authContext);
 
@@ -37,7 +37,7 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenUserFound_ReturnsSuccessWithUser()
         {
-            var userId = Guid.NewGuid();
+            var userId = new int();
             var user = new User { Id = userId, DisplayName = "Іван", Email = "ivan@test.com", Role = Role.Person };
 
             _usersMock.Setup(repo => repo.GetByIdAsync(userId, It.IsAny<CancellationToken>()))

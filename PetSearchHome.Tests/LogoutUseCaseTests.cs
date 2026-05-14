@@ -17,7 +17,7 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_ValidRequest_ReturnsSuccess()
         {
-            var userId = Guid.NewGuid();
+            var userId = new int();
             LogoutRequest request = new(userId);
             AuthContext authContext = new() { UserId = userId, Role = Role.Person };
 

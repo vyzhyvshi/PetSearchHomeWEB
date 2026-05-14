@@ -19,7 +19,7 @@ public class EfPasswordResetTokenRepository : IPasswordResetTokenRepository
     {
         await _db.PasswordResetTokens.AddAsync(new PasswordResetTokenEntity
         {
-            UserId = FromDomainId(token.UserId),
+            UserId = token.UserId,
             TokenHash = token.TokenHash,
             ExpiresAt = token.ExpiresAt.UtcDateTime,
             UsedAt = token.UsedAt?.UtcDateTime,
@@ -28,9 +28,9 @@ public class EfPasswordResetTokenRepository : IPasswordResetTokenRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<PasswordResetToken?> GetUsableAsync(Guid userId, string tokenHash, CancellationToken cancellationToken = default)
+    public async Task<PasswordResetToken?> GetUsableAsync(int userId, string tokenHash, CancellationToken cancellationToken = default)
     {
-        var userKey = FromDomainId(userId);
+        var userKey = userId;
         var now = DateTime.UtcNow;
         var entity = await _db.PasswordResetTokens
             .AsNoTracking()
@@ -42,8 +42,8 @@ public class EfPasswordResetTokenRepository : IPasswordResetTokenRepository
             ? null
             : new PasswordResetToken
             {
-                Id = ToDomainId(entity.PasswordResetTokenId),
-                UserId = ToDomainId(entity.UserId),
+                Id = entity.PasswordResetTokenId,
+                UserId = entity.UserId,
                 TokenHash = entity.TokenHash,
                 ExpiresAt = new DateTimeOffset(DateTime.SpecifyKind(entity.ExpiresAt, DateTimeKind.Utc)),
                 UsedAt = entity.UsedAt.HasValue
@@ -52,9 +52,9 @@ public class EfPasswordResetTokenRepository : IPasswordResetTokenRepository
             };
     }
 
-    public async Task MarkUsedAsync(Guid tokenId, CancellationToken cancellationToken = default)
+    public async Task MarkUsedAsync(int tokenId, CancellationToken cancellationToken = default)
     {
-        var id = FromDomainId(tokenId);
+        var id = tokenId;
         var entity = await _db.PasswordResetTokens.FirstOrDefaultAsync(t => t.PasswordResetTokenId == id, cancellationToken);
         if (entity is null)
         {
@@ -65,17 +65,4 @@ public class EfPasswordResetTokenRepository : IPasswordResetTokenRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    private static Guid ToDomainId(int value)
-    {
-        Span<byte> bytes = stackalloc byte[16];
-        bytes.Clear();
-        BitConverter.TryWriteBytes(bytes, value);
-        return new Guid(bytes);
-    }
-
-    private static int FromDomainId(Guid id)
-    {
-        var bytes = id.ToByteArray();
-        return BitConverter.ToInt32(bytes, 0);
-    }
 }

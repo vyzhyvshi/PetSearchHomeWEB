@@ -1,4 +1,6 @@
-﻿using PetSearchHome.Infrastructure.Gateways;
+﻿using Azure.Identity;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using PetSearchHome.Infrastructure.Gateways;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -31,6 +33,12 @@ builder.Host.UseSerilog((context, configuration) =>
 if (builder.Environment.IsDevelopment())
 {
  builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true);
+}
+
+var keyVaultUri = builder.Configuration["KeyVault:Uri"];
+if (!string.IsNullOrWhiteSpace(keyVaultUri))
+{
+    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
 }
 
 builder.Services.AddControllersWithViews();
@@ -76,9 +84,9 @@ builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
 builder.Services.AddScoped<IChatRepository, EfChatRepository>();
+builder.Services.AddScoped<IReviewRepository, EfReviewRepository>();
 builder.Services.AddScoped<IPasswordResetTokenRepository, EfPasswordResetTokenRepository>();
 builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
-builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
 builder.Services.AddSingleton<IOrgStatsRepository, InMemoryOrgStatsRepository>();
 builder.Services.AddSingleton<ITagRepository, InMemoryTagRepository>();
 builder.Services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
@@ -161,6 +169,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();

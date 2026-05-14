@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Chat
 {
-    public sealed record GetChatThreadRequest(Guid ConversationId);
+    public sealed record GetChatThreadRequest(int ConversationId);
 
     public sealed record ChatThread(ChatConversation Conversation, IReadOnlyList<ChatMessage> Messages, bool IsBlockedByMe, bool IsBlockedByOther);
 

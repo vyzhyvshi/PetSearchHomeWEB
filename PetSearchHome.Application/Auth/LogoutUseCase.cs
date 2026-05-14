@@ -2,7 +2,7 @@ using PetSearchHome_WEB.Application.Shared;
 
 namespace PetSearchHome_WEB.Application.Auth
 {
-    public sealed record LogoutRequest(Guid UserId);
+    public sealed record LogoutRequest(int UserId);
 
     public class LogoutUseCase : IUseCase<LogoutRequest, Result<bool>>
     {

@@ -15,7 +15,7 @@ namespace PetSearchHome_WEB.Infrastructure.Repositories
             _db = db;
         }
 
-        public async Task<IReadOnlyList<Notification>> GetByRecipientIdAsync(Guid recipientId, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<Notification>> GetByRecipientIdAsync(int recipientId, CancellationToken cancellationToken = default)
         {
             return await _db.Notifications
                 .Where(n => n.RecipientId == recipientId)

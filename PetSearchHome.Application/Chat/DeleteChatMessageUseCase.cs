@@ -4,7 +4,7 @@ using PetSearchHome_WEB.Domain.Interfaces;
 
 namespace PetSearchHome_WEB.Application.Chat
 {
-    public sealed record DeleteChatMessageRequest(Guid MessageId);
+    public sealed record DeleteChatMessageRequest(int MessageId);
 
     public class DeleteChatMessageUseCase : IUseCase<DeleteChatMessageRequest, Result<ChatMessage>>
     {

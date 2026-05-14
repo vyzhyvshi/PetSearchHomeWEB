@@ -11,6 +11,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
+    <PackageReference Include="Azure.Identity" Version="1.12.0" />
     <ProjectReference Include="..\PetSearchHome.Domain\PetSearchHome.Domain.csproj" />
     <ProjectReference Include="..\PetSearchHome.Application\PetSearchHome.Application.csproj" />
     <ProjectReference Include="..\PetSearchHome.Infrastructure\PetSearchHome.Infrastructure.csproj" />
@@ -24,7 +26,7 @@
 	<UserSecretsId>b97093b5-7365-470b-849a-1a92f99bd016</UserSecretsId>
   </PropertyGroup>
 
-  <Target Name="BuildAppBundles" BeforeTargets="Build">
+  <Target Name="BuildAppBundles" BeforeTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\tools\build-bundles.ps1&quot; -ProjectDir &quot;$(MSBuildProjectDirectory)&quot;" />
   </Target>
   <ItemGroup>

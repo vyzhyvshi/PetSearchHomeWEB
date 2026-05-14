@@ -34,11 +34,11 @@ namespace PetSearchHome.Tests
         [Fact]
         public async Task ExecuteAsync_WhenUserAuthorized_ReturnsUserListings()
         {
-            var userId = Guid.NewGuid();
+            var userId = new int();
             var expectedListings = new List<PetListing>
             {
-                new PetListing { Id = Guid.NewGuid(), Title = "Мій песик", OwnerId = userId },
-                new PetListing { Id = Guid.NewGuid(), Title = "Моє кошеня", OwnerId = userId }
+                new PetListing { Id = new int(), Title = "Мій песик", OwnerId = userId },
+                new PetListing { Id = new int(), Title = "Моє кошеня", OwnerId = userId }
             };
 
             _listingsMock.Setup(repo => repo.ListByOwnerAsync(userId, It.IsAny<CancellationToken>()))

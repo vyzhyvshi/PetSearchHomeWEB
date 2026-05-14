@@ -4,7 +4,7 @@ namespace PetSearchHome_WEB.Models.Listing
 {
     public class EditListingViewModel
     {
-        public Guid Id { get; set; }
+        public required int Id { get; set; }
 
         [Required(ErrorMessage = "Введіть заголовок оголошення")]
         [MaxLength(100)]
@@ -25,6 +25,6 @@ namespace PetSearchHome_WEB.Models.Listing
         public string? PhotoUrlsText { get; set; }
 
         [Display(Name = "Терміновий пошук")]
-        public bool IsUrgent { get; set; }
+        public required bool IsUrgent { get; set; }
     }
 }

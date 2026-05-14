@@ -28,8 +28,8 @@ namespace PetSearchHome.Tests
 
             List<PetListing> mockDatabaseResult = new()
             {
-                new() { Id = Guid.NewGuid(), Title = "Rocky", AnimalType = "Dog" },
-                new() { Id = Guid.NewGuid(), Title = "Mira", AnimalType = "Cat" }
+                new() { Id = new int(), Title = "Rocky", AnimalType = "Dog" },
+                new() { Id = new int(), Title = "Mira", AnimalType = "Cat" }
             };
 
             _searchGatewayMock

@@ -9,7 +9,7 @@ namespace PetSearchHome.Tests
 {
     public class ChatUseCaseTests
     {
-        private readonly AuthContext _validAuth = new AuthContext { UserId = Guid.NewGuid(), Role = PetSearchHome_WEB.Domain.ValueObjects.Role.Person };
+        private readonly AuthContext _validAuth = new AuthContext { UserId = new int(), Role = PetSearchHome_WEB.Domain.ValueObjects.Role.Person };
         private readonly AuthContext _guestAuth = new AuthContext { UserId = null, Role = PetSearchHome_WEB.Domain.ValueObjects.Role.Guest };
 
         // 1. SendChatMessageUseCase
@@ -18,24 +18,24 @@ namespace PetSearchHome.Tests
         public async Task SendMessage_WhenValid_ReturnsSuccess()
         {
             var chatsMock = new Mock<IChatRepository>();
-            var otherUserId = Guid.NewGuid();
+            var otherUserId = new int();
             var notifRepoMock = new Mock<INotificationRepository>();
 
             var conversation = new ChatConversation
             {
-                Id = Guid.NewGuid(),
+                Id = new int(),
                 UserAId = _validAuth.UserId!.Value,
                 UserBId = otherUserId
             };
 
-            chatsMock.Setup(r => r.GetConversationByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            chatsMock.Setup(r => r.GetConversationByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(conversation);
 
-            chatsMock.Setup(r => r.IsBlockedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            chatsMock.Setup(r => r.IsBlockedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
 
             var useCase = new SendChatMessageUseCase(chatsMock.Object, notifRepoMock.Object);
-            var result = await useCase.ExecuteAsync(new SendChatMessageRequest(Guid.NewGuid(), "Привіт!", "image_url.jpg"), _validAuth);
+            var result = await useCase.ExecuteAsync(new SendChatMessageRequest(new int(), "Привіт!", "image_url.jpg"), _validAuth);
 
             Assert.True(result.IsSuccess);
             chatsMock.Verify(r => r.AddMessageAsync(It.IsAny<ChatMessage>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -45,24 +45,24 @@ namespace PetSearchHome.Tests
         public async Task SendMessage_WhenBlocked_ReturnsFailure()
         {
             var chatsMock = new Mock<IChatRepository>();
-            var otherUserId = Guid.NewGuid();
+            var otherUserId = new int();
             var notifRepoMock = new Mock<INotificationRepository>();
 
             var conversation = new ChatConversation
             {
-                Id = Guid.NewGuid(),
+                Id = new int(),
                 UserAId = _validAuth.UserId!.Value,
                 UserBId = otherUserId
             };
 
-            chatsMock.Setup(r => r.GetConversationByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            chatsMock.Setup(r => r.GetConversationByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(conversation);
 
-            chatsMock.Setup(r => r.IsBlockedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            chatsMock.Setup(r => r.IsBlockedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
             var useCase = new SendChatMessageUseCase(chatsMock.Object, notifRepoMock.Object);
-            var result = await useCase.ExecuteAsync(new SendChatMessageRequest(Guid.NewGuid(), "Привіт!", null), _validAuth);
+            var result = await useCase.ExecuteAsync(new SendChatMessageRequest(new int(), "Привіт!", null), _validAuth);
 
             Assert.False(result.IsSuccess);
             Assert.Contains("заблокований", result.ErrorMessage);
@@ -74,15 +74,15 @@ namespace PetSearchHome.Tests
         public async Task DeleteMessage_WhenSender_ReturnsSuccess()
         {
             var chatsMock = new Mock<IChatRepository>();
-            var conversationId = Guid.NewGuid();
+            var conversationId = new int();
 
-            var message = new ChatMessage { Id = Guid.NewGuid(), SenderId = _validAuth.UserId!.Value, ConversationId = conversationId };
+            var message = new ChatMessage { Id = new int(), SenderId = _validAuth.UserId!.Value, ConversationId = conversationId };
 
             var conversation = new ChatConversation
             {
                 Id = conversationId,
                 UserAId = _validAuth.UserId!.Value,
-                UserBId = Guid.NewGuid()
+                UserBId = new int()
             };
 
             chatsMock.Setup(r => r.GetMessageByIdAsync(message.Id, It.IsAny<CancellationToken>()))
@@ -97,36 +97,36 @@ namespace PetSearchHome.Tests
             chatsMock.Verify(r => r.DeleteMessageAsync(message.Id, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
-        public async Task DeleteMessage_WhenNotSender_ReturnsFailure()
-        {
-            var chatsMock = new Mock<IChatRepository>();
-            var conversationId = Guid.NewGuid();
+		[Fact]
+		public async Task DeleteMessage_WhenNotSender_ReturnsFailure()
+		{
+			var chatsMock = new Mock<IChatRepository>();
+			var conversationId = 1;
 
-            var message = new ChatMessage { Id = Guid.NewGuid(), SenderId = Guid.NewGuid(), ConversationId = conversationId };
+			var message = new ChatMessage { Id = 1, SenderId = 999, ConversationId = conversationId };
 
-            var conversation = new ChatConversation
-            {
-                Id = conversationId,
-                UserAId = _validAuth.UserId!.Value,
-                UserBId = Guid.NewGuid()
-            };
+			var conversation = new ChatConversation
+			{
+				Id = conversationId,
+				UserAId = _validAuth.UserId!.Value,
+				UserBId = 2 
+			};
 
-            chatsMock.Setup(r => r.GetMessageByIdAsync(message.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(message);
-            chatsMock.Setup(r => r.GetConversationByIdAsync(message.ConversationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(conversation);
+			chatsMock.Setup(r => r.GetMessageByIdAsync(message.Id, It.IsAny<CancellationToken>()))
+				.ReturnsAsync(message);
+			chatsMock.Setup(r => r.GetConversationByIdAsync(message.ConversationId, It.IsAny<CancellationToken>()))
+				.ReturnsAsync(conversation);
 
-            var useCase = new DeleteChatMessageUseCase(chatsMock.Object);
-            var result = await useCase.ExecuteAsync(new DeleteChatMessageRequest(message.Id), _validAuth);
+			var useCase = new DeleteChatMessageUseCase(chatsMock.Object);
+			var result = await useCase.ExecuteAsync(new DeleteChatMessageRequest(message.Id), _validAuth);
 
-            Assert.False(result.IsSuccess);
-            Assert.Contains("лише свої", result.ErrorMessage);
-        }
+			Assert.False(result.IsSuccess);
+			Assert.Contains("лише свої", result.ErrorMessage ?? string.Empty);
+		}
 
-        // 3. ListChatConversationsUseCase
+		// 3. ListChatConversationsUseCase
 
-        [Fact]
+		[Fact]
         public async Task ListConversations_WhenAuthorized_ReturnsList()
         {
             var chatsMock = new Mock<IChatRepository>();
@@ -155,7 +155,7 @@ namespace PetSearchHome.Tests
         public async Task EditMessage_WhenAuthor_ReturnsSuccess()
         {
             var chatsMock = new Mock<IChatRepository>();
-            var messageId = Guid.NewGuid();
+            var messageId = new int();
 
             var message = new ChatMessage
             {
@@ -176,49 +176,50 @@ namespace PetSearchHome.Tests
             chatsMock.Verify(r => r.UpdateMessageAsync(message, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        // спроба відредагувати чуже повідомлення.
-        [Fact]
-        public async Task EditMessage_WhenNotAuthor_ReturnsFailure()
-        {
-            var chatsMock = new Mock<IChatRepository>();
-            var messageId = Guid.NewGuid();
+		// спроба відредагувати чуже повідомлення.
+		[Fact]
+		public async Task EditMessage_WhenNotAuthor_ReturnsFailure()
+		{
+			var chatsMock = new Mock<IChatRepository>();
+			var messageId = 1;
 
-            var message = new ChatMessage
-            {
-                Id = messageId,
-                SenderId = Guid.NewGuid(),
-                Content = "Текст іншого юзера"
-            };
+			var message = new ChatMessage
+			{
+				Id = messageId,
+				SenderId = 999, 
+				Content = "Текст іншого юзера"
+			};
 
-            chatsMock.Setup(r => r.GetMessageByIdAsync(messageId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(message);
+			chatsMock.Setup(r => r.GetMessageByIdAsync(messageId, It.IsAny<CancellationToken>()))
+				.ReturnsAsync(message);
 
-            var useCase = new EditChatMessageUseCase(chatsMock.Object);
+			var useCase = new EditChatMessageUseCase(chatsMock.Object);
 
-            var result = await useCase.ExecuteAsync(new EditChatMessageRequest(messageId, "Спроба злому"), _validAuth);
+			var result = await useCase.ExecuteAsync(new EditChatMessageRequest(messageId, "Спроба злому"), _validAuth);
 
-            Assert.False(result.IsSuccess);
-            Assert.Contains("лише свої", result.ErrorMessage);
-            chatsMock.Verify(r => r.UpdateMessageAsync(It.IsAny<ChatMessage>(), It.IsAny<CancellationToken>()), Times.Never);
-        }
+			Assert.False(result.IsSuccess);
+			Assert.Contains("лише свої", result.ErrorMessage ?? string.Empty);
+			chatsMock.Verify(r => r.UpdateMessageAsync(It.IsAny<ChatMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+		}
 
 
-        // 5. BlockChatUserUseCase
+		// 5. BlockChatUserUseCase
 
-        [Fact]
-        public async Task BlockUser_WhenValid_ReturnsSuccess()
-        {
-            var chatsMock = new Mock<IChatRepository>();
-            var useCase = new BlockChatUserUseCase(chatsMock.Object);
+		[Fact]
+		public async Task BlockUser_WhenValid_ReturnsSuccess()
+		{
+			var chatsMock = new Mock<IChatRepository>();
+			var useCase = new BlockChatUserUseCase(chatsMock.Object);
 
-            var targetUserId = Guid.NewGuid();
-            var result = await useCase.ExecuteAsync(new BlockChatUserRequest(targetUserId), _validAuth);
+			var targetUserId = 999; 
 
-            Assert.True(result.IsSuccess);
-            chatsMock.Verify(r => r.SetBlockedAsync(_validAuth.UserId!.Value, targetUserId, true, It.IsAny<CancellationToken>()), Times.Once);
-        }
+			var result = await useCase.ExecuteAsync(new BlockChatUserRequest(targetUserId), _validAuth);
 
-        [Fact]
+			Assert.True(result.IsSuccess);
+			chatsMock.Verify(r => r.SetBlockedAsync(_validAuth.UserId!.Value, targetUserId, true, It.IsAny<CancellationToken>()), Times.Once);
+		}
+
+		[Fact]
         public async Task BlockUser_WhenTargetIsSelf_ReturnsFailure()
         {
             var useCase = new BlockChatUserUseCase(new Mock<IChatRepository>().Object);

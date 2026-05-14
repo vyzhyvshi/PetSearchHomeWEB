@@ -5,7 +5,7 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Application.Profiles
 {
-    public sealed record UpdateProfileRequest(Guid UserId, string DisplayName);
+    public sealed record UpdateProfileRequest(int UserId, string DisplayName);
 
     public class UpdateProfileUseCase : IUseCase<UpdateProfileRequest, bool>
     {

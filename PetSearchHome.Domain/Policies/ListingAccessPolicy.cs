@@ -9,7 +9,7 @@ namespace PetSearchHome_WEB.Domain.Policies
             return role == Role.Person || role == Role.Shelter || role == Role.Admin;
         }
 
-        public static bool CanManage(Role role, Guid ownerId, Guid? actorId)
+        public static bool CanManage(Role role, int ownerId, int? actorId)
         {
             if (role == Role.Admin)
             {

@@ -5,9 +5,9 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 
 namespace PetSearchHome_WEB.Application.Moderation
 {
-    public sealed record SubmitUserComplaintRequest(Guid TargetUserId, string Reason);
+    public sealed record SubmitUserComplaintRequest(int TargetUserId, string Reason);
 
-    public class SubmitUserComplaintUseCase : IUseCase<SubmitUserComplaintRequest, Result<Guid>>
+    public class SubmitUserComplaintUseCase : IUseCase<SubmitUserComplaintRequest, Result<int>>
     {
         private readonly IComplaintRepository _complaints;
         private readonly IUserRepository _users;
@@ -23,27 +23,26 @@ namespace PetSearchHome_WEB.Application.Moderation
             _audit = audit;
         }
 
-        public async Task<Result<Guid>> ExecuteAsync(SubmitUserComplaintRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
+        public async Task<Result<int>> ExecuteAsync(SubmitUserComplaintRequest request, AuthContext authContext, CancellationToken cancellationToken = default)
         {
             if (authContext.UserId is null)
             {
-                return Result.Failure<Guid>("Необхідна авторизація.");
+                return Result.Failure<int>("Необхідна авторизація.");
             }
 
             if (authContext.UserId.Value == request.TargetUserId)
             {
-                return Result.Failure<Guid>("Не можна надсилати скаргу на власний профіль.");
+                return Result.Failure<int>("Не можна надсилати скаргу на власний профіль.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Reason))
             {
-                return Result.Failure<Guid>("Причина скарги є обов'язковою.");
+                return Result.Failure<int>("Причина скарги є обов'язковою.");
             }
 
-            var targetUser = await _users.GetByIdAsync(request.TargetUserId, cancellationToken);
-            if (targetUser is null)
+            var targetUser = await _users.GetByIdAsync(request.TargetUserId, cancellationToken); if (targetUser is null)
             {
-                return Result.Failure<Guid>("Користувача не знайдено.");
+                return Result.Failure<int>("Користувача не знайдено.");
             }
 
             Complaint complaint = new()
@@ -57,7 +56,7 @@ namespace PetSearchHome_WEB.Application.Moderation
             };
 
             await _complaints.AddAsync(complaint, cancellationToken);
-            await _audit.RecordAsync("submit_user_complaint", authContext.UserId.Value, complaint.Id.ToString(), cancellationToken);
+            await _audit.RecordAsync("submit_user_complaint", authContext.UserId.Value, complaint.Id.ToString(System.Globalization.CultureInfo.InvariantCulture), cancellationToken);
 
             return complaint.Id;
         }

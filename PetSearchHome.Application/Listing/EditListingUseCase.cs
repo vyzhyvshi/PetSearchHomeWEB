@@ -6,7 +6,7 @@ using PetSearchHome_WEB.Domain.ValueObjects;
 namespace PetSearchHome_WEB.Application.Listing
 {
     public sealed record EditListingRequest(
-        Guid ListingId,
+        int ListingId,
         string Title,
         string AnimalType,
         string Location,

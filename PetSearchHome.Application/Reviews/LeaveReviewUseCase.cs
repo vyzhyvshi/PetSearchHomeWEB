@@ -36,8 +36,8 @@ namespace PetSearchHome_WEB.Application.Reviews
 
             var review = new Review
             {
-                ReviewedUserId = 2,
-                AuthorId = 1,
+                ReviewedUserId = request.ReviewedUserId,
+                AuthorId = authContext.UserId.Value,
                 Rating = request.Rating,
                 Comment = request.Comment,
                 CreatedAt = DateTimeOffset.UtcNow

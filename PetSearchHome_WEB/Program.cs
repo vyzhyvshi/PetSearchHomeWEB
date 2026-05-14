@@ -84,9 +84,9 @@ builder.Services.AddScoped<IAuditLogGateway, AuditLogGateway>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
 builder.Services.AddScoped<IChatRepository, EfChatRepository>();
+builder.Services.AddScoped<IReviewRepository, EfReviewRepository>();
 builder.Services.AddScoped<IPasswordResetTokenRepository, EfPasswordResetTokenRepository>();
 builder.Services.AddSingleton<IShelterRepository, InMemoryShelterRepository>();
-builder.Services.AddSingleton<IReviewRepository, InMemoryReviewRepository>();
 builder.Services.AddSingleton<IOrgStatsRepository, InMemoryOrgStatsRepository>();
 builder.Services.AddSingleton<ITagRepository, InMemoryTagRepository>();
 builder.Services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
@@ -169,6 +169,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();

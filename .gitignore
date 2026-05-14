@@ -3,3 +3,4 @@ bin/
 obj/
 *.user
 *.suo
+PetSearchHome_WEB/wwwroot/uploads/

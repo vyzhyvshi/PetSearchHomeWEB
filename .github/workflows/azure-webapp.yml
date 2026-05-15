@@ -2,9 +2,7 @@ name: Build, Test, and Deploy to Azure Web App
 
 on:
   push:
-    branches: [ "upgrade-ui" ]
-  pull_request:
-    branches: [ "upgrade-ui" ]
+    branches: [ "main" ]
 
 jobs:
   build-test-deploy:

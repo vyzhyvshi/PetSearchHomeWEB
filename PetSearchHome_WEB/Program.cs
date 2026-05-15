@@ -36,9 +36,9 @@ if (builder.Environment.IsDevelopment())
 }
 
 var keyVaultUri = builder.Configuration["KeyVault:Uri"];
-if (!string.IsNullOrWhiteSpace(keyVaultUri))
+if (Uri.TryCreate(keyVaultUri, UriKind.Absolute, out var keyVaultEndpoint))
 {
-    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
+    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 }
 
 builder.Services.AddControllersWithViews();
